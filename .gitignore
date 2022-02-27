@@ -1,0 +1,6 @@
+/.cpcache/
+/.nrepl-port
+/evolduo.db
+
+*.iml
+*.idea/

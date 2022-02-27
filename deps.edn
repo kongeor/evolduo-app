@@ -1,0 +1,15 @@
+{:paths ["src" "resources"]
+ :deps
+ {ring/ring-core {:mvn/version "1.9.5"},
+  ring/ring-jetty-adapter {:mvn/version "1.9.5"}
+  selmer/selmer {:mvn/version "1.12.50"}
+  seancorfield/next.jdbc {:mvn/version "1.2.659"}
+  org.xerial/sqlite-jdbc {:mvn/version "3.36.0.2"}
+  metosin/reitit-ring {:mvn/version "0.5.15"}
+  metosin/reitit-middleware {:mvn/version "0.5.5"}
+  integrant/integrant {:mvn/version "0.8.0"}
+  dev.weavejester/ragtime {:mvn/version "0.9.1"}}
+ :aliases
+ {:dev {:extra-paths ["dev"]
+        :extra-deps {integrant/repl {:mvn/version "0.3.2"}}}
+  :server {:main-opts ["-m" "evolduo-app.system"]}}}
