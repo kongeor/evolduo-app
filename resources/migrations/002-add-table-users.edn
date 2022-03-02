@@ -1,0 +1,7 @@
+;; resources/migrations/001-add-table-users.edn
+{:up   ["CREATE TABLE user (id INTEGER PRIMARY KEY,
+                            email varchar(255) NOT NULL UNIQUE,
+                            salt varchar(64),
+                            password varchar(2000)
+                        );"]
+ :down ["DROP TABLE user;"]}

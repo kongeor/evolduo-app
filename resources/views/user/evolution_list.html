@@ -1,0 +1,47 @@
+<table border="0" cellspacing="0">
+	<col width="40" />
+	<thead>
+		<tr>
+			<th>Id</th>
+			<th>Created At</th>
+			<th>Public</th>
+			<th>Min Ratings</th>
+			<th>initial Iterations</th>
+			<th>Crossover Rate</th>
+			<th>Mutation Rate</th>
+			<th>Key</th>
+			<th>Pattern</th>
+			<th>Tempo</th>
+			<th>User</th>
+		</tr>
+	</thead>
+	<tbody>
+        {% if evolutions|empty? %}
+            <tr><td colspan="5">No users exist but <a href="/user/form">new ones can be added</a>.</td></tr>
+        {% else %}
+            {% for evolution in evolutions %}
+                <tr>
+					<td>{{evolution.evolution/id}}</td>
+					<td>{{evolution.evolution/created_at}}</td>
+					<td>{{evolution.evolution/public}}</td>
+					<td>{{evolution.evolution/min_ratings}}</td>
+					<td>{{evolution.evolution/initial_iterations}}</td>
+					<td>{{evolution.evolution/crossover_rate}}</td>
+					<td>{{evolution.evolution/mutation_rate}}</td>
+					<td>{{evolution.evolution/key}}</td>
+					<td>{{evolution.evolution/pattern}}</td>
+					<td>{{evolution.evolution/tempo}}</td>
+					<td>{{evolution.evolution/user_id}}</td>
+<!--			        <td><a href="/user/form/{{user.addressbook/id}}">{{user.addressbook/id}}</a></td>-->
+<!--			        <td class="name">-->
+<!--                        <a href="/user/form/{{user.addressbook/id}}">{{user.addressbook/last_name}},-->
+<!--                          {{user.addressbook/first_name}}</a>-->
+<!--                    </td>-->
+<!--			        <td class="email">{{user.addressbook/email}}</td>-->
+<!--			        <td class="department">{{user.department/name}}</td>-->
+<!--			        <td class="delete"><a href="/user/delete/{{user.addressbook/id}}">DELETE</a></td>-->
+		        </tr>
+            {% endfor %}
+        {% endif %}
+	</tbody>
+</table>

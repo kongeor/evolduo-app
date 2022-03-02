@@ -29,9 +29,12 @@
   (assoc-in req [:params :message] "The change tracker has been reset."))
 
 (defn default [req]
-  (assoc-in req [:params :message]
-            (str "Welcome to the User Manager application demo! "
-                 "This uses just Reitit, Ring, and Selmer.")))
+  (let [session (:session req)]
+    (println "current session" session)
+    (assoc-in req [:params :message]
+      (str "Welcome to the User Manager application demo! "
+        "This uses just Reitit, Ring, and Selmer."
+        "Current user " (:user/id session)))))
 
 (defn get-users
   "Render the list view with all the users in the addressbook."

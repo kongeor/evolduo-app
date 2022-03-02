@@ -59,7 +59,6 @@ create table addressbook (
       (catch Exception e
         (println "Exception:" (ex-message e))
         (println "Looks like the database is already setup?")))))
-
 (defn get-users
   "Return all available users, sorted by name.
 

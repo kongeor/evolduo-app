@@ -1,0 +1,68 @@
+<h3>New Evolution</h3>
+<form class="familiar medium" method="post" action="/evolution/save">
+
+	<input type="hidden" name="id" id="id"
+				 value="{{evolution/id}}"/>
+
+	<div class="field">
+		<label for="public" class="label">Public</label>
+		<input type="checkbox" name="public" id="public"
+			   value="true" checked />
+	</div>
+
+	<div class="field">
+		<label for="min_ratings" class="label">Min Ratings</label>
+		<input type="number" name="min_ratings" id="min_ratings"
+			   value="{{evolution.evolution/min_ratings}}" min="1"/>
+	</div>
+
+	<div class="field">
+		<label for="initial_iterations" class="label">Initial Iterations</label>
+		<input type="number" name="initial_iterations" id="initial_iterations"
+			   value="{{evolution.evolution/initial_iterations}}" min="0" max="20" />
+	</div>
+
+	<div class="field">
+		<label for="total_iterations" class="label">Total Iterations</label>
+		<input type="number" name="total_iterations" id="total_iterations"
+			   value="{{evolution.evolution/total_iterations}}" min="0" max="100" />
+	</div>
+
+	<div class="field">
+		<label for="crossover_rate" class="label">Crossover Rate</label>
+		<input type="number" name="crossover_rate" id="crossover_rate"
+			   value="{{evolution.evolution/crossover_rate}}" min="0" max="100" />
+	</div>
+
+	<div class="field">
+		<label for="mutation_rate" class="label">Mutation Rate</label>
+		<input type="number" name="mutation_rate" id="mutation_rate"
+			   value="{{evolution/mutation_rate}}" min="0" max="100" />
+	</div>
+
+	<div class="field">
+		<label for="key" class="label">Key</label>
+		<select name="key" id="key">
+			<option value="C">C</option>
+			<option value="C#">C#</option>
+		</select>
+	</div>
+
+	<div class="field">
+		<label for="pattern" class="label">Pattern</label>
+		<select name="pattern" id="pattern">
+			<option value="I-IV-V-I">I-IV-V-I</option>
+		</select>
+	</div>
+
+	<div class="field">
+		<label for="tempo" class="label">Tempo</label>
+		<input type="number" name="tempo" id="tempo"
+			   value="{{evolution.evolution/tempo}}" min="40" max="240" />
+	</div>
+
+	<div class="control">
+		<input type="submit" value="Create"/>
+	</div>
+
+</form>

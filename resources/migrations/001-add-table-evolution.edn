@@ -1,5 +1,5 @@
 ;; resources/migrations/001-add-table-evolution.edn
-{:up   ["CREATE TABLE evolution (id bigint PRIMARY KEY,
+{:up   ["CREATE TABLE evolution (id INTEGER PRIMARY KEY,
                         created_at timestamp NOT NULL,
                         public bool NOT NULL,
                         min_ratings int NOT NULL,

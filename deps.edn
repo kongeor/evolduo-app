@@ -8,7 +8,10 @@
   metosin/reitit-ring {:mvn/version "0.5.15"}
   metosin/reitit-middleware {:mvn/version "0.5.5"}
   integrant/integrant {:mvn/version "0.8.0"}
-  dev.weavejester/ragtime {:mvn/version "0.9.1"}}
+  dev.weavejester/ragtime {:mvn/version "0.9.1"}
+  hiccup/hiccup {:mvn/version "1.0.5"}
+  crypto-password/crypto-password {:mvn/version "0.3.0"}
+  crypto-random/crypto-random {:mvn/version "1.2.0"}}
  :aliases
  {:dev {:extra-paths ["dev"]
         :extra-deps {integrant/repl {:mvn/version "0.3.2"}}}

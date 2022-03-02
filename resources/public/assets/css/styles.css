@@ -14,7 +14,7 @@ hr {display: none;}
 body, input, select, textarea, table {font-family: "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif; font-size: 100%;}
 body {font: 75%/1.5em "Helvetica Neue", Helvetica, Arial, Geneva, sans-serif; text-align: center;}
 /* html > body {font-size: 12px;} explicitly state font size in px for smarter, px resizable browsers */
-#container {margin: 0 auto 3em auto; text-align: left; width: 600px;}
+#container {margin: 0 auto 3em auto; text-align: left; width: 1100px;}
 #header {}
 #navigation ul {padding: 0 2px 0 0;}
 #navigation ul li a {font-weight: bold; padding: 11px 8px 14px 8px;}
