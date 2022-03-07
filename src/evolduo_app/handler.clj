@@ -1,12 +1,17 @@
 (ns evolduo-app.handler
-  (:require [reitit.ring :as ring]
+  (:require [compojure.route :as route]
+            [compojure.core :refer [defroutes GET POST ANY]]
+            [reitit.ring :as ring]
             [reitit.ring.middleware.parameters :as parameters]
             [ring.util.response :as resp]
             [evolduo-app.controllers.user :as user-ctl]
             [evolduo-app.controllers.user2 :as user2-ctl]
             [evolduo-app.controllers.evolution :as evolution-ctl]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
-            [ring.middleware.session :refer [wrap-session]]))
+            [ring.middleware.session :refer [wrap-session]]
+            [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
+            [ring.middleware.params :refer [wrap-params]]
+            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]))
 
 (defn my-middleware
   "This middleware runs for every request and can execute before/after logic.
@@ -27,7 +32,31 @@
                 (fn [req]
                   (handler (assoc req :db db)))))})
 
+(defn wrap-db [handler db]
+  (fn [req]
+    (handler (assoc req :db db))))
+
+(defn wrap-exception [handler]
+  (fn [request]
+    (try (handler request)
+         (catch Exception e
+           #_(taoensso.timbre/fatal e)
+           {:status 500
+            :body "Oh no! :'("}))))
+
+(defroutes routes
+  (GET "/" [] user2-ctl/home)
+  (GET "/user/login" [] user2-ctl/login)
+  (POST "/user/login" [] user2-ctl/login-user-handler)
+  (route/not-found "404"))
+
 (defn app [db]
+  (-> routes
+    (wrap-db db)
+    (wrap-defaults site-defaults)
+    wrap-exception))
+
+(defn app' [db]
   (ring/ring-handler
     (ring/router
       [["/" {:handler user-ctl/default}]
@@ -54,10 +83,13 @@
               :middleware [my-middleware
                            parameters/parameters-middleware
                            wrap-keyword-params
+                           wrap-params
                            middleware-db]}})
     (ring/routes
       (ring/create-resource-handler
         {:path "/"})
       (ring/create-default-handler
         {:not-found (constantly {:status 404 :body "Not found"})}))
-    {:middleware [wrap-session]}))                          ;; https://github.com/metosin/reitit/issues/205
+    {:middleware [wrap-anti-forgery
+                  wrap-session ;; https://github.com/metosin/reitit/issues/205
+                  ]}))

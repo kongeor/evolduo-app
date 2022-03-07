@@ -1,5 +1,7 @@
 (ns evolduo-app.controllers.user2
   (:require [ring.util.response :as resp]
+            [ring.middleware.anti-forgery :as anti-forgery]
+            [ring.util.anti-forgery :as af-util]
             [hiccup.core :as hiccup]
             [crypto.random :as rnd]
             [crypto.password.pbkdf2 :as password]
@@ -18,9 +20,12 @@
      [:div.container
       content]]]])
 
+#_(af-util/anti-forgery-field)
+
 (defn login-view []
   (base-view
     [:form {:action "/user/login" :method "post"}
+     [:input {:type "hidden" :id"__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
      [:div.field
       [:label.label "Email"]
       [:div.control
@@ -35,11 +40,24 @@
       [:div.control
        [:button.button.is-link.is-light "Cancel"]]]]))
 
+;; TODO move
+
+(defn- home-view [user-id]
+  (base-view [:h2 (str "Hi! " user-id)]))
+
+(defn home
+  [req]
+  (let [session (:session req)
+        user-id (:user/id session)]
+    (-> (resp/response (hiccup/html (home-view user-id)))
+      (resp/content-type "text/html"))))
+
 (defn login
   "Display the add/edit form."
   [req]
   (let [db (:db req)]
-    (resp/response (hiccup/html (login-view)))))
+    (-> (resp/response (hiccup/html (login-view)))
+      (resp/content-type "text/html"))))
 
 (defn create-user [db email pass]
   (let [salt (rnd/hex 32)
@@ -62,7 +80,7 @@
         email (-> req :params :email)
         password (-> req :params :password)
         session (:session req)]
-    (println "ZZZZZZ" session)
+    (println "ZZZZZZ" req)
     (if-let [user (login-user db email password)]
       (let [session' (assoc session :user/id (:user/id user))]
         (println "session'" session')
