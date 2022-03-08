@@ -36,7 +36,7 @@ select e.*
   [db evolution]
   (let [id (:id evolution)]
     (println "**" db evolution)
-    #_(sql/insert! db :evolution evolution)
+    (sql/insert! db :evolution evolution)
     #_(if (and id (not (zero? id)))
       (sql/update! db :addressbook
         (dissoc user :addressbook/id)

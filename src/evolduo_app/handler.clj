@@ -48,6 +48,9 @@
   (GET "/" [] user2-ctl/home)
   (GET "/user/login" [] user2-ctl/login)
   (POST "/user/login" [] user2-ctl/login-user-handler)
+  (GET "/evolution/form" [] evolution-ctl/edit)
+  (POST "/evolution/save" [] evolution-ctl/save)
+  (GET "/evolution/list" [] evolution-ctl/list)
   (route/not-found "404"))
 
 (defn app [db]
