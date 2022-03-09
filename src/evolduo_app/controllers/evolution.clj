@@ -1,6 +1,8 @@
 (ns evolduo-app.controllers.evolution
   (:require [evolduo-app.model.evolution-manager :as model]
             [evolduo-app.views.evolution :as evolution-views]
+            [evolduo-app.schemas :as schemas]
+            [clojure.walk :as walk]
             [ring.util.response :as resp]
             [hiccup.core :as hiccup]))
 
@@ -39,32 +41,19 @@
 
 (defn save
   [req]
-  #_(-> req
-    :params
-    (select-keys [:id :first_name :last_name :email :department_id])
-    (update :id #(some-> % not-empty Long/parseLong))
-    (partial model/save-evolution (:db req)))
-  (println "params!" (:params req))
-  (println "*!*" (-> req :params (select-keys [:id :public :min_ratings
-                                               :initial_iterations
-                                               :total_iterations
-                                               :crossover_rate
-                                               :mutation_rate
-                                               :key
-                                               :pattern
-                                               :tempo
-                                               :user_id])))
-  (let [evolution {:id                 nil
-                   :created_at         (java.util.Date.)
-                   :public             true
-                   :min_ratings        false
-                   :initial_iterations 10
-                   :total_iterations   20
-                   :crossover_rate     30
-                   :mutation_rate      5
-                   :key                "C"
-                   :pattern            "I-IV-V-I"
-                   :tempo              80
-                   :user_id            1}]
-    (model/save-evolution (:db req) evolution))
-  (resp/redirect "/evolution/list"))
+  (let [user-id (-> req :session :user/id)
+        data (-> req :params (select-keys [:public
+                                           :min_ratings
+                                           :initial_iterations
+                                           :total_iterations
+                                           :crossover_rate
+                                           :mutation_rate
+                                           :key
+                                           :pattern
+                                           :tempo]))
+        sanitized-data (:data (schemas/decode-and-validate-evolution data))
+        evolution (merge sanitized-data
+                    {:created_at (java.util.Date.)
+                     :user_id user-id})]
+    (model/save-evolution (:db req) evolution)
+  (resp/redirect "/evolution/list")))

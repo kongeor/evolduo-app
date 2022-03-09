@@ -40,7 +40,7 @@
       [:div.field
        [:label.label {:for "crossover_rate"} "Crossover Rate"]
        [:div.control
-        [:input.input {:type "number" :name "crossover_rate" :value (:evolution.evolution/crossover_rate evolution) :min "0" :max "100"}]]]
+        [:input.input {:type "number" :name "crossover_rate" :value (:evolution/crossover_rate evolution) :min "0" :max "100"}]]]
       [:div.field
        [:label.label {:for "mutation_rate"} "Mutation Rate"]
        [:div.control
