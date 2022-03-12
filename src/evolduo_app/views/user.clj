@@ -2,8 +2,9 @@
   (:require [evolduo-app.views.common :refer [base-view]]
             [ring.middleware.anti-forgery :as anti-forgery]))
 
-(defn login-view []
+(defn login-view [req]
   (base-view
+    req
     [:form {:action "/user/login" :method "post"}
      [:input {:type "hidden" :id "__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
      [:div.field

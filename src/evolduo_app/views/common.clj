@@ -1,6 +1,6 @@
 (ns evolduo-app.views.common)
 
-(defn- navbar []
+(defn- navbar [req]
   [:nav.navbar {:role "navigation" :aria-label "main navigation"}
    [:div.navbar-brand
     [:a.navbar-item {:href "/"}
@@ -18,9 +18,20 @@
       [:div.buttons
        [:a.button.is-primary
         [:strong "Sign up"]]
-       [:a.button.is-light {:href "/user/login"} "Log in"]]]]]])
+       (do
+         (println "user?" (-> req ))
+         (if (-> req :session :user/id)
+           [:a.button.is-light {:href "/user/logout"} "Log out"]
+           [:a.button.is-light {:href "/user/login"} "Log in"]))]]]]])
 
-(defn base-view [content]
+(defn- notification [req]
+  (when req
+    (when-let [flash (:flash req)]
+      [:div {:class (str "notification " (str "is-" (name (:type flash))))}
+       (:message flash)])))
+
+(defn base-view
+  [req content]
   [:html
    [:head
     [:meta {:charset "utf-8"}]
@@ -30,8 +41,9 @@
    [:body
     [:section.section
      [:div.container
-      (navbar)
+      (navbar req)
+      (notification req)
       content]]]])
 
-(defn home-view [user-id]
-  (base-view [:h2 (str "Hi! " user-id)]))
+(defn home-view [req user-id]
+  (base-view req [:h2 (str "Hi! " user-id)]))

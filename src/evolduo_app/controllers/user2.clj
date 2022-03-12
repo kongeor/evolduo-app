@@ -14,14 +14,14 @@
   [req]
   (let [session (:session req)
         user-id (:user/id session)]
-    (-> (resp/response (hiccup/html (common-views/home-view user-id)))
+    (-> (resp/response (hiccup/html (common-views/home-view req user-id)))
       (resp/content-type "text/html"))))
 
 (defn login
   "Display the add/edit form."
   [req]
   (let [db (:db req)]
-    (-> (resp/response (hiccup/html (user-views/login-view)))
+    (-> (resp/response (hiccup/html (user-views/login-view req)))
       (resp/content-type "text/html"))))
 
 (defn create-user [db email pass]

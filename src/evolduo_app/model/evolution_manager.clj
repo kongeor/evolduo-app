@@ -16,7 +16,7 @@
           (.getObject rs i)))
       rsm i)))
 
-(def sqlite-builder (rs/builder-adapter rs/as-maps sqlite-column-by-index-fn))
+(def sqlite-builder (rs/builder-adapter rs/as-unqualified-maps sqlite-column-by-index-fn))
 ;;
 
 (defn get-evolution-by-id
@@ -31,6 +31,9 @@
 select e.*
  from evolution e
 "] {:builder-fn sqlite-builder}))
+
+(comment
+  (get-evolutions (:database.sql/connection integrant.repl.state/system)))
 
 (defn save-evolution
   [db evolution]

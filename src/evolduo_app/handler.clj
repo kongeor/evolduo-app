@@ -1,6 +1,7 @@
 (ns evolduo-app.handler
   (:require [compojure.route :as route]
             [compojure.core :refer [defroutes GET POST ANY]]
+            [clojure.tools.logging :as log]
             [reitit.ring :as ring]
             [reitit.ring.middleware.parameters :as parameters]
             [ring.util.response :as resp]
@@ -40,6 +41,7 @@
   (fn [request]
     (try (handler request)
          (catch Exception e
+           (log/error e)
            #_(taoensso.timbre/fatal e)
            {:status 500
             :body "Oh no! :'("}))))
