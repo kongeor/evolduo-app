@@ -1,14 +1,13 @@
 ;; resources/migrations/003-add-all-the-things.edn
 {:up   ["CREATE TABLE iteration (id INTEGER PRIMARY KEY,
                                  created_at TIMESTAMP NOT NULL,
-                                 public BOOL NOT NULL,
                                  num INT NOT NULL,
                                  evolution_id INTEGER REFERENCES evolution(id)
                                 );"
         "CREATE TABLE chromosome (id INTEGER PRIMARY KEY,
                                   created_at TIMESTAMP NOT NULL,
                                   fitness INT BOOL NOT NULL,
-                                  genes TEXT NOT NULL,
+                                  genes BLOB NOT NULL,
                                   abc TEXT NOT NULL,
                                   iteration_id INTEGER REFERENCES iteration(id)
                                  );"
