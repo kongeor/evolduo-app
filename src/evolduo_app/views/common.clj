@@ -20,7 +20,6 @@
        [:a.button.is-primary
         [:strong "Sign up"]]
        (do
-         (println "user?" (-> req ))
          (if (-> req :session :user/id)
            [:a.button.is-light {:href "/user/logout"} "Log out"]
            [:a.button.is-light {:href "/user/login"} "Log in"]))]]]]])

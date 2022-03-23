@@ -242,10 +242,10 @@
 ;; chords
 
 (defn gen-chord [{:keys [key mode duration degree]}]
-  (let [root-note (+ (key->int-note key) degree)
+  (let [root-note (key->int-note key)
         scale-notes (intervals* (mode->nums mode))
-        chord-notes (map #(+ root-note (nth scale-notes %)) [0 2 4])]
-    (println "chord notes" chord-notes)
+        chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) [0 2 4 6])]
+    (println "chord notes" degree chord-notes)
     (str "[" (string/join (map str (map abc-note-map chord-notes) (repeat duration))) "]")
     ))
 
@@ -258,17 +258,14 @@
               "IV" 3
               "V" 4})
 
-(defn pattern->offsets [mode pattern]
-  (let [scale-notes (mode->nums mode)]
-    (map #(->> %
-            degrees
-            scale-notes) (string/split pattern #"-"))))
+(defn pattern->degrees [mode pattern]
+  (map degrees (string/split pattern #"-")))
 
 (comment
   (pattern->offsets :major "I-IV-V-I"))
 
 (defn gen-chord-progression [{:keys [key mode duration pattern]}]
-  (let [dgs (pattern->offsets mode pattern)
+  (let [dgs (pattern->degrees mode pattern)
         chords (map #(gen-chord {:key key :mode mode :duration duration :degree %}) dgs)]
     (string/join " | " chords)))
 
