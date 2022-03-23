@@ -3,8 +3,25 @@
 
 (def measure-sixteens 16)
 
-(def major-intervals [0 2 4 5 7 9 11 12])
-(def minor-intervals [0 2 3 5 7 8 10 12])
+(def major-intervals [0 2 4 5 7 9 11])
+(def minor-intervals [0 2 3 5 7 8 10])
+
+;; not useful
+(defn intervals* [intervals]
+  (apply concat
+    (map (fn [i]
+           (map (partial + (* i 12)) intervals)) (iterate inc 0))))
+
+(defn ->abc-key [key mode]
+  (if (= mode :minor)
+    (str key "m")
+    key))
+
+(comment
+  (nth (intervals* major-intervals) 100))
+
+(comment
+  ((intervals* major-intervals) 100))                       ;; don't eval this
 
 (def abc-note-map
   {-1 "z"
@@ -38,7 +55,7 @@
    75 "^d"
    76 "e"
    77 "f"
-   78 "^F"
+   78 "^f"
    79 "g"
    80 "^g"
    81 "a"
@@ -226,13 +243,14 @@
 
 (defn gen-chord [{:keys [key mode duration degree]}]
   (let [root-note (+ (key->int-note key) degree)
-        scale-notes (mode->nums mode)
-        chord-notes (map #(+ root-note (scale-notes %)) [0 2 4 6])]
+        scale-notes (intervals* (mode->nums mode))
+        chord-notes (map #(+ root-note (nth scale-notes %)) [0 2 4])]
+    (println "chord notes" chord-notes)
     (str "[" (string/join (map str (map abc-note-map chord-notes) (repeat duration))) "]")
     ))
 
 (comment
-  (gen-chord {:key "C" :mode :major :duration 8}))
+  (gen-chord {:key "C" :mode :major :duration 8 :degree 0}))
 
 (def degrees {"I" 0
               "II" 1
@@ -257,5 +275,15 @@
 
 (comment
   (gen-chord-progression {:key "C" :mode :major :duration 8 :pattern "I-IV-V-I"}))
+
+(defn progression->abc [{:keys [key mode pattern] :as data}]
+  (str
+    "X:1\\n"
+    "K:" (->abc-key key mode) "\\n"
+    (str "| " (gen-chord-progression {:key key :mode mode :duration 8 :pattern pattern})
+      "|")))
+
+(comment
+  (progression->abc {:key "C" :pattern "I-IV"}))
 
 #_(mode->nums :major)

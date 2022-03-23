@@ -8,6 +8,7 @@
             [evolduo-app.controllers.user :as user-ctl]
             [evolduo-app.controllers.user2 :as user2-ctl]
             [evolduo-app.controllers.evolution :as evolution-ctl]
+            [evolduo-app.controllers.explorer :as explorer-ctl]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
@@ -53,6 +54,7 @@
   (GET "/evolution/form" [] evolution-ctl/edit)
   (POST "/evolution/save" [] evolution-ctl/save)
   (GET "/evolution/list" [] evolution-ctl/list)
+  (GET "/explorer" [] explorer-ctl/explorer)
   (route/not-found "404"))
 
 (defn app [db]

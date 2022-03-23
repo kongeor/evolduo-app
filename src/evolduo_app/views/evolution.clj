@@ -1,16 +1,7 @@
 (ns evolduo-app.views.evolution
   (:require [evolduo-app.views.common :refer [base-view]]
+            [evolduo-app.views.components :as comps]
             [ring.middleware.anti-forgery :as anti-forgery]))
-
-;; TODO move
-(def music-keys ["C" "C#" "D"])
-
-(defn- keys-select [evolution]
-  [:select {:name "key"}
-   (for [k music-keys]
-     [:option (merge {:value k}
-                (when (= k (:key evolution))
-                  {:selected true})) k])])
 
 (defn evolution-form [req {:keys [evolution errors] :as content}]
   (base-view
@@ -50,7 +41,7 @@
        [:label.label {:for "key"} "Key"]
        [:div.control
         [:div.select
-         (keys-select evolution)]]
+         (comps/keys-select (:key evolution))]]
        (when-let [key-errors (:key errors)]
          [:p.help.is-danger (first key-errors)])]
       [:div.field

@@ -12,7 +12,8 @@
    [:div#navbarBasicExample.navbar-menu
     [:div.navbar-start
      [:a.navbar-item {:href "/evolution/form"} "New Evolution"]
-     [:a.navbar-item {:href "/evolution/list"} "Evolutions"]]
+     [:a.navbar-item {:href "/evolution/list"} "Evolutions"]
+     [:a.navbar-item {:href "/explorer"} "Explorer"]]
     [:div.navbar-end
      [:div.navbar-item
       [:div.buttons
@@ -31,19 +32,29 @@
        (:message flash)])))
 
 (defn base-view
-  [req content]
+  [req content & {:keys [enable-abc? custom-script body-load-hook]}]
   [:html
    [:head
     [:meta {:charset "utf-8"}]
     [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
     [:title "Hello Bulma!"]
     [:link {:rel "stylesheet" :href "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"}]]
-   [:body
+   [:body (when body-load-hook {:onload body-load-hook})
     [:section.section
      [:div.container
       (navbar req)
       (notification req)
-      content]]]])
+      content]]
+    (when custom-script
+      [:script {:type "text/javascript"}
+       custom-script])
+    (when enable-abc?
+      [:div
+       [:script {:type "text/javascript"
+                 :src  "https://cdn.jsdelivr.net/npm/abcjs@6.0.2/dist/abcjs-basic-min.js"}]
+       [:script {:type "text/javascript"
+                 :src  "js/abc-player.js"}]])
+    ]])
 
 (defn home-view [req user-id]
   (base-view req [:h2 (str "Hi! " user-id)]))
