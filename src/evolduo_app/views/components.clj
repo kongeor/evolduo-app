@@ -1,4 +1,5 @@
-(ns evolduo-app.views.components)
+(ns evolduo-app.views.components
+  (:require [evolduo-app.music :as music]))
 
 ;; TODO refer from music
 (def music-keys ["A" "A#" "B" "C" "C#" "D" "D#" "E" "F" "F#" "G" "G#"])
@@ -17,3 +18,10 @@
      [:option (merge {:value m}
                 (when (= m mode)
                   {:selected true})) m])])
+
+(defn pattern-select [pattern]
+  [:select {:name "pattern"}
+   (for [p music/patterns]
+     [:option (merge {:value p}
+                (when (= p pattern)
+                  {:selected true})) p])])

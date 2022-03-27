@@ -6,6 +6,9 @@
 (def major-intervals [0 2 4 5 7 9 11])
 (def minor-intervals [0 2 3 5 7 8 10])
 
+(def patterns ["I-IV-V-I"
+               "I-II-VI-I"])
+
 ;; not useful
 (defn intervals* [intervals]
   (apply concat
@@ -256,7 +259,9 @@
               "II" 1
               "III" 2
               "IV" 3
-              "V" 4})
+              "V" 4
+              "VI" 5
+              "VII" 6})
 
 (defn pattern->degrees [mode pattern]
   (map degrees (string/split pattern #"-")))
@@ -284,3 +289,17 @@
   (progression->abc {:key "C" :pattern "I-IV"}))
 
 #_(mode->nums :major)
+
+(defn ->abc-track
+  [{:keys [key mode pattern]} {:keys [genes]}]
+  (str
+    "X:1\\n"
+    "K:" (->abc-key key mode) "\\n"
+    "V:V1 clef=treble \\n"
+    "V:V2 clef=bass \\n"
+    (str "[V:V1] " (chromo->abc genes) "\\n")
+    (str "[V:V2] | " (gen-chord-progression {:key key :mode mode :duration 8 :pattern pattern})
+      "|")))
+
+(comment
+  (->abc-track {:key "C" :mode :major :duration 8 :pattern "I-IV-V-I"} {:genes c}))

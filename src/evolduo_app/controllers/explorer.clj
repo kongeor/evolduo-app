@@ -12,7 +12,8 @@
   [req]
   (let [{:keys [key mode pattern]} (-> req :params)
         abc (when (and key pattern)
-              (music/progression->abc {:key key :mode (keyword mode) :pattern pattern}))]
+              (music/->abc-track {:key key :mode (keyword mode) :pattern pattern}
+                {:genes music/c}))]
     (println abc)
     (-> (resp/response (hiccup/html (explorer-views/explorer req :abc abc)))
       (resp/content-type "text/html"))))

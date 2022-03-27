@@ -27,8 +27,7 @@
          [:div.field
           [:div.control
            [:div.select
-            [:select {:name "pattern"}
-             [:option {:value "I-IV-V-I"} "I-IV-V-I"]]]]]
+            (comps/pattern-select pattern)]]]
          [:div.control
           [:input.button.is-link {:type "submit" :value "Create"}]]
          ]]
