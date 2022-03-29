@@ -3,7 +3,7 @@
             [evolduo-app.views.components :as comps]
             [ring.middleware.anti-forgery :as anti-forgery]))
 
-(defn explorer [req & {:keys [abc]}]
+(defn explorer [req & {:keys [abc] :as track}]
   (let [{:keys [key mode pattern]} (-> req :params)]
     (base-view
       req
@@ -31,17 +31,12 @@
          [:div.control
           [:input.button.is-link {:type "submit" :value "Create"}]]
          ]]
-       [:div#paper]
        (when (some? abc)
-         [:div.buttons
-          [:button.button.is-primary.activate-audio "Play"]
-          [:button.button.is-light.stop-audio "Stop"]
-          [:div.suspend-explanation]
-          [:div#start-measure]
-          [:div#end-measure]
-          ])
+         [:div
+          (comps/abc-track {:id 1 :abc abc})
+          (comps/abc-track {:id 2 :abc abc})])
        ]
       :enable-abc? (some? abc)
-      :custom-script (str "var abc = \"" abc "\";")
+      ; :custom-script (str "var abc = \"" abc "\";")
       :body-load-hook "load()"
       )))
