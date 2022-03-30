@@ -1,5 +1,6 @@
 (ns evolduo-app.model.evolution-manager
   (:require [next.jdbc.sql :as sql]
+            [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
             [clojure.string :as string])
   (:import (java.sql ResultSet ResultSetMetaData)))
@@ -15,6 +16,11 @@
       (->> (string/split s'' #" ")
         (map #(Integer/parseInt %))))))
 
+(defn sql-insert! [db table key-map]
+  (let [res (sql/insert! db table key-map)
+        id ((keyword "last_insert_rowid()") res)]
+    {:id id}))
+
 (comment
   (blob->int-vec "[1 2 3]"))
 
@@ -23,7 +29,6 @@
   (let [rsm ^ResultSetMetaData (:rsmeta builder)]
     (rs/read-column-by-index
       (let [col-type (.getColumnTypeName rsm i)]
-        (println "***" col-type)
         (case col-type
           "BOOL" (.getBoolean rs i)
           "TIMESTAMP" (.getTimestamp rs i)
@@ -50,17 +55,22 @@ select e.*
 (comment
   (get-evolutions (:database.sql/connection integrant.repl.state/system)))
 
+(def sample-chromo {:created_at (java.util.Date.)
+                    :fitness 42
+                    :genes [1 2 3 4 5 -2 -2]
+                    :abc "C C C"
+                    :iteration_id -1})
+
 (defn save-evolution
   [db evolution]
-  (let [id (:id evolution)]
-    (println "**" db evolution)
-    (sql/insert! db :evolution evolution)
-    #_(if (and id (not (zero? id)))
-      (sql/update! db :addressbook
-        (dissoc user :addressbook/id)
-        {:id id})
-      (sql/insert! db :addressbook
-        (dissoc user :addressbook/id)))))
+  (jdbc/with-transaction [tx db]
+    (let [evol-insert (sql-insert! tx :evolution evolution)
+          iter-insert (sql-insert! tx :iteration {:created_at (java.util.Date.)
+                                                  :num 0
+                                                  :evolution_id (:id evol-insert)})]
+      (doall
+        (map #(sql-insert! tx :chromosome
+                (assoc % :iteration_id (:id iter-insert))) (repeat 2 sample-chromo))))))
 
 
 (comment
@@ -88,4 +98,8 @@ select e.*
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
-    (sql/query db ["select id, created_at from chromosome"] {:builder-fn sqlite-builder})))
+    (sql/query db ["select * from chromosome"] {:builder-fn sqlite-builder})))
+
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    (sql/query db ["select * from iteration"] {:builder-fn sqlite-builder})))
