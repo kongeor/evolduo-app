@@ -52,6 +52,7 @@
                                            :crossover_rate
                                            :mutation_rate
                                            :key
+                                           :mode
                                            :pattern
                                            :tempo]))
         sanitized-data (schemas/decode-and-validate-evolution data)]
@@ -68,3 +69,22 @@
         (assoc
           (resp/redirect "/evolution/list")
           :flash {:type :info :message "Great success!"})))))
+
+(defn render-html [handler req data]
+  (-> (resp/response (hiccup/html (handler req data)))
+    (resp/content-type "text/html")))
+
+(defn render-404 []
+  (-> (resp/not-found (hiccup/html [:h1 "oops"]))
+    (resp/content-type "text/html")))
+
+(defn detail
+  [req]
+  (let [id (-> req :params :id)
+        db (:db req)]
+    (if-let [evolution (model/get-evolution-by-id db id)]
+      (let [iteration-id (model/find-last-iteration-id-for-evolution db (:id evolution))
+            chromosomes (model/find-iteration-chromosomes db iteration-id)]
+        (render-html evolution-views/evolution-detail req {:evolution evolution
+                                                           :chromosomes chromosomes}))
+      (render-404))))

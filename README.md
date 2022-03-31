@@ -10,6 +10,7 @@
 - [ ] Moar modes and chord patterns.
 - [ ] Upvote/Downvote a track
 - [ ] Add missing fields: Evolution(abc pattern, evolve after, mode), Chromosome(version)
+- [ ] Limits
 - [ ] Add background task to evolve tracks
 - [ ] Indexes, indexes, indexes
 - [ ] Mails and templates

@@ -54,6 +54,7 @@
   (GET "/evolution/form" [] evolution-ctl/edit)
   (POST "/evolution/save" [] evolution-ctl/save)
   (GET "/evolution/list" [] evolution-ctl/list)
+  (GET "/evolution/:id{[0-9]+}" [] evolution-ctl/detail)
   (GET "/explorer" [] explorer-ctl/explorer)
   (route/not-found "404"))
 

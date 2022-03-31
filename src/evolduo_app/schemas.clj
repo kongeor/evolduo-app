@@ -1,10 +1,8 @@
 (ns evolduo-app.schemas
   (:require [malli.core :as m]
             [malli.transform :as mt]
-            [malli.error :as me]))
-
-(def music-keys #{"C" "D"})
-(def patterns #{"I-IV-V-I"})
+            [malli.error :as me]
+            [evolduo-app.music :as music]))
 
 
 (def Evolution
@@ -15,8 +13,9 @@
    [:total_iterations int?]
    [:crossover_rate int?]
    [:mutation_rate int?]
-   [:key (vec (cons :enum music-keys))]
-   [:pattern (vec (cons :enum patterns))]
+   [:mode (vec (cons :enum music/modes))]
+   [:key (vec (cons :enum music/music-keys))]
+   [:pattern (vec (cons :enum music/patterns))]
    [:tempo int?]])
 
 (def example-evolution {:min_ratings        "5"

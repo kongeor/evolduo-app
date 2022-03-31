@@ -2,7 +2,8 @@
   (:require [next.jdbc.sql :as sql]
             [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [evolduo-app.music :as music])
   (:import (java.sql ResultSet ResultSetMetaData)))
 
 ;; util
@@ -42,7 +43,7 @@
 (defn get-evolution-by-id
   "Given an evolution ID, return the evolution record."
   [db id]
-  (sql/get-by-id db :evolution id))
+  (sql/get-by-id db :evolution id {:builder-fn sqlite-builder}))
 
 (defn get-evolutions
   [db]
@@ -70,8 +71,30 @@ select e.*
                                                   :evolution_id (:id evol-insert)})]
       (doall
         (map #(sql-insert! tx :chromosome
-                (assoc % :iteration_id (:id iter-insert))) (repeat 2 sample-chromo))))))
+                (let [{:keys [key mode pattern]} evolution
+                      ;; TODO use strings instead
+                      genes (music/random-track {:key key :measures 4 :mode (keyword mode)})
+                      abc (music/->abc-track {:key key :mode (keyword mode) :pattern pattern}
+                            {:genes genes})
+                      ]
+                  (assoc % :iteration_id (:id iter-insert)
+                           :genes genes
+                           :abc abc))) (repeat 2 sample-chromo))))))
 
+(defn find-last-iteration-id-for-evolution [db evolution-id]
+  ;; TODO fix
+  (first (vals (first (sql/query db ["select max(id) from iteration where evolution_id = ?" evolution-id])))))
+
+(defn find-iteration-chromosomes [db iteration-id]
+  (sql/find-by-keys db :chromosome {:iteration_id iteration-id} {:builder-fn sqlite-builder}))
+
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    (find-last-iteration-for-evolution db 1)))
+
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    (find-iteration-chromosomes db 1)))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]

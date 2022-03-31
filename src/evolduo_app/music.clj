@@ -3,6 +3,10 @@
 
 (def measure-sixteens 16)
 
+(def music-keys ["A" "A#" "B" "C" "C#" "D" "D#" "E" "F" "F#" "G" "G#"])
+
+(def modes ["major" "minor"])
+
 (def major-intervals [0 2 4 5 7 9 11])
 (def minor-intervals [0 2 3 5 7 8 10])
 
@@ -238,6 +242,16 @@
         scale-notes (mode->nums mode)]
     (take (* 16 measures) (mapcat (fn [iv] [(+ root-note iv) -2 -2 -2]) (cycle scale-notes)))))
 
+(defn random-track [{:keys [key measures mode]}]
+  (let [root-note (key->int-note key)
+        scale-notes (mode->nums mode)
+        ;; one day this will be much more intelligent
+        scale-notes* (apply concat (repeat 10 scale-notes))]
+    (take (* 16 measures) (mapcat (fn [iv] [(+ root-note iv) -2 -2 -2]) (shuffle scale-notes*)))))
+
+(comment
+  (random-track {:key "C" :measures 4 :mode :major}))
+
 (comment
   (let [key "C"]
     (->abc {:id "foo" :key key :genes (gen-track {:key key :measures 4 :mode :minor})})))
@@ -247,7 +261,7 @@
 (defn gen-chord [{:keys [key mode duration degree]}]
   (let [root-note (key->int-note key)
         scale-notes (intervals* (mode->nums mode))
-        chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) [0 2 4 6])]
+        chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) [0 2 4 #_6])]
     (println "chord notes" degree chord-notes)
     (str "[" (string/join (map str (map abc-note-map chord-notes) (repeat duration))) "]")
     ))

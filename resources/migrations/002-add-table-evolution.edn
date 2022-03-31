@@ -8,6 +8,7 @@
                                  crossover_rate INT NOT NULL,
                                  mutation_rate INT NOT NULL,
                                  key VARCHAR(2) NOT NULL,
+                                 mode VARCHAR(50) NOT NULL,
                                  pattern VARCHAR(20) NOT NULL,
                                  tempo INT NOT NULL,
                                  user_id INTEGER DEFAULT 0 REFERENCES users(id) ON DELETE SET DEFAULT

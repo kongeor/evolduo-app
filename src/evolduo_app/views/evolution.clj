@@ -45,6 +45,13 @@
        (when-let [key-errors (:key errors)]
          [:p.help.is-danger (first key-errors)])]
       [:div.field
+       [:label.label {:for "mode"} "mode"]
+       [:div.control
+        [:div.select
+         (comps/mode-select (:mode evolution))]]
+       (when-let [key-errors (:mode errors)]
+         [:p.help.is-danger (first key-errors)])]
+      [:div.field
        [:label.label {:for "pattern"} "Pattern"]
        [:div.control
         [:div.select
@@ -77,7 +84,7 @@
      [:tbody
       (for [e evolutions]
         [:tr
-         [:td (:id e)]
+         [:td [:a {:href (str "/evolution/" (:id e))} (:id e)]]
          [:td (:created_at e)]
          [:td (:public e)]
          [:td (:min_ratings e)]
@@ -88,3 +95,14 @@
          [:td (:pattern e)]
          [:td (:tempo e)]
          [:td (:user_id e)]])]]))
+
+(defn evolution-detail [req {:keys [evolution chromosomes]}]
+  (base-view
+    req
+    [:h2 (str "Evolution #" (:id evolution))
+     [:div
+      (for [c chromosomes]
+        (comps/abc-track c))]]
+    :enable-abc? true
+    :body-load-hook "load()"
+    ))
