@@ -43,7 +43,10 @@ function load_abc(id) {
 
                 synth.init({
                     audioContext: audioContext,
-                    visualObj: visualObj
+                    visualObj: visualObj,
+                    options: {
+                        program: 4
+                    }
                 }).then(function () {
                     timingCallbacks = new ABCJS.TimingCallbacks(visualObj, {
                         beatCallback: window["cursorControl-" + id].onBeat,

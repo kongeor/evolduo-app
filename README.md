@@ -3,6 +3,8 @@
 ## The road to alpha
 
 - [ ] Explorer chord construction
+- [ ] Repetitions
+- [ ] Instrument 
 - [ ] Logging config
 - [ ] Generate a random chromosome based on mode and pattern
 - [ ] Show the list of chromosomes per evolution iteration
@@ -25,3 +27,13 @@
 ## Bugs
 
 - [ ] Evolution can be created without a user
+- [ ] Tempo not taken into account
+- [ ] Sharps/Flats/Naturals
+- [ ] A 7 chord out of range
+
+## Questions
+
+- [ ] Initial evolution not needed
+- [ ] Pop sizes
+- [ ] Rating policies
+

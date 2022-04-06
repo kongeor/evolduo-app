@@ -22,6 +22,13 @@
                 (when (= p pattern)
                   {:selected true})) p])])
 
+(defn chord-select [chord]
+  [:select {:name "chord"}
+   (for [c music/chord-intervals-keys]
+     [:option (merge {:value c}
+                (when (= c chord)
+                  {:selected true})) c])])
+
 ;;
 (defn abc-track [{:keys [id abc]}]
   (let [abc-id (str "abc_" id)

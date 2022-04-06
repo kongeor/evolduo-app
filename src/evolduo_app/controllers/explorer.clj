@@ -10,10 +10,14 @@
 
 (defn explorer
   [req]
-  (let [{:keys [key mode pattern]} (-> req :params)
+  ;; TODO validate
+  (let [{:keys [key mode pattern chord tempo]} (-> req :params)
         abc (when (and key pattern)
-              (music/->abc-track {:key key :mode (keyword mode) :pattern pattern}
-                {:genes music/c}))]
+              (music/->abc-track {:key key :mode (keyword mode)
+                                  :pattern pattern :chord chord
+                                  :tempo tempo}
+                {:genes (music/random-track {:key  key :measures 4
+                                             :mode (keyword mode)})}))]
     (println abc)
     (-> (resp/response (hiccup/html (explorer-views/explorer req :abc abc)))
       (resp/content-type "text/html"))))

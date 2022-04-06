@@ -71,10 +71,11 @@ select e.*
                                                   :evolution_id (:id evol-insert)})]
       (doall
         (map #(sql-insert! tx :chromosome
-                (let [{:keys [key mode pattern]} evolution
+                (let [{:keys [key mode pattern chord tempo]} evolution
                       ;; TODO use strings instead
                       genes (music/random-track {:key key :measures 4 :mode (keyword mode)})
-                      abc (music/->abc-track {:key key :mode (keyword mode) :pattern pattern}
+                      abc (music/->abc-track {:key key :mode (keyword mode) :pattern pattern
+                                              :chord chord :tempo tempo}
                             {:genes genes})
                       ]
                   (assoc % :iteration_id (:id iter-insert)

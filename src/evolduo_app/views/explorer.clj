@@ -4,7 +4,7 @@
             [ring.middleware.anti-forgery :as anti-forgery]))
 
 (defn explorer [req & {:keys [abc] :as track}]
-  (let [{:keys [key mode pattern]} (-> req :params)]
+  (let [{:keys [key mode pattern chord tempo]} (-> req :params)]
     (base-view
       req
       [:div
@@ -28,6 +28,17 @@
           [:div.control
            [:div.select
             (comps/pattern-select pattern)]]]
+         [:div.field-label.is-normal
+          [:label.label {:for "chord"} "Chord Intervals"]]
+         [:div.field
+          [:div.control
+           [:div.select
+            (comps/chord-select chord)]]]
+         [:div.field-label.is-normal
+          [:label.label {:for "tempo"} "Tempo"]]
+         [:div.field
+          [:div.control
+           [:input.input {:type "number" :name "tempo" :value tempo :min "40" :max "240"}]]]
          [:div.control
           [:input.button.is-link {:type "submit" :value "Create"}]]
          ]]

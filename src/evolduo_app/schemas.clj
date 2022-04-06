@@ -16,6 +16,7 @@
    [:mode (vec (cons :enum music/modes))]
    [:key (vec (cons :enum music/music-keys))]
    [:pattern (vec (cons :enum music/patterns))]
+   [:chord (vec (cons :enum music/chord-intervals-keys))]
    [:tempo int?]])
 
 (def example-evolution {:min_ratings        "5"
@@ -28,7 +29,7 @@
                         :tempo              60})
 
 (comment
-  (m/explain Evolution example-evolution))
+  (me/humanize (m/explain Evolution example-evolution)))
 
 (comment
   (m/decode Evolution {:public      "true"

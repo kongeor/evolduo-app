@@ -23,7 +23,8 @@
                       :mutation_rate      5
                       :key                "D"
                       :pattern            "I-IV-V-I"
-                      :tempo              60})]
+                      :chord              "R + 3 + 3"
+                      :tempo              70})]
      (-> (resp/response (hiccup/html (evolution-views/evolution-form req {:evolution evolution
                                                                           :errors errors})))
        (resp/content-type "text/html")))))
@@ -54,6 +55,7 @@
                                            :key
                                            :mode
                                            :pattern
+                                           :chord
                                            :tempo]))
         sanitized-data (schemas/decode-and-validate-evolution data)]
     (log/info "sanitized" sanitized-data)

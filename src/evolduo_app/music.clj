@@ -5,13 +5,24 @@
 
 (def music-keys ["A" "A#" "B" "C" "C#" "D" "D#" "E" "F" "F#" "G" "G#"])
 
-(def modes ["major" "minor"])
+(def modes ["major" "minor" "dorian"])
 
 (def major-intervals [0 2 4 5 7 9 11])
 (def minor-intervals [0 2 3 5 7 8 10])
 
+(def dorian-intervals [0 2 3 5 7 9 10])
+
 (def patterns ["I-IV-V-I"
-               "I-II-VI-I"])
+               "I-II-VI-I"
+               "I-IV-I-IV"])
+
+(def chord-intervals [["R" [0]]
+                      ["R + 5 + R" [0 4 7]]
+                      ["R + 3 + 3" [0 2 4]]
+                      ["R + 3 + 3 + 3" [0 2 4 6]]])
+
+(def chord-intervals-keys (mapv first chord-intervals))
+(def chord-intervals-map (reduce conj {} chord-intervals))
 
 ;; not useful
 (defn intervals* [intervals]
@@ -20,7 +31,8 @@
            (map (partial + (* i 12)) intervals)) (iterate inc 0))))
 
 (defn ->abc-key [key mode]
-  (if (= mode :minor)
+  (println "abc key " key mode)
+  (if (#{:minor :dorian} mode)                               ;; TODO
     (str key "m")
     key))
 
@@ -235,7 +247,8 @@
 (defn mode->nums [m]
   (case m
     :major major-intervals
-    :minor minor-intervals))
+    :minor minor-intervals
+    :dorian dorian-intervals))
 
 (defn gen-track [{:keys [key measures mode]}]
   (let [root-note (key->int-note key)
@@ -258,10 +271,10 @@
 
 ;; chords
 
-(defn gen-chord [{:keys [key mode duration degree]}]
+(defn gen-chord [{:keys [key mode duration degree chord]}]
   (let [root-note (key->int-note key)
         scale-notes (intervals* (mode->nums mode))
-        chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) [0 2 4 #_6])]
+        chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) (get chord-intervals-map chord [0 2 4]))]
     (println "chord notes" degree chord-notes)
     (str "[" (string/join (map str (map abc-note-map chord-notes) (repeat duration))) "]")
     ))
@@ -283,9 +296,10 @@
 (comment
   (pattern->offsets :major "I-IV-V-I"))
 
-(defn gen-chord-progression [{:keys [key mode duration pattern]}]
+(defn gen-chord-progression [{:keys [key mode duration pattern chord]}]
   (let [dgs (pattern->degrees mode pattern)
-        chords (map #(gen-chord {:key key :mode mode :duration duration :degree %}) dgs)]
+        chords (map #(gen-chord {:key key :mode mode :duration duration
+                                 :chord chord :degree %}) dgs)]
     (string/join " | " chords)))
 
 
@@ -304,15 +318,22 @@
 
 #_(mode->nums :major)
 
+(comment
+  (->abc-key "C" :dorian)
+  )
+
 (defn ->abc-track
-  [{:keys [key mode pattern]} {:keys [genes]}]
+  [{:keys [key mode pattern chord tempo]} {:keys [genes]}]
   (str
     "X:1\\n"
     "K:" (->abc-key key mode) "\\n"
+    "Q:" tempo "\\n"
     "V:V1 clef=treble \\n"
     "V:V2 clef=bass \\n"
     (str "[V:V1] " (chromo->abc genes) "\\n")
-    (str "[V:V2] | " (gen-chord-progression {:key key :mode mode :duration 8 :pattern pattern})
+    (str "[V:V2] | " (gen-chord-progression {:key key :mode mode
+                                             :chord chord
+                                             :duration 8 :pattern pattern})
       "|")))
 
 (comment

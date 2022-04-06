@@ -45,7 +45,7 @@
        (when-let [key-errors (:key errors)]
          [:p.help.is-danger (first key-errors)])]
       [:div.field
-       [:label.label {:for "mode"} "mode"]
+       [:label.label {:for "mode"} "Mode"]
        [:div.control
         [:div.select
          (comps/mode-select (:mode evolution))]]
@@ -55,8 +55,12 @@
        [:label.label {:for "pattern"} "Pattern"]
        [:div.control
         [:div.select
-         [:select {:name "pattern"}
-          [:option {:value "I-IV-V-I"} "I-IV-V-I"]]]]]
+         (comps/pattern-select (:pattern evolution))]]]
+      [:div.field
+       [:label.label {:for "chord"} "Chord Intervals"]
+       [:div.control
+        [:div.select
+         (comps/chord-select (:chord evolution))]]]
       [:div.field
        [:label.label {:for "tempo"} "Tempo"]
        [:div.control
