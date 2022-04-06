@@ -271,6 +271,24 @@
 
 ;; chords
 
+(defn describe-chord [[i1 i2 i3 i4]]
+  (let [r (abc-note-map i1)
+        d1 (- i2 i1)
+        d1s (condp = d1
+              4 ""
+              3 "m")
+        d3 (when i4
+             (- i4 i1))
+        d3s (if d3
+              (condp = d3
+                11 "maj7"                                   ;; fix with minor
+                10 "7")
+              "")]
+    (str r d1s d3s)))
+
+(comment
+  (describe-chord [60 64 67 71]))
+
 (defn gen-chord [{:keys [key mode duration degree chord]}]
   (let [root-note (key->int-note key)
         scale-notes (intervals* (mode->nums mode))
