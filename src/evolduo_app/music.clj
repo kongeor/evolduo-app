@@ -14,7 +14,10 @@
 
 (def patterns ["I-IV-V-I"
                "I-II-VI-I"
-               "I-IV-I-IV"])
+               "I-IV-I-IV"
+               "I-I-VII-I"
+               "I-II-III-IV-V-VI-VII-I"
+               ])
 
 (def chord-intervals [["R" [0]]
                       ["R + 5 + R" [0 4 7]]
@@ -41,6 +44,9 @@
 
 (comment
   ((intervals* major-intervals) 100))                       ;; don't eval this
+
+(def notes ["C" "C#" "D" "D#" "E" "F"
+            "F#" "G" "G#" "A" "A#" "B"])
 
 (def abc-note-map
   {-1 "z"
@@ -136,8 +142,10 @@
     (map note->abc)
     (clojure.string/join " ")))
 
-(defn chromo->abc [chromo]
-  (clojure.string/join " | " (map measure->abc (chromo->measures chromo))))
+(defn chromo->abc [chromo chord-names]
+  (let [measures (chromo->measures chromo)]
+    (println "**" chord-names measures)
+    (clojure.string/join " | " (map #(str "\\\"" %2 "\\\" " (measure->abc %)) measures chord-names))))
 
 (def c1 [60 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2
          62 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2
@@ -271,34 +279,50 @@
 
 ;; chords
 
-(defn describe-chord [[i1 i2 i3 i4]]
-  (let [r (abc-note-map i1)
-        d1 (- i2 i1)
-        d1s (condp = d1
-              4 ""
-              3 "m")
-        d3 (when i4
-             (- i4 i1))
-        d3s (if d3
-              (condp = d3
-                11 "maj7"                                   ;; fix with minor
-                10 "7")
-              "")]
-    (str r d1s d3s)))
+(defn chord-intervals [[r & rs]]
+  (reduce #(conj % (- %2 r)) #{0} rs))
+
+(def chords
+  {#{0 4 7}    ""
+   #{0 3 7}    "m"
+   #{0 3 6}    "dim"
+   #{0 4 7 10} "7"
+   #{0 3 7 10} "m7"
+   #{0 4 7 11} "Maj7"
+   #{0 3 7 11} "m(Maj7)"
+   #{0 3 6 10} "dim7"
+   #{0 3 6 11} "dim(Maj7)"
+   })
+
+(defn chord->str [[root :as chord]]
+  (let [r (notes (mod root 12))
+        chord-ivs (chord-intervals chord)
+        _ (println chord-ivs)
+        chord-str (chords chord-ivs)]
+    (str r chord-str)))
 
 (comment
-  (describe-chord [60 64 67 71]))
+  (chord->str [60 63 67])
+  #_(chord->str [60 64 67 71])
+  )
 
 (defn gen-chord [{:keys [key mode duration degree chord]}]
   (let [root-note (key->int-note key)
         scale-notes (intervals* (mode->nums mode))
-        chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) (get chord-intervals-map chord [0 2 4]))]
-    (println "chord notes" degree chord-notes)
-    (str "[" (string/join (map str (map abc-note-map chord-notes) (repeat duration))) "]")
+        chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) (get chord-intervals-map chord [0 2 4]))
+        chord-str (chord->str chord-notes)]
+    (str "\\\"" chord-str "\\\" [ "  (string/join (map str (map abc-note-map chord-notes) (repeat duration))) "]")
     ))
 
+(defn gen-chord-2 [{:keys [key mode duration degree chord]}] ;; yey and also, check duration
+  (let [root-note (key->int-note key)
+        scale-notes (intervals* (mode->nums mode))
+        chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) (get chord-intervals-map chord [0 2 4]))]
+    (println "!!!" chord-notes chord)
+    (chord->str chord-notes)))
+
 (comment
-  (gen-chord {:key "C" :mode :major :duration 8 :degree 0}))
+  (gen-chord-2 {:key "C" :mode :major :duration 8 :degree 0 :chord "R + 3 + 3 + 3"}))
 
 (def degrees {"I" 0
               "II" 1
@@ -320,6 +344,13 @@
                                  :chord chord :degree %}) dgs)]
     (string/join " | " chords)))
 
+(defn gen-chord-names [{:keys [key mode duration pattern chord] :as settings}]
+  (println ">>> " settings)
+  (let [dgs (pattern->degrees mode pattern)]
+    (map #(gen-chord-2 (merge settings {:degree %})) dgs)))
+
+(comment
+  (gen-chord-names {:key "C" :mode :major :duration 8 :pattern "I-IV-V-I"}))
 
 (comment
   (gen-chord-progression {:key "C" :mode :major :duration 8 :pattern "I-IV-V-I"}))
@@ -341,18 +372,19 @@
   )
 
 (defn ->abc-track
-  [{:keys [key mode pattern chord tempo]} {:keys [genes]}]
-  (str
-    "X:1\\n"
-    "K:" (->abc-key key mode) "\\n"
-    "Q:" tempo "\\n"
-    "V:V1 clef=treble \\n"
-    "V:V2 clef=bass \\n"
-    (str "[V:V1] " (chromo->abc genes) "\\n")
-    (str "[V:V2] | " (gen-chord-progression {:key key :mode mode
-                                             :chord chord
-                                             :duration 8 :pattern pattern})
-      "|")))
+  [{:keys [key mode pattern chord tempo] :as settings} {:keys [genes]}]
+  (let [chord-names (gen-chord-names settings)]
+    (str
+      "X:1\\n"
+      "K:" (->abc-key key mode) "\\n"
+      "Q:" tempo "\\n"
+      "V:V1 clef=treble \\n"
+      ; "V:V2 clef=bass \\n"
+      (str "[V:V1] | " (chromo->abc genes chord-names) " | \\n")
+      #_(str "[V:V2] | " (gen-chord-progression {:key key :mode mode
+                                                 :chord chord
+                                                 :duration 8 :pattern pattern})
+          "|"))))
 
 (comment
-  (->abc-track {:key "C" :mode :major :duration 8 :pattern "I-IV-V-I"} {:genes c}))
+  (->abc-track {:key "C" :mode :major :duration 8 :pattern "I-IV-V-I" :chord "R + 3 + 3 + 3"} {:genes c}))

@@ -35,16 +35,23 @@
         abc-activate (str "activate-audio-" id)
         abc-stop (str "stop-audio-" id)
         abc-start-measure-id (str "start-measure-" id)
-        abc-end-measure-id (str "end-measure-" id)]
+        abc-end-measure-id (str "end-measure-" id)
+        audio-id (str "audio-" id)
+        download-midi-id (str "download-midi-" id)
+        download-wav-id (str "download-wav-" id)
+        ]
     [:div
      [:script {:type "text/javascript"}
       (str "var " abc-id " = \"" abc "\";")]
      [:div.abc-track {:style "display: none"} id]
      [:h3.title.is-size-3 (str "#" id)]
      [:div {:id abc-id}]
+     [:div {:id audio-id}]
      [:div.buttons
       [:button.button.is-primary {:class abc-activate} "Play"]
       [:button.button.is-light {:class abc-stop} "Stop"]
+      [:button.button.is-light {:class download-midi-id} "Get Midi"]
+      [:button.button.is-light {:class download-wav-id} "Get Wav"]
       #_[:div.suspend-explanation]
       [:div {:id abc-start-measure-id}]
       [:div {:id abc-end-measure-id}]

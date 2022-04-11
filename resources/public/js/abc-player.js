@@ -8,6 +8,10 @@ function load_abc(id) {
     var endMeasure;
     var timingCallbacks;
 
+    var synthControl;
+    var cursorControl = window["cursorControl-" + id];
+
+
     // First draw the music - this supplies an object that has a lot of information about how to create the synth.
     // NOTE: If you want just the sound without showing the music, use "*" instead of "paper" in the renderAbc call.
     var visualObj = ABCJS.renderAbc("abc_" + id, window["abc_" + id], {
@@ -15,9 +19,25 @@ function load_abc(id) {
 
     var startAudioButton = document.querySelector(".activate-audio-" + id);
     var stopAudioButton = document.querySelector(".stop-audio-" + id);
+
+    var midi = ABCJS.synth.getMidiFile(visualObj, { chordsOff: false, midiOutputType: "link" });
+    var downloadMidiButton = document.querySelector(".download-midi-" + id);
+    downloadMidiButton.innerHTML = midi;
+
+    var downloadWavButton = document.querySelector(".download-wav-" + id);
+    downloadWavButton.addEventListener("click", function() {
+        synthControl.download() // TODO bpm
+    });
 //    var explanationDiv = document.querySelector(".suspend-explanation-" + id);
     startMeasure = document.querySelector("#start-measure-" + id);
     endMeasure = document.querySelector("#end-measure-" + id);
+
+    if (ABCJS.synth.supportsAudio()) {
+        synthControl = new ABCJS.synth.SynthController();
+        synthControl.load("#audio-" + id, cursorControl, {displayLoop: true, displayRestart: true, displayPlay: true, displayProgress: true, displayWarp: true});
+    } else {
+        document.querySelector("#audio" + id).innerHTML = "<div class='audio-error'>Audio is not supported in this browser.</div>";
+    }
 
 
     window["startMeasure-" + id] = startMeasure;
@@ -45,9 +65,18 @@ function load_abc(id) {
                     audioContext: audioContext,
                     visualObj: visualObj,
                     options: {
+                        chordsOff: true,
                         program: 4
                     }
                 }).then(function () {
+                    synthControl.setTune(visualObj, true, {program: 4, chordsOff: false}).then(function (response) {
+                        console.log("Audio successfully loaded.")
+//                            seekControls.classList.remove("disabled");
+//                            seekExplanation();
+                    }).catch(function (error) {
+                        console.warn("Audio problem:", error);
+                    });
+
                     timingCallbacks = new ABCJS.TimingCallbacks(visualObj, {
                         beatCallback: window["cursorControl-" + id].onBeat,
                         eventCallback: window["cursorControl-" + id].onEvent
@@ -84,8 +113,16 @@ function abc_id(id, param) {
 }
 
 function CursorControl(id) {
-    console.log('finished?' )
     var self = this;
+
+    self.onReady = function() {
+        console.log('ready')
+        var downloadLink = document.querySelector(".download-wav-" + id);
+        downloadLink.addEventListener("click", download);
+//        downloadLink.setAttribute("style", "");
+//        var clickEl = document.querySelector(".click-explanation")
+//        clickEl.setAttribute("style", "");
+    };
 
     self.onStart = function() {
         var svg = document.querySelector(abc_id(id, "svg"));
