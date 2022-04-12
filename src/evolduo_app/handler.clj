@@ -13,7 +13,9 @@
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
             [ring.middleware.params :refer [wrap-params]]
-            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]))
+            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
+            [sentry-clj.core :as sentry]
+            [cprop.core :as cp]))
 
 (defn my-middleware
   "This middleware runs for every request and can execute before/after logic.
@@ -34,6 +36,10 @@
                 (fn [req]
                   (handler (assoc req :db db)))))})
 
+(defn wrap-settings [handler settings]
+  (fn [req]
+    (handler (assoc req :settings settings))))
+
 (defn wrap-db [handler db]
   (fn [req]
     (handler (assoc req :db db))))
@@ -43,7 +49,8 @@
     (try (handler request)
          (catch Exception e
            (log/error e)
-           #_(taoensso.timbre/fatal e)
+           (sentry/send-event {:message   (.getMessage e)
+                               :throwable e})
            {:status 500
             :body "Oh no! :'("}))))
 
@@ -58,10 +65,11 @@
   (GET "/explorer" [] explorer-ctl/explorer)
   (route/not-found "404"))
 
-(defn app [db]
+(defn app [db settings]
   (-> routes
     (wrap-db db)
     (wrap-defaults site-defaults)
+    (wrap-settings settings)
     wrap-exception))
 
 (defn app' [db]

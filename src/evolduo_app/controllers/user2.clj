@@ -6,7 +6,8 @@
             [evolduo-app.model.user2-manager :as user2]
             [evolduo-app.views.user :as user-views]
             [evolduo-app.views.common :as common-views]
-            [ring.util.response :as response]))
+            [ring.util.response :as response])
+  (:import (java.util Date)))
 
 ;; TODO move
 
@@ -26,10 +27,13 @@
 
 (defn create-user [db email pass]
   (let [salt (rnd/hex 32)
-        encrypted (password/encrypt (str salt pass))]
-     (user2/insert-user db {:email email
-                            :salt salt
-                            :password encrypted})))
+        encrypted (password/encrypt (str salt pass))
+        verification_token (rnd/hex 100)]
+     (user2/insert-user db {:created_at (Date.)
+                            :email      email
+                            :salt       salt
+                            :password   encrypted
+                            :verification_token verification_token})))
 
 ;; TODO move to model
 (defn login-user [db email pass]

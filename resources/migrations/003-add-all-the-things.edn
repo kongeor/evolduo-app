@@ -6,17 +6,18 @@
                                 );"
         "CREATE TABLE chromosome (id INTEGER PRIMARY KEY,
                                   created_at TIMESTAMP NOT NULL,
-                                  fitness INT BOOL NOT NULL,
+                                  fitness INT NOT NULL,
                                   genes BLOB NOT NULL,
                                   abc TEXT NOT NULL,
                                   iteration_id INTEGER REFERENCES iteration(id)
                                  );"
-        "CREATE TABLE rating (id INTEGER PRIMARY KEY,
-                              created_at TIMESTAMP NOT NULL,
-                              value BOOL NOT NULL,
-                              chromosome_id INTEGER REFERENCES chromosome(id),
-                              user_id INTEGER REFERENCES user(id)
-                             );"
+        "CREATE TABLE reaction (id INTEGER PRIMARY KEY,
+                                created_at TIMESTAMP NOT NULL,
+                                type VARCHAR(25) NOT NULL,
+                                value BOOL NOT NULL,
+                                chromosome_id INTEGER REFERENCES chromosome(id),
+                                user_id INTEGER REFERENCES user(id)
+                               );"
         "CREATE TABLE invitation (id INTEGER PRIMARY KEY,
                                   created_at TIMESTAMP NOT NULL,
                                   email VARCHAR(255) NOT NULL,
@@ -24,6 +25,6 @@
                                   created_by INTEGER REFERENCES user(id)
                                  );"]
  :down ["DROP TABLE invitation;"
-        "DROP TABLE rating;"
+        "DROP TABLE reaction;"
         "DROP TABLE chromosome;"
         "DROP TABLE iteration;"]}
