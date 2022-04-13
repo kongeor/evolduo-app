@@ -1,3 +1,8 @@
-{
+{:app_url "http://localhost:3000"
  :sentry_url "https://xxxx@xxxxx.ingest.sentry.io/xxxx"
+ :mail_server {:host "mail.example.com"
+               :user "username"
+               :pass "password"
+               :port 587
+               :tls true}
  }

@@ -58,6 +58,7 @@
   (GET "/" [] user2-ctl/home)
   (GET "/user/login" [] user2-ctl/login)
   (POST "/user/login" [] user2-ctl/login-user-handler)
+  (GET "/user/verify" [] user2-ctl/verify-user)
   (GET "/evolution/form" [] evolution-ctl/edit)
   (POST "/evolution/save" [] evolution-ctl/save)
   (GET "/evolution/list" [] evolution-ctl/list)

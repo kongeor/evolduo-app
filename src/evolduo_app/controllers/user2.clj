@@ -38,10 +38,9 @@
 ;; TODO move to model
 (defn login-user [db email pass]
   (if-let [user (user2/find-user-by-email db email)]
-    (let [salt (:user/salt user)
-          encrypted (:user/password user)]
+    (let [salt (:salt user)
+          encrypted (:password user)]
       (when (password/check (str salt pass) encrypted)
-        (println "! success!")
         (select-keys user [:user/id :user/email])))))
 
 (defn login-user-handler [req]
@@ -49,12 +48,26 @@
         email (-> req :params :email)
         password (-> req :params :password)
         session (:session req)]
-    (println "ZZZZZZ" req)
     (if-let [user (login-user db email password)]
       (let [session' (assoc session :user/id (:user/id user))]
-        (println "session'" session')
         (-> (response/redirect "/")
           (assoc :session session'))))))
+
+(defn verify-user [req]
+  (let [db (:db req)
+        token (-> req :params :token)]
+    ;; TODO
+    ;; sentry event?
+    ;; delete verification token
+    ;; login after verification
+    ;; ensure users are not verified again
+    ;; add verification date?
+    (if-let [res (user2/verify-user db token)]
+      (do
+        (assoc (response/redirect "/")
+          :flash {:type :info :message "Cool, you are now verified!"}))
+      (assoc (response/redirect "/")
+        :flash {:type :danger :message "Oops, something was wrong."}))))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]

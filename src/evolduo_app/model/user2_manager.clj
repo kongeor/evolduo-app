@@ -1,6 +1,7 @@
 (ns evolduo-app.model.user2-manager
   (:require [next.jdbc :as jdbc]
-            [next.jdbc.sql :as sql]))
+            [next.jdbc.sql :as sql]
+            [evolduo-app.model.evolution-manager :as em]))
 
 (defn insert-user
   [db user]
@@ -8,5 +9,10 @@
 
 (defn find-user-by-email
   [db email]
-  (first (sql/query db ["select * from user where email = ?" email]))) ;; TODO first? query by attrs
+  (first (sql/query db ["select * from user where email = ?" email] {:builder-fn em/sqlite-builder}))) ;; TODO first? query by attrs
+
+(defn verify-user
+  [db token]
+  (when-let [res (sql/update! db :user {:verified 1} {:verification_token token} {:builder-fn em/sqlite-builder})]
+    res)) ;; TODO factor out builder
 
