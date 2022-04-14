@@ -19,6 +19,7 @@
                       :min_ratings        2
                       :initial_iterations 10
                       :total_iterations   20
+                      :population_size    10
                       :crossover_rate     30
                       :mutation_rate      5
                       :key                "D"
@@ -50,6 +51,7 @@
                                            :min_ratings
                                            :initial_iterations
                                            :total_iterations
+                                           :population_size
                                            :crossover_rate
                                            :mutation_rate
                                            :key

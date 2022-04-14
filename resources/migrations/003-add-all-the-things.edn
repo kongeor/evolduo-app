@@ -2,27 +2,28 @@
 {:up   ["CREATE TABLE iteration (id INTEGER PRIMARY KEY,
                                  created_at TIMESTAMP NOT NULL,
                                  num INT NOT NULL,
-                                 evolution_id INTEGER REFERENCES evolution(id)
+                                 version VARCHAR(25) NOT NULL,
+                                 evolution_id INTEGER REFERENCES evolution(id) NOT NULL
                                 );"
         "CREATE TABLE chromosome (id INTEGER PRIMARY KEY,
                                   created_at TIMESTAMP NOT NULL,
                                   fitness INT NOT NULL,
                                   genes BLOB NOT NULL,
                                   abc TEXT NOT NULL,
-                                  iteration_id INTEGER REFERENCES iteration(id)
+                                  iteration_id INTEGER REFERENCES iteration(id) NOT NULL
                                  );"
         "CREATE TABLE reaction (id INTEGER PRIMARY KEY,
                                 created_at TIMESTAMP NOT NULL,
                                 type VARCHAR(25) NOT NULL,
-                                value BOOL NOT NULL,
-                                chromosome_id INTEGER REFERENCES chromosome(id),
-                                user_id INTEGER REFERENCES user(id)
+                                value INT NOT NULL,
+                                chromosome_id INTEGER REFERENCES chromosome(id) NOT NULL,
+                                user_id INTEGER REFERENCES user(id) NOT NULL
                                );"
         "CREATE TABLE invitation (id INTEGER PRIMARY KEY,
                                   created_at TIMESTAMP NOT NULL,
                                   email VARCHAR(255) NOT NULL,
-                                  evolution_id INTEGER REFERENCES evolution(id),
-                                  created_by INTEGER REFERENCES user(id)
+                                  evolution_id INTEGER REFERENCES evolution(id) NOT NULL,
+                                  created_by INTEGER REFERENCES user(id) NOT NULL
                                  );"]
  :down ["DROP TABLE invitation;"
         "DROP TABLE reaction;"

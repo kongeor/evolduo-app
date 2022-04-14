@@ -16,3 +16,6 @@
   (when-let [res (sql/update! db :user {:verified 1} {:verification_token token} {:builder-fn em/sqlite-builder})]
     res)) ;; TODO factor out builder
 
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    (sql/find-by-keys db :user {:id 1} {:builder-fn em/sqlite-builder})))

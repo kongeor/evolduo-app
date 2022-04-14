@@ -11,6 +11,7 @@
    [:min_ratings int?]
    [:initial_iterations int?]
    [:total_iterations int?]
+   [:population_size int?]
    [:crossover_rate int?]
    [:mutation_rate int?]
    [:mode (vec (cons :enum music/modes))]
@@ -22,9 +23,12 @@
 (def example-evolution {:min_ratings        "5"
                         :initial_iterations 10
                         :total_iterations   20
+                        :population_size    10
                         :crossover_rate     30
                         :mutation_rate      5
+                        :mode               "major"
                         :key                "D"
+                        :chord              "R + 3 + 3"
                         :pattern            "I-IV-V-I"
                         :tempo              60})
 
@@ -43,3 +47,23 @@
 
 (comment
   (decode-and-validate-evolution example-evolution))
+
+;; TODO split schemas
+
+(def Reaction
+  [:map {:closed true}
+   [:chromosome_id int?]
+   [:type string?]                                      ;; TODO enum
+   [:value int?]])
+
+(defn decode-and-validate-reaction [reaction]
+  (let [decoded (m/decode Reaction reaction (mt/transformer mt/default-value-transformer mt/string-transformer))]
+    (if-let [error (m/explain Reaction decoded)]
+      {:error (me/humanize error)}
+      {:data decoded})))
+
+(comment
+  (decode-and-validate-reaction {:chromosome_id "42"
+                                 :type          "rating"
+                                 :value         1})
+  )

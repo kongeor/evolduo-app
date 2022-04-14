@@ -30,6 +30,10 @@
        [:div.control
         [:input.input {:type "number" :name "total_iterations" :value (:total_iterations evolution) :min "0" :max "100"}]]]
       [:div.field
+       [:label.label {:for "population_size"} "Population Size"]
+       [:div.control
+        [:input.input {:type "number" :name "population_size" :value (:population_size evolution) :min "0" :max "100"}]]]
+      [:div.field
        [:label.label {:for "crossover_rate"} "Crossover Rate"]
        [:div.control
         [:input.input {:type "number" :name "crossover_rate" :value (:crossover_rate evolution) :min "0" :max "100"}]]]

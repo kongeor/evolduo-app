@@ -9,6 +9,7 @@
             [evolduo-app.controllers.user2 :as user2-ctl]
             [evolduo-app.controllers.evolution :as evolution-ctl]
             [evolduo-app.controllers.explorer :as explorer-ctl]
+            [evolduo-app.controllers.reaction :as reaction-ctl]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.anti-forgery :refer [wrap-anti-forgery]]
@@ -64,6 +65,7 @@
   (GET "/evolution/list" [] evolution-ctl/list)
   (GET "/evolution/:id{[0-9]+}" [] evolution-ctl/detail)
   (GET "/explorer" [] explorer-ctl/explorer)
+  (POST "/reaction" [] reaction-ctl/save)
   (route/not-found "404"))
 
 (defn app [db settings]

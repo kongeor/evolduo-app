@@ -3,6 +3,7 @@
                                  created_at TIMESTAMP NOT NULL,
                                  public BOOL NOT NULL,
                                  min_ratings INT NOT NULL,
+                                 evolve_after VARCHAR(20) NOT NULL,
                                  initial_iterations INT NOT NULL,
                                  population_size INT NOT NULL,
                                  total_iterations INT NOT NULL,
@@ -14,6 +15,6 @@
                                  repetitions INT NOT NULL DEFAULT 1,
                                  chord VARCHAR(20) NOT NULL,
                                  tempo INT NOT NULL,
-                                 user_id INTEGER DEFAULT 0 REFERENCES users(id) ON DELETE SET DEFAULT
+                                 user_id INTEGER REFERENCES users(id) NOT NULL
                                 );"]
  :down ["DROP TABLE evolution;"]}

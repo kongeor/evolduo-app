@@ -41,7 +41,7 @@
     (let [salt (:salt user)
           encrypted (:password user)]
       (when (password/check (str salt pass) encrypted)
-        (select-keys user [:user/id :user/email])))))
+        (select-keys user [:id :email])))))
 
 (defn login-user-handler [req]
   (let [db (:db req)
@@ -49,7 +49,7 @@
         password (-> req :params :password)
         session (:session req)]
     (if-let [user (login-user db email password)]
-      (let [session' (assoc session :user/id (:user/id user))]
+      (let [session' (assoc session :user/id (:id user))]
         (-> (response/redirect "/")
           (assoc :session session'))))))
 

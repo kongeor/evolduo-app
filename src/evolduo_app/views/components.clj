@@ -1,5 +1,6 @@
 (ns evolduo-app.views.components
-  (:require [evolduo-app.music :as music]))
+  (:require [evolduo-app.music :as music]
+            [ring.middleware.anti-forgery :as anti-forgery]))
 
 (defn keys-select [key]
   [:select {:name "key"}
@@ -46,14 +47,20 @@
      [:div.abc-track {:style "display: none"} id]
      [:h3.title.is-size-3 (str "#" id)]
      [:div {:id abc-id}]
-     [:div {:id audio-id}]
+     [:div.mb-4 {:id audio-id}]
      [:div.buttons
       [:button.button.is-primary {:class abc-activate} "Play"]
       [:button.button.is-light {:class abc-stop} "Stop"]
       [:button.button.is-light {:class download-midi-id} "Get Midi"]
       [:button.button.is-light {:class download-wav-id} "Get Wav"]
-      #_[:div.suspend-explanation]
       [:div {:id abc-start-measure-id}]
-      [:div {:id abc-end-measure-id}]
-      ]
+      [:div {:id abc-end-measure-id}]]
+     [:div.buttons
+      [:form
+       {:action "/reaction" :method "POST"}
+       [:input {:type "hidden" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
+       [:input {:type "hidden" :name "chromosome_id" :value id}]
+       [:input {:type "hidden" :name "type" :value "rating"}]
+       [:input {:type "hidden" :name "value" :value "1"}]
+       [:input.button.is-link {:type "submit" :value "Nice!"}]]]
      [:hr.mb-4]]))
