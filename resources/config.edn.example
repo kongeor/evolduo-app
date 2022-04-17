@@ -1,4 +1,6 @@
-{:app_url "http://localhost:3000"
+{:version "dev"
+ :environment "dev"
+ :app_url "http://localhost:3000"
  :sentry_url "https://xxxx@xxxxx.ingest.sentry.io/xxxx"
  :mail_server {:host "mail.example.com"
                :user "username"

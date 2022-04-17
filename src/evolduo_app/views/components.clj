@@ -1,6 +1,14 @@
 (ns evolduo-app.views.components
   (:require [evolduo-app.music :as music]
+            [evolduo-app.schemas :as s]
             [ring.middleware.anti-forgery :as anti-forgery]))
+
+(defn evolve-after-select [evolve-after]
+  [:select {:name "evolve_after"}
+   (for [a s/evolve-after-options]
+     [:option (merge {:value a}
+                (when (= a evolve-after)
+                  {:selected true})) a])])
 
 (defn keys-select [key]
   [:select {:name "key"}
@@ -31,8 +39,9 @@
                   {:selected true})) c])])
 
 ;;
-(defn abc-track [{:keys [id abc]}]
-  (let [abc-id (str "abc_" id)
+(defn abc-track [{:keys [chromosome_id abc]} & {:keys [reaction]}]
+  (let [id chromosome_id
+        abc-id (str "abc_" id)
         abc-activate (str "activate-audio-" id)
         abc-stop (str "stop-audio-" id)
         abc-start-measure-id (str "start-measure-" id)
@@ -45,7 +54,7 @@
      [:script {:type "text/javascript"}
       (str "var " abc-id " = \"" abc "\";")]
      [:div.abc-track {:style "display: none"} id]
-     [:h3.title.is-size-3 (str "#" id)]
+     [:h3.title.is-size-4 (str "#" id)]
      [:div {:id abc-id}]
      [:div.mb-4 {:id audio-id}]
      [:div.buttons
@@ -62,5 +71,9 @@
        [:input {:type "hidden" :name "chromosome_id" :value id}]
        [:input {:type "hidden" :name "type" :value "rating"}]
        [:input {:type "hidden" :name "value" :value "1"}]
-       [:input.button.is-link {:type "submit" :value "Nice!"}]]]
+       [:input.button.is-link (merge
+                                {:type "submit" :value "Nice!"}
+                                (when reaction
+                                  {:class "is-selected"
+                                   :disabled true}))]]]
      [:hr.mb-4]]))

@@ -50,8 +50,10 @@
     (try (handler request)
          (catch Exception e
            (log/error e)
-           (sentry/send-event {:message   (.getMessage e)
-                               :throwable e})
+           (sentry/send-event {:message     (.getMessage e)
+                               :environment (-> request :settings :environment)
+                               :version     (-> request :settings :version)
+                               :throwable   e})
            {:status 500
             :body "Oh no! :'("}))))
 
@@ -72,8 +74,12 @@
   (-> routes
     (wrap-db db)
     (wrap-defaults site-defaults)
-    (wrap-settings settings)
-    wrap-exception))
+    wrap-exception                                          ;; TODO why?!
+    (wrap-settings settings)))
+
+(macroexpand '(-> 1
+                inc
+                dec))
 
 (defn app' [db]
   (ring/ring-handler

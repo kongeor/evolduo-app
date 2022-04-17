@@ -4,11 +4,15 @@
             [malli.error :as me]
             [evolduo-app.music :as music]))
 
+;; TODO labels
+;; only admin immediately
+(def evolve-after-options ["1-min" "5-min" "30-min" "8-hour" "1-day"])
 
 (def Evolution
   [:map {:closed true}
    [:public {:default false} boolean?]
    [:min_ratings int?]
+   [:evolve_after (vec (cons :enum evolve-after-options))]
    [:initial_iterations int?]
    [:total_iterations int?]
    [:population_size int?]
@@ -21,6 +25,7 @@
    [:tempo int?]])
 
 (def example-evolution {:min_ratings        "5"
+                        :evolve_after       "5-min"
                         :initial_iterations 10
                         :total_iterations   20
                         :population_size    10

@@ -1,10 +1,11 @@
 (ns evolduo-app.views.explorer
   (:require [evolduo-app.views.common :refer [base-view]]
             [evolduo-app.views.components :as comps]
-            [ring.middleware.anti-forgery :as anti-forgery]))
+            [clojure.string :as str]))
 
 (defn explorer [req & {:keys [abc] :as track}]
-  (let [{:keys [key mode pattern chord tempo]} (-> req :params)]
+  (let [{:keys [key mode pattern chord tempo]} (-> req :params)
+        tempo (if (str/blank? tempo) "110" tempo)]          ;; TODO sanitized params
     (base-view
       req
       [:div
@@ -44,8 +45,8 @@
          ]]
        (when (some? abc)
          [:div
-          (comps/abc-track {:id 1 :abc abc})
-          (comps/abc-track {:id 2 :abc abc})])
+          (comps/abc-track {:chromosome_id 1 :abc abc})
+          (comps/abc-track {:chromosome_id 2 :abc abc})])
        ]
       :enable-abc? (some? abc)
       ; :custom-script (str "var abc = \"" abc "\";")

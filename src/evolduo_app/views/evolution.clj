@@ -22,6 +22,13 @@
        [:div.control
         [:input.input {:type "number" :name "min_ratings" :value (:min_ratings evolution) :min "1"}]]]
       [:div.field
+       [:label.label {:for "evolve_after"} "Evolve After"]
+       [:div.control
+        [:div.select
+         (comps/evolve-after-select (:evolve_after evolution))]]
+       (when-let [key-errors (:evolve_after errors)]
+         [:p.help.is-danger (first key-errors)])]
+      [:div.field
        [:label.label {:for "initial_iterations"} "Initial Iterations"]
        [:div.control
         [:input.input {:type "number" :name "initial_iterations" :value (:initial_iterations evolution) :min "0" :max "20"}]]]
@@ -104,13 +111,14 @@
          [:td (:tempo e)]
          [:td (:user_id e)]])]]))
 
-(defn evolution-detail [req {:keys [evolution chromosomes]}]
+(defn evolution-detail [req {:keys [evolution chromosomes reaction-map]}]
   (base-view
     req
-    [:h2 (str "Evolution #" (:id evolution))
+    [:h2.is-size-3 (str "Evolution #" (:id evolution))
      [:div
       (for [c chromosomes]
-        (comps/abc-track c))]]
+        (let [reaction (-> c :chromosome_id reaction-map)]
+          (comps/abc-track c :reaction reaction)))]]
     :enable-abc? true
     :body-load-hook "load()"
     ))

@@ -16,6 +16,7 @@
                                 created_at TIMESTAMP NOT NULL,
                                 type VARCHAR(25) NOT NULL,
                                 value INT NOT NULL,
+                                iteration_id INTEGER REFERENCES iteration(id) NOT NULL,
                                 chromosome_id INTEGER REFERENCES chromosome(id) NOT NULL,
                                 user_id INTEGER REFERENCES user(id) NOT NULL
                                );"

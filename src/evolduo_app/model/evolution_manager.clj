@@ -2,6 +2,7 @@
   (:require [next.jdbc.sql :as sql]
             [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
+            [honey.sql :as h]
             [clojure.string :as string]
             [evolduo-app.music :as music])
   (:import (java.sql ResultSet ResultSetMetaData)))
@@ -15,7 +16,7 @@
           l (count s')
           s'' (.substring s' 0 (dec l))]
       (->> (string/split s'' #" ")
-        (map #(Integer/parseInt %))))))
+        (mapv #(Integer/parseInt %))))))
 
 (defn sql-insert! [db table key-map]
   (let [res (sql/insert! db table key-map)
@@ -63,11 +64,12 @@ select e.*
                     :iteration_id -1})
 
 (defn save-evolution
-  [db evolution]
+  [db {:keys [version]} evolution]
   (jdbc/with-transaction [tx db]
     (let [evol-insert (sql-insert! tx :evolution evolution)
           iter-insert (sql-insert! tx :iteration {:created_at (java.util.Date.)
                                                   :num 0
+                                                  :version version
                                                   :evolution_id (:id evol-insert)})]
       (doall
         (map #(sql-insert! tx :chromosome
@@ -79,7 +81,7 @@ select e.*
                             {:genes genes})
                       ]
                   (assoc % :iteration_id (:id iter-insert)
-                           :genes genes
+                           :genes (vec genes)               ;; TODO fix
                            :abc abc))) (repeat 2 sample-chromo))))))
 
 (defn find-last-iteration-id-for-evolution [db evolution-id]
@@ -89,9 +91,12 @@ select e.*
 (defn find-iteration-chromosomes [db iteration-id]
   (sql/find-by-keys db :chromosome {:iteration_id iteration-id} {:builder-fn sqlite-builder}))
 
+(defn find-chromosome-by-id [db chromosome-id]
+  (sql/get-by-id db :chromosome chromosome-id {:builder-fn sqlite-builder}))
+
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
-    (find-last-iteration-for-evolution db 1)))
+    (find-chromosome-by-id db 1)))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
@@ -122,8 +127,23 @@ select e.*
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
-    (sql/query db ["select * from chromosome"] {:builder-fn sqlite-builder})))
+    (sql/query db ["select * from reaction"] {:builder-fn sqlite-builder})))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (sql/query db ["select * from iteration"] {:builder-fn sqlite-builder})))
+
+(defn find-last-iteration-chromosomes [db evolution-id]
+  (let [q-sqlmap {:select    [[:e/id :evolution_id]
+                              [:i/id :iteration_id]
+                              [:c.id :chromosome_id]
+                              [:c.abc :abc]]
+                  :from      [[:evolution :e]]
+                  :join      [[:iteration :i] [:= :i/evolution_id :e/id]
+                              [:chromosome :c] [:= :c/iteration_id :i/id]]
+                  :where     [:= :e/id evolution-id]}]
+    (sql/query db (h/format q-sqlmap) {:builder-fn sqlite-builder})))
+
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    (sql/query db (h/format q-sqlmap) {:builder-fn sqlite-builder})))

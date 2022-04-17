@@ -1,5 +1,6 @@
 (ns evolduo-app.controllers.evolution
   (:require [evolduo-app.model.evolution-manager :as model]
+            [evolduo-app.model.reaction :as reaction-model]
             [evolduo-app.views.evolution :as evolution-views]
             [evolduo-app.schemas :as schemas]
             [clojure.walk :as walk]
@@ -49,6 +50,7 @@
   (let [user-id (-> req :session :user/id)
         data (-> req :params (select-keys [:public
                                            :min_ratings
+                                           :evolve_after
                                            :initial_iterations
                                            :total_iterations
                                            :population_size
@@ -69,7 +71,7 @@
       (let [evolution (merge (:data sanitized-data)
                         {:created_at (java.util.Date.)
                          :user_id    user-id})]
-        (model/save-evolution (:db req) evolution)
+        (model/save-evolution (:db req) (:settings req) evolution)
         (assoc
           (resp/redirect "/evolution/list")
           :flash {:type :info :message "Great success!"})))))
@@ -85,10 +87,15 @@
 (defn detail
   [req]
   (let [id (-> req :params :id)
+        user-id (-> req :session :user/id)                  ;; TODO helper
         db (:db req)]
     (if-let [evolution (model/get-evolution-by-id db id)]
-      (let [iteration-id (model/find-last-iteration-id-for-evolution db (:id evolution))
-            chromosomes (model/find-iteration-chromosomes db iteration-id)]
+      (let [iteration-id (model/find-last-iteration-id-for-evolution db (:id evolution)) ;; TODO
+            chromosomes (model/find-last-iteration-chromosomes db (:id evolution))
+            reactions (reaction-model/find-iteration-reactions-for-user db iteration-id user-id)
+            reaction-map (update-vals (group-by :chromosome_id reactions) first)]
         (render-html evolution-views/evolution-detail req {:evolution evolution
-                                                           :chromosomes chromosomes}))
+                                                           :chromosomes chromosomes
+                                                           :user-id user-id
+                                                           :reaction-map reaction-map}))
       (render-404))))
