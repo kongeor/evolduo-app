@@ -4,24 +4,31 @@
             [ring.adapter.jetty :refer [run-jetty]]
             [evolduo-app.handler :as handler]
             [evolduo-app.model.user-manager :refer [populate]]
-            [sentry-clj.core :as sentry]
+            [evolduo-app.timer :as timer]
             [cprop.core :as cp]))
 
 (def db-spec {:dbtype "sqlite" :dbname "evolduo.db"})
 
 (def config
   {:adapter/jetty {:handler (ig/ref :handler/run-app) :port 3000}
-   :handler/run-app {:db (ig/ref :database.sql/connection)}
-   :database.sql/connection db-spec})
+   :handler/run-app {:db (ig/ref :database.sql/connection)
+                     :settings (ig/ref :config/settings)}
+   :database.sql/connection db-spec
+   :config/settings {}
+   :chime/timer {:db (ig/ref :database.sql/connection)
+                 :settings (ig/ref :config/settings)}})
 
 (defmethod ig/init-key :adapter/jetty [_ {:keys [handler] :as opts}]
   (run-jetty handler (-> opts (dissoc handler) (assoc :join? false))))
 
-(defmethod ig/init-key :handler/run-app [_ {:keys [db]}]
-  ;; TODO where should be go to?
-  (let [settings (cp/load-config)]
-    (sentry/init! (:sentry_url settings))
-    (handler/app db settings)))
+(defmethod ig/init-key :handler/run-app [_ {:keys [db settings]}]
+  (handler/app db settings))
+
+(defmethod ig/init-key :config/settings [_ _]
+  (cp/load-config))
+
+(defmethod ig/init-key :chime/timer [_ {:keys [db settings]}]
+  (timer/start db settings))
 
 (defmethod ig/init-key :database.sql/connection [_ db-spec]
   (let [conn (jdbc/get-datasource db-spec)]
@@ -30,6 +37,9 @@
 
 (defmethod ig/halt-key! :adapter/jetty [_ server]
   (.stop server))
+
+(defmethod ig/halt-key! :chime/timer [_ timer]
+  (.close timer))
 
 (defn -main []
   (ig/init config))

@@ -77,3 +77,18 @@
                                   {:class "is-selected"
                                    :disabled true}))]]]
      [:hr.mb-4]]))
+
+(defn pagination [{:keys [current max link-fn]}]
+  [:nav.pagination {:role "navigation" :aria-label "pagination"}
+   [:a.pagination-previous.is-disabled {:title "This is the first page"} "Previous"]
+   [:a.pagination-next "Next page"]
+   [:ul.pagination-list
+    (for [i (range 1 (inc max))]
+      [:li
+       [:a.pagination-link
+        (merge
+          {:href (link-fn i)
+           :aria-label (str "Page " i)
+           :aria-current "page"}
+          (when (= i current)
+            {:class "is-current"})) (str i)]])]])

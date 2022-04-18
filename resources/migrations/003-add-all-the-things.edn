@@ -1,7 +1,10 @@
 ;; resources/migrations/003-add-all-the-things.edn
 {:up   ["CREATE TABLE iteration (id INTEGER PRIMARY KEY,
                                  created_at TIMESTAMP NOT NULL,
+                                 evolve_after TIMESTAMP NOT NULL,
                                  num INT NOT NULL,
+                                 last BOOL NOT NULL DEFAULT 0,
+                                 ratings INT NOT NULL DEFAULT 0,
                                  version VARCHAR(25) NOT NULL,
                                  evolution_id INTEGER REFERENCES evolution(id) NOT NULL
                                 );"

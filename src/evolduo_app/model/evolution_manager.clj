@@ -4,8 +4,13 @@
             [next.jdbc.result-set :as rs]
             [honey.sql :as h]
             [clojure.string :as string]
-            [evolduo-app.music :as music])
-  (:import (java.sql ResultSet ResultSetMetaData)))
+            [evolduo-app.music :as music]
+            [clojure.string :as str]
+            [next.jdbc.date-time]
+            [clojure.tools.logging :as log])                          ;; enable java 8 times etc.
+  (:import (java.sql ResultSet ResultSetMetaData)
+           (java.util.concurrent TimeUnit)
+           (java.time Instant)))
 
 ;; util
 
@@ -28,20 +33,23 @@
 
 ;; https://stackoverflow.com/questions/63017628/how-do-i-read-bool-columns-from-sqlite-into-bool-clojure-values-with-next-jdbc
 (defn sqlite-column-by-index-fn [builder ^ResultSet rs ^Integer i]
-  (let [rsm ^ResultSetMetaData (:rsmeta builder)]
-    (rs/read-column-by-index
-      (let [col-type (.getColumnTypeName rsm i)]
-        (case col-type
-          "BOOL" (.getBoolean rs i)
-          "TIMESTAMP" (.getTimestamp rs i)
-          "BLOB" (blob->int-vec (.getObject rs i))
-          (.getObject rs i)))
-      rsm i)))
+  (try
+    (let [rsm ^ResultSetMetaData (:rsmeta builder)]
+      (rs/read-column-by-index
+        (let [col-type (.getColumnTypeName rsm i)]
+          (case col-type
+            "BOOL" (.getBoolean rs i)
+            "TIMESTAMP" (.toInstant (.getTimestamp rs i))
+            "BLOB" (blob->int-vec (.getObject rs i))
+            (.getObject rs i)))
+        rsm i))
+    (catch Exception e
+      (log/error e))))
 
 (def sqlite-builder (rs/builder-adapter rs/as-unqualified-maps sqlite-column-by-index-fn))
 ;;
 
-(defn get-evolution-by-id
+(defn find-evolution-by-id
   "Given an evolution ID, return the evolution record."
   [db id]
   (sql/get-by-id db :evolution id {:builder-fn sqlite-builder}))
@@ -57,18 +65,35 @@ select e.*
 (comment
   (get-evolutions (:database.sql/connection integrant.repl.state/system)))
 
-(def sample-chromo {:created_at (java.util.Date.)
+(def sample-chromo {:created_at (Instant/now)
                     :fitness 42
                     :genes [1 2 3 4 5 -2 -2]
                     :abc "C C C"
                     :iteration_id -1})
 
+(defn calc-evolve-after [^Instant now s]
+  (let [tokens (str/split s #"-")
+        amount (parse-long (first tokens))
+        unit (condp = (second tokens)
+               "min" TimeUnit/MINUTES
+               "hour" TimeUnit/HOURS
+               "day" TimeUnit/DAYS)]
+    (.plusSeconds now
+      (.toSeconds unit amount))))
+
+(comment
+  (calc-evolve-after (Instant/now) "8-hour"))
+
 (defn save-evolution
   [db {:keys [version]} evolution]
   (jdbc/with-transaction [tx db]
     (let [evol-insert (sql-insert! tx :evolution evolution)
-          iter-insert (sql-insert! tx :iteration {:created_at (java.util.Date.)
+          now (Instant/now)
+          evolve-after (calc-evolve-after now (:evolve_after evolution))
+          iter-insert (sql-insert! tx :iteration {:created_at now
+                                                  :evolve_after evolve-after
                                                   :num 0
+                                                  :last true
                                                   :version version
                                                   :evolution_id (:id evol-insert)})]
       (doall
@@ -93,6 +118,12 @@ select e.*
 
 (defn find-chromosome-by-id [db chromosome-id]
   (sql/get-by-id db :chromosome chromosome-id {:builder-fn sqlite-builder}))
+
+(defn find-iteration-by-id [db iteration-id]
+  (sql/get-by-id db :iteration iteration-id {:builder-fn sqlite-builder}))
+
+(defn increase-iteration-ratings [db iteration]
+  (sql/update! db :iteration (update iteration :ratings inc) {:id (:id iteration)}))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
@@ -142,6 +173,19 @@ select e.*
                   :join      [[:iteration :i] [:= :i/evolution_id :e/id]
                               [:chromosome :c] [:= :c/iteration_id :i/id]]
                   :where     [:= :e/id evolution-id]}]
+    (sql/query db (h/format q-sqlmap) {:builder-fn sqlite-builder})))
+
+(defn find-iteration-chromosomes [db evolution-id iteration-id]
+  (let [q-sqlmap {:select [[:e/id :evolution_id]
+                           [:i/id :iteration_id]
+                           [:c.id :chromosome_id]
+                           [:c.abc :abc]]
+                  :from   [[:evolution :e]]
+                  :join   [[:iteration :i] [:= :i/evolution_id :e/id]
+                           [:chromosome :c] [:= :c/iteration_id :i/id]]
+                  :where  [:and
+                           [:= :e/id evolution-id]
+                           [:= :i/id iteration-id]]}]
     (sql/query db (h/format q-sqlmap) {:builder-fn sqlite-builder})))
 
 (comment

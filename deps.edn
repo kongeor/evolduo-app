@@ -19,7 +19,8 @@
   io.sentry/sentry-clj {:mvn/version "5.7.177"}
   cprop/cprop {:mvn/version "0.1.19"}
   com.draines/postal {:mvn/version "2.0.5"}
-  com.github.seancorfield/honeysql {:mvn/version "2.2.868"}}
+  com.github.seancorfield/honeysql {:mvn/version "2.2.868"}
+  jarohen/chime {:mvn/version "0.3.3"}}
  :aliases
  {:dev {:extra-paths ["dev"]
         :extra-deps {integrant/repl {:mvn/version "0.3.2"}}}

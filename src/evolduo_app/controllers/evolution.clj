@@ -6,7 +6,8 @@
             [clojure.walk :as walk]
             [ring.util.response :as resp]
             [hiccup.core :as hiccup]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log])
+  (:import (java.time Instant)))
 
 (defn edit
   "Display the add/edit form."
@@ -69,7 +70,7 @@
 
       :else
       (let [evolution (merge (:data sanitized-data)
-                        {:created_at (java.util.Date.)
+                        {:created_at (Instant/now)
                          :user_id    user-id})]
         (model/save-evolution (:db req) (:settings req) evolution)
         (assoc
@@ -84,18 +85,29 @@
   (-> (resp/not-found (hiccup/html [:h1 "oops"]))
     (resp/content-type "text/html")))
 
-(defn detail
+(defn detail [req]
+  (let [db (:db req)
+        evolution-id (-> req :params :id)
+        last-iteration-id (model/find-last-iteration-id-for-evolution db evolution-id)]
+    ;; TODO conditions, conditions
+    ;; TODO create util for url concat
+    (resp/redirect (str "/evolution/" evolution-id "/iteration/" last-iteration-id))))
+
+(defn iteration-detail
   [req]
-  (let [id (-> req :params :id)
+  (let [evolution-id (parse-long (-> req :params :evolution-id))
+        iteration-id (parse-long (-> req :params :iteration-id))
         user-id (-> req :session :user/id)                  ;; TODO helper
         db (:db req)]
-    (if-let [evolution (model/get-evolution-by-id db id)]
-      (let [iteration-id (model/find-last-iteration-id-for-evolution db (:id evolution)) ;; TODO
-            chromosomes (model/find-last-iteration-chromosomes db (:id evolution))
+    (if-let [evolution (model/find-evolution-by-id db evolution-id)]
+      (let [chromosomes (model/find-iteration-chromosomes db evolution-id iteration-id)
             reactions (reaction-model/find-iteration-reactions-for-user db iteration-id user-id)
             reaction-map (update-vals (group-by :chromosome_id reactions) first)]
         (render-html evolution-views/evolution-detail req {:evolution evolution
                                                            :chromosomes chromosomes
                                                            :user-id user-id
-                                                           :reaction-map reaction-map}))
+                                                           :reaction-map reaction-map
+                                                           :pagination {:current iteration-id
+                                                                        :max (:total_iterations evolution)
+                                                                        :link-fn #(str "/evolution/" evolution-id "/iteration/" %)}}))
       (render-404))))
