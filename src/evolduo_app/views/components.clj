@@ -92,3 +92,25 @@
            :aria-current "page"}
           (when (= i current)
             {:class "is-current"})) (str i)]])]])
+
+(defn evolution-table [evolutions]
+  [:table.table.is-fullwidth
+   [:thead
+    [:tr
+     [:th "Id"]
+     [:th "Created At"]
+     [:th "Progress"]
+     [:th "Key"]
+     [:th "Pattern"]
+     ]]
+   [:tbody
+    (for [e evolutions]
+      (let [id (:evolution_id e)
+            perc (abs (* 100 (/ (:num e) (:total_iterations e))))
+            perc-str (str perc "%")]
+        [:tr
+         [:td [:a {:href (str "/evolution/" id)} id]]
+         [:td (:created_at e)]
+         [:td [:progress.progress {:value (:num e) :max (:total_iterations e)} perc-str]]
+         [:td (:key e)]
+         [:td (:pattern e)]]))]])                           ;; TODO add a date

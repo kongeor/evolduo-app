@@ -191,3 +191,25 @@ select e.*
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (sql/query db (h/format q-sqlmap) {:builder-fn sqlite-builder})))
+
+
+(defn find-user-active-evolutions [db user-id]
+  (let [q-sqlmap {:select [[:e/id :evolution_id]
+                           [:i/id :iteration_id]
+                           [:e.key]
+                           [:e.pattern]
+                           [:i.num]
+                           [:e.created_at]
+                           [:e.total_iterations]
+                           [[:- :e.total_iterations :i.num] :iterations_to_go]]
+                  :from   [[:evolution :e]]
+                  :join   [[:iteration :i] [:= :i/evolution_id :e/id]]
+                  :where  [:and
+                           [:= :e/user-id user-id]
+                           [:<= :i.num :e.total_iterations]
+                           [:= :last 1]]}]
+    (sql/query db (h/format q-sqlmap) {:builder-fn sqlite-builder})))
+
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    (find-user-active-evolutions db 1)))

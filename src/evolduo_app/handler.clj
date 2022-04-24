@@ -7,6 +7,7 @@
             [ring.util.response :as resp]
             [evolduo-app.controllers.user :as user-ctl]
             [evolduo-app.controllers.user2 :as user2-ctl]
+            [evolduo-app.controllers.home :as home-ctl]
             [evolduo-app.controllers.evolution :as evolution-ctl]
             [evolduo-app.controllers.explorer :as explorer-ctl]
             [evolduo-app.controllers.reaction :as reaction-ctl]
@@ -58,7 +59,7 @@
             :body "Oh no! :'("}))))
 
 (defroutes routes
-  (GET "/" [] user2-ctl/home)
+  (GET "/" [] home-ctl/home)
   (GET "/user/login" [] user2-ctl/login)
   (POST "/user/login" [] user2-ctl/login-user-handler)
   (GET "/user/verify" [] user2-ctl/verify-user)
