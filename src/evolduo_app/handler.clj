@@ -67,6 +67,8 @@
   (POST "/evolution/save" [] evolution-ctl/save)
   (GET "/evolution/list" [] evolution-ctl/list)
   (GET "/evolution/:id{[0-9]+}" [] evolution-ctl/detail)
+  (GET "/evolution/:id{[0-9]+}/invitation/form" [] evolution-ctl/invitation-form)
+  (POST "/evolution/:id{[0-9]+}/invitation/save" [] evolution-ctl/invitation-save)
   (GET "/evolution/:evolution-id{[0-9]+}/iteration/:iteration-id{[0-9]+}" [] evolution-ctl/iteration-detail)
   (GET "/explorer" [] explorer-ctl/explorer)
   (POST "/reaction" [] reaction-ctl/save)

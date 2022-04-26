@@ -1,15 +1,19 @@
 (ns evolduo-app.controllers.home
   (:require [evolduo-app.response :as response]
             [evolduo-app.model.evolution-manager :as model]
-            [evolduo-app.views.home :as view]))
+            [evolduo-app.views.home :as view]
+            [evolduo-app.request :as r]))
 
 (defn home
   [req]
-  (let [session (:session req)
-        db (:db req)
-        user-id (:user/id session)]
-    (if user-id
-      (let [user-evolutions (model/find-user-active-evolutions db user-id)]
-        (response/render-html view/home req {:user-evolutions user-evolutions}))
-      (response/render-html (fn [& _] [:h1 "please login"]) req {}))))
+  (let [db (:db req)
+        user-id (r/user-id req)
+        data {:public-evolutions (model/find-active-public-evolutions db user-id)}
+        view-f (partial response/render-html view/home req)]
+    (cond-> data
+      user-id
+      (assoc :user-evolutions (model/find-user-active-evolutions db user-id))
+
+      true
+      view-f)))
 

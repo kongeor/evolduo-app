@@ -3,10 +3,13 @@
             [evolduo-app.model.reaction :as reaction-model]
             [evolduo-app.views.evolution :as evolution-views]
             [evolduo-app.schemas :as schemas]
-            [clojure.walk :as walk]
             [ring.util.response :as resp]
+            [evolduo-app.response :as r]
+            [evolduo-app.request :as request]
+            [evolduo-app.urls :as u]
             [hiccup.core :as hiccup]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [clojure.string :as str])
   (:import (java.time Instant)))
 
 (defn edit
@@ -77,14 +80,6 @@
           (resp/redirect "/evolution/list")
           :flash {:type :info :message "Great success!"})))))
 
-(defn render-html [handler req data]
-  (-> (resp/response (hiccup/html (handler req data)))
-    (resp/content-type "text/html")))
-
-(defn render-404 []
-  (-> (resp/not-found (hiccup/html [:h1 "oops"]))
-    (resp/content-type "text/html")))
-
 (defn detail [req]
   (let [db (:db req)
         evolution-id (-> req :params :id)
@@ -92,6 +87,57 @@
     ;; TODO conditions, conditions
     ;; TODO create util for url concat
     (resp/redirect (str "/evolution/" evolution-id "/iteration/" last-iteration-id))))
+
+(defn invitation-form [req]
+  (let [db (:db req)
+        user-id (request/user-id req)
+        evolution-id (-> req :params :id)
+        evolution (model/find-evolution-by-id db evolution-id)]
+    ;; have you logged in
+    ;; have you verified
+    ;; is this yours
+    ;; is this a private one? hm?
+    ;; quota check
+    (case
+      #_(not user-id)
+      #_(r/render-html evolution-views/invitation-form req {:evolution evolution}
+        :flash {:type :danger :message "You need to be logged in, man ..."}) ;; wrong
+
+      :else
+      (r/render-html evolution-views/invitation-form req {:evolution evolution}))))
+
+#_(str/split "f@ac.c    as@asdf.co,,,,,zxcv@asdf.co" #"[\s,]+")
+
+(defn invitation-save [req]
+  (let [db (:db req)
+        user-id (request/user-id req)
+        emails-input (-> req :params :emails)
+        emails (str/split emails-input #"[\s,]+")
+        sanitized-data (schemas/decode-and-validate-invitation {:emails emails}) ;; TODO don't validate here
+        evolution-id (-> req :params :evolution_id)
+        evolution (model/find-evolution-by-id db evolution-id)]
+    ;; TODO similar validation?
+    ;; have you logged in
+    ;; have you verified
+    ;; is this yours
+    ;; is this a private one? hm?
+    ;; how many?
+    ;; quota check
+    (cond
+      (nil? user-id)
+      (r/redirect (u/url-for :invitation-form {:evolution-id evolution-id})
+        :flash {:type :danger :message "You need to be logged in, man ..."})
+
+      (:error sanitized-data)
+      (r/render-html evolution-views/invitation-form req {:evolution evolution
+                                                          :errors (:error sanitized-data)
+                                                          :emails emails-input})
+
+      #_(r/render-html evolution-views/invitation-form req {:evolution evolution}
+          :flash {:type :danger :message "You need to be logged in, man ..."}) ;; wrong
+
+      :else
+      (r/render-html evolution-views/invitation-form req {:evolution evolution}))))
 
 (defn iteration-detail
   [req]
@@ -103,11 +149,11 @@
       (let [chromosomes (model/find-iteration-chromosomes db evolution-id iteration-id)
             reactions (reaction-model/find-iteration-reactions-for-user db iteration-id user-id)
             reaction-map (update-vals (group-by :chromosome_id reactions) first)]
-        (render-html evolution-views/evolution-detail req {:evolution evolution
+        (r/render-html evolution-views/evolution-detail req {:evolution evolution
                                                            :chromosomes chromosomes
                                                            :user-id user-id
                                                            :reaction-map reaction-map
                                                            :pagination {:current iteration-id
                                                                         :max (:total_iterations evolution)
                                                                         :link-fn #(str "/evolution/" evolution-id "/iteration/" %)}}))
-      (render-404))))
+      (r/render-404))))

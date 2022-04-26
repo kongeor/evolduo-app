@@ -72,3 +72,20 @@
                                  :type          "rating"
                                  :value         1})
   )
+
+(def email-regex #"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$")
+
+(comment
+  (m/validate [:re email-regex] "foo@example.com"))
+
+(def Invitation
+  [:map {:closed true}
+   [:emails [:vector [:re email-regex]]]
+   ])
+
+;; TODO factor out
+(defn decode-and-validate-invitation [invitation]
+  (let [decoded (m/decode Invitation invitation (mt/transformer mt/default-value-transformer mt/string-transformer))]
+    (if-let [error (m/explain Invitation decoded)]
+      {:error (me/humanize error)}
+      {:data decoded})))

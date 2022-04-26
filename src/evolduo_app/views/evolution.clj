@@ -1,7 +1,8 @@
 (ns evolduo-app.views.evolution
   (:require [evolduo-app.views.common :refer [base-view]]
             [evolduo-app.views.components :as comps]
-            [ring.middleware.anti-forgery :as anti-forgery]))
+            [ring.middleware.anti-forgery :as anti-forgery]
+            [evolduo-app.urls :as u]))
 
 (defn evolution-form [req {:keys [evolution errors] :as content}]
   (base-view
@@ -124,3 +125,23 @@
     :enable-abc? true
     :body-load-hook "load()"
     ))
+
+(defn first-not-null [errors]
+  (ffirst (filter some? errors)))
+
+(defn invitation-form [req {:keys [evolution errors emails] :as content}]
+  (base-view
+    req
+    [:div
+     [:h3.title.is-4 "Invitation"]
+     [:form {:method "post" :action (u/url-for :invitation-save {:evolution-id (:id evolution)})}
+      [:input {:type "hidden" :id "__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
+      [:input {:type "hidden" :name "evolution_id" :value (:id evolution)}]
+      [:div.field
+       [:label.label {:for "emails"} "Emails"]
+       [:div.control
+        [:input.input {:type "input" :name "emails" :value emails}]]
+       (when-let [email-errors (:emails errors)]
+         [:p.help.is-danger (first-not-null email-errors)])]
+      [:div.control
+       [:input.button.is-link {:type "submit" :value "Invite"}]]]]))

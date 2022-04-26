@@ -207,9 +207,35 @@ select e.*
                   :where  [:and
                            [:= :e/user-id user-id]
                            [:<= :i.num :e.total_iterations]
-                           [:= :last 1]]}]
+                           [:= :i.last 1]]}]
     (sql/query db (h/format q-sqlmap) {:builder-fn sqlite-builder})))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (find-user-active-evolutions db 1)))
+
+(defn find-active-public-evolutions
+  "user-id is optional, is provided evolutions belonging to the user will be excluded"
+  [db user-id]
+  (let [q-sqlmap {:select [[:e/id :evolution_id]
+                           [:i/id :iteration_id]
+                           [:e.key]
+                           [:e.pattern]
+                           [:i.num]
+                           [:e.created_at]
+                           [:e.total_iterations]
+                           [[:- :e.total_iterations :i.num] :iterations_to_go]]
+                  :from   [[:evolution :e]]
+                  :join   [[:iteration :i] [:= :i/evolution_id :e/id]]
+                  :where  [:and
+                           [:<= :i.num :e.total_iterations]
+                           [:= :e.public 1]
+                           [:= :i.last 1]
+                           (when user-id
+                             [:!= :e/user-id user-id])]}]
+    (println "**" (h/format q-sqlmap))
+    (sql/query db (h/format q-sqlmap) {:builder-fn sqlite-builder})))
+
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    (find-active-public-evolutions db nil)))

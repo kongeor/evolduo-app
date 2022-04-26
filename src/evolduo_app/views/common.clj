@@ -1,7 +1,7 @@
 (ns evolduo-app.views.common)
 
 (defn- navbar [req]
-  [:nav.navbar {:role "navigation" :aria-label "main navigation"}
+  [:nav.navbar.mb-4 {:role "navigation" :aria-label "main navigation"}
    [:div.navbar-brand
     [:a.navbar-item {:href "/"}
      [:img {:src "https://bulma.io/images/bulma-logo.png" :width "112" :height "28"}]]
