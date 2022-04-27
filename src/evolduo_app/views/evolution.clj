@@ -115,7 +115,10 @@
 (defn evolution-detail [req {:keys [evolution chromosomes reaction-map pagination]}]
   (base-view
     req
-    [:h2.is-size-3 (str "Evolution #" (:id evolution))
+    [:div
+     [:h2.is-size-3.mb-4 (str "Evolution #" (:id evolution))]
+     [:div.mb-4
+      [:a.button.is-primary {:href (u/url-for :invitation-form {:evolution-id (:id evolution)})} "Invite"]]
      [:div
       (for [c chromosomes]
         (let [reaction (-> c :chromosome_id reaction-map)]
