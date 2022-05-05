@@ -1,28 +1,35 @@
-(ns evolduo-app.views.common)
+(ns evolduo-app.views.common
+  (:require [evolduo-app.request :as r]
+            [ring.middleware.anti-forgery :as anti-forgery]))
 
 (defn- navbar [req]
-  [:nav.navbar.mb-4 {:role "navigation" :aria-label "main navigation"}
-   [:div.navbar-brand
-    [:a.navbar-item {:href "/"}
-     [:img {:src "https://bulma.io/images/bulma-logo.png" :width "112" :height "28"}]]
-    [:a.navbar-burger {:role "button" :aria-label "menu" :aria-expanded "false" :data-target "navbarBasicExample"}
-     [:span {:aria-hidden "true"}]
-     [:span {:aria-hidden "true"}]
-     [:span {:aria-hidden "true"}]]]
-   [:div#navbarBasicExample.navbar-menu
-    [:div.navbar-start
-     [:a.navbar-item {:href "/evolution/form"} "New Evolution"]
-     [:a.navbar-item {:href "/evolution/list"} "Evolutions"]
-     [:a.navbar-item {:href "/explorer"} "Explorer"]]
-    [:div.navbar-end
-     [:div.navbar-item
-      [:div.buttons
-       [:a.button.is-primary
-        [:strong "Sign up"]]
-       (do
-         (if (-> req :session :user/id)
-           [:a.button.is-light {:href "/user/logout"} "Log out"]
-           [:a.button.is-light {:href "/user/login"} "Log in"]))]]]]])
+  (let [user-id (r/user-id req)]
+    [:nav.navbar.mb-4 {:role "navigation" :aria-label "main navigation"}
+     [:div.navbar-brand
+      [:a.navbar-item {:href "/"}
+       [:img {:src "https://bulma.io/images/bulma-logo.png" :width "112" :height "28"}]]
+      [:a.navbar-burger {:role "button" :aria-label "menu" :aria-expanded "false" :data-target "navbarBasicExample"}
+       [:span {:aria-hidden "true"}]
+       [:span {:aria-hidden "true"}]
+       [:span {:aria-hidden "true"}]]]
+     [:div#navbarBasicExample.navbar-menu
+      [:div.navbar-start
+       [:a.navbar-item {:href "/evolution/form"} "New Evolution"]
+       [:a.navbar-item {:href "/evolution/list"} "Evolutions"]
+       [:a.navbar-item {:href "/explorer"} "Explorer"]]
+      [:div.navbar-end
+       [:div.navbar-item
+        [:div.buttons
+         (if user-id
+           [:a.button.is-primary {:href "/user/account"} [:strong "Account"]]
+
+           [:a.button.is-primary {:href "/user/signup"} [:strong "Sign up"]])
+         (if user-id
+           [:div
+            [:form.mb-0 {:action "/user/logout" :method "post"}
+             [:input {:type "hidden" :id "__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
+             [:button.button.is-light {:type "submit"} "Log out"]]]
+           [:a.button.is-light {:href "/user/login"} "Log in"])]]]]]))
 
 (defn- notification [req]
   (when req
@@ -56,5 +63,3 @@
                  :src  "/js/abc-player.js"}]])
     ]])
 
-(defn home-view [req user-id]
-  (base-view req [:h2 (str "Hi! " user-id)]))

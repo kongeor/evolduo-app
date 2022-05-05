@@ -89,3 +89,37 @@
     (if-let [error (m/explain Invitation decoded)]
       {:error (me/humanize error)}
       {:data decoded})))
+
+;; Minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character:
+;; https://stackoverflow.com/questions/19605150/regex-for-password-must-contain-at-least-eight-characters-at-least-one-number-a
+(def password-regex #"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$")
+
+(def Signup
+  [:and
+   [:map {:closed true}
+    [:email [:re {:error/message "invalid email"} email-regex]]
+    [:password [:re password-regex]]
+    [:password_confirmation string?]
+    ]
+   [:fn {:error/message "passwords must match"
+         :error/path [:password_confirmation]}
+    (fn [{:keys [password password_confirmation]}]
+          (= password password_confirmation))]])
+
+(comment
+  (me/humanize (m/explain Signup {:email                 "foo@examplecom"
+                                  :password              "Pa$$word1"
+                                  :password_confirmation "Pa$$word1"})))
+
+(defn decode-and-validate [schema data]
+  (let [decoded (m/decode schema data (mt/transformer mt/default-value-transformer mt/string-transformer))]
+    (if-let [error (m/explain schema decoded)]
+      {:error (me/humanize error)}
+      {:data decoded})))
+
+(comment
+  (decode-and-validate Signup {:email "foo@example.com"
+                               :password              "Pa$$word1"
+                               :password_confirmation              "Pa$$word1"
+                               }))
+

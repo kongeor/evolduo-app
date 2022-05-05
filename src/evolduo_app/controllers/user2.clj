@@ -1,57 +1,65 @@
 (ns evolduo-app.controllers.user2
-  (:require [ring.util.response :as resp]
-            [hiccup.core :as hiccup]
-            [crypto.random :as rnd]
-            [crypto.password.pbkdf2 :as password]
+  (:require [evolduo-app.response :as r]
+            [evolduo-app.request :as req]
             [evolduo-app.model.user2-manager :as user2]
             [evolduo-app.views.user :as user-views]
-            [evolduo-app.views.common :as common-views]
-            [ring.util.response :as response])
-  (:import (java.util Date)))
+            [evolduo-app.mail :as mail]
+            [ring.util.response :as response]
+            [evolduo-app.schemas :as s]))
 
-;; TODO move
-
-(defn home
+(defn signup-form
   [req]
-  (let [session (:session req)
-        user-id (:user/id session)]
-    (-> (resp/response (hiccup/html (common-views/home-view req user-id)))
-      (resp/content-type "text/html"))))
+  (r/render-html user-views/signup-form req))
 
-(defn login
-  "Display the add/edit form."
+(defn signup [req]
+  (let [db (:db req)
+        settings (:settings req)
+        params (-> req :params (select-keys [:email :password :password_confirmation]))
+        sanitized-data (s/decode-and-validate s/Signup params)]
+    (cond
+      (:error sanitized-data)
+      (r/render-html user-views/signup-form req {:signup params
+                                                 :errors (:error sanitized-data)})
+
+      (user2/find-user-by-email db (-> sanitized-data :data :email))
+      (r/render-html user-views/signup-form req {:signup params
+                                                 :errors {:email ["this email is already in use"]}})
+
+      ;; TODO check vip list
+
+      :else
+      (do
+        (if-let [user (user2/create
+                        db
+                        (-> sanitized-data :data :email)
+                        (-> sanitized-data :data :password))]
+          (do
+            (let [user' (user2/find-user-by-id db (:id user))]
+              (mail/send-welcome-email settings user'))
+            (->
+              (r/redirect "/"
+                :flash {:type :info :message "Great success!"})
+              (assoc-in [:session :user/id] (:id user))))
+          (r/redirect "/"
+            :flash {:type :danger :message "Ooops"}))))
+    ))
+
+(defn login-form
   [req]
-  (let [db (:db req)]
-    (-> (resp/response (hiccup/html (user-views/login-view req)))
-      (resp/content-type "text/html"))))
+  (r/render-html user-views/login-form req))
 
-(defn create-user [db email pass]
-  (let [salt (rnd/hex 32)
-        encrypted (password/encrypt (str salt pass))
-        verification_token (rnd/hex 100)]
-     (user2/insert-user db {:created_at (Date.)
-                            :email      email
-                            :salt       salt
-                            :password   encrypted
-                            :verification_token verification_token})))
-
-;; TODO move to model
-(defn login-user [db email pass]
-  (if-let [user (user2/find-user-by-email db email)]
-    (let [salt (:salt user)
-          encrypted (:password user)]
-      (when (password/check (str salt pass) encrypted)
-        (select-keys user [:id :email])))))
-
-(defn login-user-handler [req]
+(defn login [req]
   (let [db (:db req)
         email (-> req :params :email)
         password (-> req :params :password)
         session (:session req)]
-    (if-let [user (login-user db email password)]
+    (if-let [user (user2/login-user db email password)]
       (let [session' (assoc session :user/id (:id user))]
         (-> (response/redirect "/")
           (assoc :session session'))))))
+
+(defn logout-user [req]
+  (r/logout))
 
 (defn verify-user [req]
   (let [db (:db req)
@@ -62,6 +70,7 @@
     ;; login after verification
     ;; ensure users are not verified again
     ;; add verification date?
+    ;; TODO always verified?
     (if-let [res (user2/verify-user db token)]
       (do
         (assoc (response/redirect "/")
@@ -77,3 +86,10 @@
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (create-user db "foo@example.com" "12345")))
 
+(defn account
+  [req]
+  (if-let [user-id (req/user-id req)]
+    (let [db   (:db req)
+          user (user2/find-user-by-id db user-id)]
+      (r/render-html user-views/account req {:user user}))
+    (r/render-404)))

@@ -39,7 +39,8 @@
         (let [col-type (.getColumnTypeName rsm i)]
           (case col-type
             "BOOL" (.getBoolean rs i)
-            "TIMESTAMP" (.toInstant (.getTimestamp rs i))
+            "TIMESTAMP" (when-let [ts (.getTimestamp rs i)]
+                          (.toInstant ts))
             "BLOB" (blob->int-vec (.getObject rs i))
             (.getObject rs i)))
         rsm i))
