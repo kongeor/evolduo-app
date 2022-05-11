@@ -1,5 +1,6 @@
 (ns evolduo-app.response
   (:require [ring.util.response :as resp]
+            [evolduo-app.music :as music]
             [hiccup.core :as hiccup]))
 
 (defn render-html
@@ -25,3 +26,11 @@
     (redirect "/"
       :flash {:type :info :message "You have been logged out"})
     (assoc :session nil)))
+
+(defn set-sensitive-actions-seed [resp]
+  (update-in resp [:session :action-seed] #(if %
+                                             %
+                                             (music/generate-action-seed))))
+
+(comment
+  (update-in {:a 1} [:ab] #(if % (inc %) 0)))

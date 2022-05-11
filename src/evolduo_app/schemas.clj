@@ -99,8 +99,8 @@
    [:map {:closed true}
     [:email [:re {:error/message "invalid email"} email-regex]]
     [:password [:re password-regex]]
-    [:password_confirmation string?]
-    ]
+    [:password_confirmation [:string {:min 1}]]
+    [:captcha [:string {:min 1}]]]
    [:fn {:error/message "passwords must match"
          :error/path [:password_confirmation]}
     (fn [{:keys [password password_confirmation]}]

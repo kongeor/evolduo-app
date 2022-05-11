@@ -9,7 +9,24 @@
             [evolduo-app.controllers.reaction :as reaction-ctl]
             [evolduo-app.controllers.invitation :as invitation-ctl]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
-            [sentry-clj.core :as sentry]))
+            [sentry-clj.core :as sentry]
+            [evolduo-app.music :as music]))
+
+(defn- update-action-seed [existing-seed]
+  (println "see>" existing-seed)
+  (if existing-seed
+    existing-seed
+    (music/generate-action-seed)))
+
+(defn wrap-action-seed [handler]
+  (fn [req]
+    (let [session (:session req)
+          action-seed (:action-seed session)]
+      (if action-seed
+        (handler req)
+        (->
+          (handler req)
+          (assoc :session (assoc session :action-seed (music/generate-action-seed))))))))
 
 (defn wrap-settings [handler settings]
   (fn [req]
@@ -53,6 +70,7 @@
 
 (defn app [db settings]
   (-> routes
+    wrap-action-seed
     (wrap-db db)
     (wrap-defaults site-defaults)
     wrap-exception                                          ;; TODO why?!

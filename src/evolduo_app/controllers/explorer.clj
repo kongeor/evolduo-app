@@ -13,11 +13,13 @@
   ;; TODO validate
   (let [{:keys [key mode pattern chord tempo]} (-> req :params)
         abc (when (and key pattern)
-              (music/->abc-track {:key key :mode (keyword mode)
-                                  :pattern pattern :chord chord
-                                  :tempo tempo}
-                {:genes (music/random-track {:key  key :measures 4
-                                             :mode (keyword mode)})}))]
+              (let [settings {:key     key :mode (keyword mode)
+                              :pattern pattern :chord chord
+                              :tempo   tempo}
+                    chord-names (music/gen-chord-names settings)]
+                (music/->abc-track settings
+                  {:genes (music/random-track {:key  key :measures (count chord-names)
+                                               :mode (keyword mode)})})))]
     (println abc)
     (-> (resp/response (hiccup/html (explorer-views/explorer req :abc abc)))
       (resp/content-type "text/html"))))

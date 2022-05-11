@@ -1,5 +1,6 @@
 (ns evolduo-app.music
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+            [evolduo-app.urls :as urls]))
 
 (def measure-sixteens 16)
 
@@ -12,11 +13,13 @@
 
 (def dorian-intervals [0 2 3 5 7 9 10])
 
+(def all-degrees-progression "I-II-III-IV-V-VI-VII-I")
+
 (def patterns ["I-IV-V-I"
                "I-II-VI-I"
                "I-IV-I-IV"
                "I-I-VII-I"
-               "I-II-III-IV-V-VI-VII-I"
+               all-degrees-progression
                ])
 
 (def chord-intervals [["R" [0]]
@@ -345,12 +348,11 @@
     (string/join " | " chords)))
 
 (defn gen-chord-names [{:keys [key mode duration pattern chord] :as settings}]
-  (println ">>> " settings)
   (let [dgs (pattern->degrees mode pattern)]
     (map #(gen-chord-2 (merge settings {:degree %})) dgs)))
 
 (comment
-  (gen-chord-names {:key "C" :mode :major :duration 8 :pattern "I-IV-V-I"}))
+  (gen-chord-names {:key "C" :mode :major :pattern all-degrees-progression :chord "R + 3 + 3 + 3"}))
 
 (comment
   (gen-chord-progression {:key "C" :mode :major :duration 8 :pattern "I-IV-V-I"}))
@@ -363,7 +365,7 @@
       "|")))
 
 (comment
-  (progression->abc {:key "C" :pattern "I-IV"}))
+  (progression->abc {:key "C" :mode :major :pattern "I-IV"}))
 
 #_(mode->nums :major)
 
@@ -388,3 +390,41 @@
 
 (comment
   (->abc-track {:key "C" :mode :major :duration 8 :pattern "I-IV-V-I" :chord "R + 3 + 3 + 3"} {:genes c}))
+
+(defn generate-action-seed []
+  [(rand-int (count music-keys))
+   (rand-int (count modes))
+   (rand-int (count degrees))])
+
+(defn get-settings-from-action-seed [[key mode degree]]
+  {:key    (nth music-keys key)
+   :mode   (nth modes mode)
+   :degree degree})
+
+;; TODO move stuff
+(defn describe-action-seed-markup [seed]
+  (let [{:keys [key mode degree] :as opts} (get-settings-from-action-seed seed)]
+    ;; TODO humanize degree
+    [:span
+     [:span (str "Which four note chord (e.g. CMaj7, Edim7 etc.) is the " (inc degree) " degree of " key " " mode ". ")]
+     [:span "Not sure? Check the " (inc degree) " measure "
+      [:a {:target "_blank" :href (urls/url-for :explorer :query (assoc opts
+                                                                   :chord "R + 3 + 3 + 3"
+                                                                   :pattern all-degrees-progression))} "here"]
+      "."]]))
+
+(comment
+  (generate-action-seed)
+  (get-settings-from-action-seed [5 0 4])
+  (describe-action-seed (get-settings-from-action-seed (generate-action-seed))))
+
+(defn get-chord-for-action-seed [seed]
+  (let [{:keys [key mode degree]} (get-settings-from-action-seed seed)
+        chord-names (gen-chord-names {:key key
+                                      :mode (keyword mode)
+                                      :pattern all-degrees-progression
+                                      :chord "R + 3 + 3 + 3"})]
+    (nth chord-names degree)))
+
+(comment
+  (get-chord-for-action-seed (generate-action-seed)))

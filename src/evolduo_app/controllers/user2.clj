@@ -5,7 +5,10 @@
             [evolduo-app.views.user :as user-views]
             [evolduo-app.mail :as mail]
             [ring.util.response :as response]
-            [evolduo-app.schemas :as s]))
+            [evolduo-app.schemas :as s]
+            [evolduo-app.music :as music]
+            [clojure.tools.logging :as log]
+            [clojure.string :as str]))
 
 (defn signup-form
   [req]
@@ -13,13 +16,25 @@
 
 (defn signup [req]
   (let [db (:db req)
+        action-seed (-> req :session :action-seed)
         settings (:settings req)
-        params (-> req :params (select-keys [:email :password :password_confirmation]))
+        params (-> req :params (select-keys [:email :password :password_confirmation :captcha]))
         sanitized-data (s/decode-and-validate s/Signup params)]
     (cond
       (:error sanitized-data)
       (r/render-html user-views/signup-form req {:signup params
                                                  :errors (:error sanitized-data)})
+
+      (not=
+        (music/get-chord-for-action-seed action-seed)
+        (str/replace (-> sanitized-data :data :captcha) #"♯" "#")) ;; poundseption - for those about to copy/paste
+      (do
+        ;; TODO update for nginx
+        ;; TODO reset for invalid submissions
+        ;; Fix
+        (log/warn "Invalid action seed from" (:remote-addr req))
+        (r/render-html user-views/signup-form req {:signup params
+                                                   :errors {:captcha ["not valid"]}}))
 
       (user2/find-user-by-email db (-> sanitized-data :data :email))
       (r/render-html user-views/signup-form req {:signup params
@@ -33,13 +48,12 @@
                         db
                         (-> sanitized-data :data :email)
                         (-> sanitized-data :data :password))]
-          (do
-            (let [user' (user2/find-user-by-id db (:id user))]
-              (mail/send-welcome-email settings user'))
+          (let [user' (user2/find-user-by-id db (:id user))]
+            (mail/send-welcome-email settings user')
             (->
               (r/redirect "/"
                 :flash {:type :info :message "Great success!"})
-              (assoc-in [:session :user/id] (:id user))))
+              (assoc-in [:session :user/id] (:id user'))))
           (r/redirect "/"
             :flash {:type :danger :message "Ooops"}))))
     ))
