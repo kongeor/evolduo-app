@@ -2,15 +2,18 @@
   (:require [next.jdbc.sql :as sql]
             [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
+            [next.jdbc.prepare :as prepare]
             [honey.sql :as h]
             [clojure.string :as string]
             [evolduo-app.music :as music]
             [clojure.string :as str]
-            [next.jdbc.date-time]
-            [clojure.tools.logging :as log])                          ;; enable java 8 times etc.
-  (:import (java.sql ResultSet ResultSetMetaData)
+            [next.jdbc.date-time]                           ;; enable java 8 times etc.
+            [clojure.tools.logging :as log]
+            [jsonista.core :as json])
+  (:import (java.sql ResultSet ResultSetMetaData PreparedStatement Clob)
            (java.util.concurrent TimeUnit)
-           (java.time Instant)))
+           (java.time Instant)
+           (clojure.lang IPersistentMap)))
 
 ;; util
 
@@ -31,6 +34,20 @@
 (comment
   (blob->int-vec "[1 2 3]"))
 
+(comment
+  ;; TODO do I need this?
+  (extend-protocol rs/ReadableColumn
+    Clob
+    (read-column-by-label [^Clob v _]
+      (json/read-value (rs/clob->string v) json/keyword-keys-object-mapper))
+    (read-column-by-index [^Clob v _2 _3]
+      (json/read-value (rs/clob->string v) json/keyword-keys-object-mapper))))
+
+(extend-protocol prepare/SettableParameter
+  IPersistentMap
+  (set-parameter [m ^PreparedStatement s i]
+    (.setObject s i (json/write-value-as-string m json/keyword-keys-object-mapper))))
+
 ;; https://stackoverflow.com/questions/63017628/how-do-i-read-bool-columns-from-sqlite-into-bool-clojure-values-with-next-jdbc
 (defn sqlite-column-by-index-fn [builder ^ResultSet rs ^Integer i]
   (try
@@ -42,6 +59,7 @@
             "TIMESTAMP" (when-let [ts (.getTimestamp rs i)]
                           (.toInstant ts))
             "BLOB" (blob->int-vec (.getObject rs i))
+            "CLOB" (jsonista.core/read-value (.getObject rs i) json/keyword-keys-object-mapper)
             (.getObject rs i)))
         rsm i))
     (catch Exception e
@@ -64,6 +82,7 @@ select e.*
 "] {:builder-fn sqlite-builder}))
 
 (comment
+  (find-evolution-by-id (:database.sql/connection integrant.repl.state/system) 16)
   (get-evolutions (:database.sql/connection integrant.repl.state/system)))
 
 (def sample-chromo {:created_at (Instant/now)

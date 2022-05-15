@@ -5,8 +5,6 @@
   selmer/selmer {:mvn/version "1.12.50"}
   seancorfield/next.jdbc {:mvn/version "1.2.659"}
   org.xerial/sqlite-jdbc {:mvn/version "3.36.0.2"}
-  metosin/reitit-ring {:mvn/version "0.5.15"}
-  metosin/reitit-middleware {:mvn/version "0.5.5"}
   integrant/integrant {:mvn/version "0.8.0"}
   dev.weavejester/ragtime {:mvn/version "0.9.1"}
   hiccup/hiccup {:mvn/version "1.0.5"}
@@ -20,7 +18,8 @@
   cprop/cprop {:mvn/version "0.1.19"}
   com.draines/postal {:mvn/version "2.0.5"}
   com.github.seancorfield/honeysql {:mvn/version "2.2.868"}
-  jarohen/chime {:mvn/version "0.3.3"}}
+  jarohen/chime {:mvn/version "0.3.3"}
+  metosin/jsonista {:mvn/version "0.3.5"}}
  :aliases
  {:dev {:extra-paths ["dev"]
         :extra-deps {integrant/repl {:mvn/version "0.3.2"}}}

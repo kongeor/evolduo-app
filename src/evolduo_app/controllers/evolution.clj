@@ -74,7 +74,9 @@
       :else
       (let [evolution (merge (:data sanitized-data)
                         {:created_at (Instant/now)
-                         :user_id    user-id})]
+                         :user_id    user-id
+                         :rules {:foo true
+                                 :bar true}})]
         (model/save-evolution (:db req) (:settings req) evolution)
         (assoc
           (resp/redirect "/evolution/list")
