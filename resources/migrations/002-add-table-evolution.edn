@@ -15,6 +15,7 @@
                                  repetitions INT NOT NULL DEFAULT 1,
                                  chord VARCHAR(20) NOT NULL,
                                  tempo INT NOT NULL,
-                                 user_id INTEGER REFERENCES users(id) NOT NULL
+                                 user_id INTEGER REFERENCES users(id) NOT NULL,
+                                 rules CLOB NOT NULL
                                 );"]
  :down ["DROP TABLE evolution;"]}
