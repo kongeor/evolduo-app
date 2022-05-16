@@ -90,6 +90,7 @@
     ;; TODO create util for url concat
     (resp/redirect (str "/evolution/" evolution-id "/iteration/" last-iteration-id))))
 
+;; TODO move to iteration
 (defn iteration-detail
   [req]
   (let [evolution-id (parse-long (-> req :params :evolution-id))

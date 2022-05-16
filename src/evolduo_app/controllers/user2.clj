@@ -96,10 +96,6 @@
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (login-user db "foo@example.com" "12345")))
 
-(comment
-  (let [db (:database.sql/connection integrant.repl.state/system)]
-    (create-user db "foo@example.com" "12345")))
-
 (defn account
   [req]
   (if-let [user-id (req/user-id req)]
@@ -107,3 +103,20 @@
           user (user2/find-user-by-id db user-id)]
       (r/render-html user-views/account req {:user user}))
     (r/render-404)))
+
+(defn update-subscription [req]
+  (let [db (:db req)
+        user-id (req/user-id req)
+        data (-> req :params (select-keys [:announcements :notifications]))
+        sanitized-data (s/decode-and-validate s/Subscription data)]
+    ;; (println "params" (-> params first val type))
+
+    (if (:error sanitized-data)
+      (r/redirect "/user/account"
+        :flash {:type :danger :message "Oops, something was wrong."})
+      (do
+        (user2/update-subscription db user-id (:data sanitized-data))
+        (r/redirect "/user/account"
+          :flash {:type :info :message "Your settings have been updated"})
+        ))
+    ))

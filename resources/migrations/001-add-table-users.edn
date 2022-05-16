@@ -1,14 +1,14 @@
 ;; resources/migrations/001-add-table-users.edn
 {:up   ["CREATE TABLE user (id INTEGER PRIMARY KEY,
                             created_at TIMESTAMP NOT NULL,
-                            groups VARCHAR(30) NOT NULL DEFAULT 'user',
+                            role VARCHAR(30) NOT NULL DEFAULT 'user',
                             email varchar(255) NOT NULL UNIQUE,
                             salt varchar(64),
                             password varchar(2000),
                             verified BOOL NOT NULL DEFAULT 0,
-                            verification_token VARCHAR(200)
+                            verification_token VARCHAR(200),
                             verified_at TIMESTAMP,
-                            subscribed BOOL NOT NULL DEFAULT 1,
+                            subscription CLOB NOT NULL,
                             unsubscribe_token VARCHAR(200),
                             deleted BOOL NOT NULL DEFAULT 0
                            );"]

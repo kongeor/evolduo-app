@@ -11,7 +11,7 @@
         "CREATE TABLE chromosome (id INTEGER PRIMARY KEY,
                                   created_at TIMESTAMP NOT NULL,
                                   fitness INT NOT NULL,
-                                  genes BLOB NOT NULL,
+                                  genes CLOB NOT NULL,
                                   abc TEXT NOT NULL,
                                   iteration_id INTEGER REFERENCES iteration(id) NOT NULL
                                  );"

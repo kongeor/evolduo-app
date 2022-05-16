@@ -6,7 +6,7 @@
             [crypto.random :as rnd])
   (:import (java.time Instant)))
 
-(defn insert-user
+(defn- insert-user
   [db user]
   (esql/insert! db :user user))
 
@@ -17,11 +17,21 @@
   (let [salt (rnd/hex 32)
         encrypted (password/encrypt (str salt pass))
         verification_token (rnd/hex 100)]
+    ;; TODO schema check - adjust defaults
     (insert-user db {:created_at         (Instant/now)
+                     :role               "admin"
                      :email              email
                      :salt               salt
                      :password           encrypted
-                     :verification_token verification_token})))
+                     :verified           true
+                     :verification_token verification_token
+                     :subscription       {:notifications true
+                                          :announcements true}})))
+
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    (create db "foo@example.com" "12345")))
+
 
 (defn find-user-by-email
   [db email]
@@ -30,7 +40,10 @@
 (defn find-user-by-id
   [db id]
   (-> (sql/get-by-id db :user id {:builder-fn em/sqlite-builder})
-    (select-keys [:id :email :verification_token])))
+    (select-keys [:id
+                  :email
+                  :verification_token
+                  :subscription])))
 
 (defn verify-user
   [db token]
@@ -50,3 +63,9 @@
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (sql/find-by-keys db :user {:id 1} {:builder-fn em/sqlite-builder})))
+
+;; TODO updated at?
+(defn update-subscription
+  [db user-id subscription]
+  (when-let [res (sql/update! db :user {:subscription subscription} {:id user-id} {:builder-fn em/sqlite-builder})]
+    res)) ;; TODO factor out builder

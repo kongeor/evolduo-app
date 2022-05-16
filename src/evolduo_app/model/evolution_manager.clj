@@ -13,26 +13,14 @@
   (:import (java.sql ResultSet ResultSetMetaData PreparedStatement Clob)
            (java.util.concurrent TimeUnit)
            (java.time Instant)
-           (clojure.lang IPersistentMap)))
+           (clojure.lang IPersistentMap IPersistentVector)))
 
 ;; util
-
-(defn blob->int-vec [str-line]
-  (if (string/blank? str-line)
-    []
-    (let [s' (.substring str-line 1 (count str-line))
-          l (count s')
-          s'' (.substring s' 0 (dec l))]
-      (->> (string/split s'' #" ")
-        (mapv #(Integer/parseInt %))))))
 
 (defn sql-insert! [db table key-map]
   (let [res (sql/insert! db table key-map)
         id ((keyword "last_insert_rowid()") res)]
     {:id id}))
-
-(comment
-  (blob->int-vec "[1 2 3]"))
 
 (comment
   ;; TODO do I need this?
@@ -46,6 +34,9 @@
 (extend-protocol prepare/SettableParameter
   IPersistentMap
   (set-parameter [m ^PreparedStatement s i]
+    (.setObject s i (json/write-value-as-string m json/keyword-keys-object-mapper)))
+  IPersistentVector
+  (set-parameter [m ^PreparedStatement s i]
     (.setObject s i (json/write-value-as-string m json/keyword-keys-object-mapper))))
 
 ;; https://stackoverflow.com/questions/63017628/how-do-i-read-bool-columns-from-sqlite-into-bool-clojure-values-with-next-jdbc
@@ -58,7 +49,6 @@
             "BOOL" (.getBoolean rs i)
             "TIMESTAMP" (when-let [ts (.getTimestamp rs i)]
                           (.toInstant ts))
-            "BLOB" (blob->int-vec (.getObject rs i))
             "CLOB" (jsonista.core/read-value (.getObject rs i) json/keyword-keys-object-mapper)
             (.getObject rs i)))
         rsm i))

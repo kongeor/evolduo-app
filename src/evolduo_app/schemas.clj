@@ -123,3 +123,13 @@
                                :password_confirmation              "Pa$$word1"
                                }))
 
+
+(def Subscription
+  [:and
+   [:map {:closed true}
+    [:notifications {:default false} boolean?]
+    [:announcements {:default false} boolean?]]])
+
+(comment
+  (decode-and-validate Subscription {:announcements "true"
+                                     :notifications false}))
