@@ -21,10 +21,10 @@
     (assoc
       :flash flash)))
 
-(defn logout []
+(defn logout [& {:keys [message] :or {message "I am awesome!"}}]
   (->
     (redirect "/"
-      :flash {:type :info :message "You have been logged out"})
+      :flash {:type :info :message message})
     (assoc :session nil)))
 
 (defn set-sensitive-actions-seed [resp]

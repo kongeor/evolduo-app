@@ -30,8 +30,9 @@
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
-    (create db "foo@example.com" "12345")))
-
+    (create db "foo@example.com" "12345"))
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    (sql/query db ["select * from user"])))
 
 (defn find-user-by-email
   [db email]
@@ -68,4 +69,15 @@
 (defn update-subscription
   [db user-id subscription]
   (when-let [res (sql/update! db :user {:subscription subscription} {:id user-id} {:builder-fn em/sqlite-builder})]
+    res)) ;; TODO factor out builder
+
+(defn delete-user
+  [db user-id]
+  (when-let [res (sql/update! db :user {:deleted true
+                                        :email  (str (.toEpochMilli (Instant/now)) "-deleted@example.com")
+                                        :verification_token nil
+                                        :password nil
+                                        :salt nil
+                                        :subscription "{}"}
+                   {:id user-id} {:builder-fn em/sqlite-builder})]
     res)) ;; TODO factor out builder

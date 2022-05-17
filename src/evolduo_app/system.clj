@@ -5,9 +5,10 @@
             [evolduo-app.handler :as handler]
             [evolduo-app.model.user-manager :refer [populate]]
             [evolduo-app.timer :as timer]
-            [cprop.core :as cp]))
+            [cprop.core :as cp])
+  (:import (org.eclipse.jetty.server Server)))
 
-(def db-spec {:dbtype "sqlite" :dbname "evolduo.db"})
+(def db-spec {:dbtype "sqlite" :dbname "evolduo.db"})       ;; TODO move to config
 
 (def config
   {:adapter/jetty {:handler (ig/ref :handler/run-app) :port 3000}
@@ -25,6 +26,7 @@
   (handler/app db settings))
 
 (defmethod ig/init-key :config/settings [_ _]
+  ;; TODO validate config
   (cp/load-config))
 
 (defmethod ig/init-key :chime/timer [_ {:keys [db settings]}]
@@ -35,7 +37,7 @@
     #_(populate conn (:dbtype db-spec))                     ;; TODO delete
     conn))
 
-(defmethod ig/halt-key! :adapter/jetty [_ server]
+(defmethod ig/halt-key! :adapter/jetty [_ ^Server server]
   (.stop server))
 
 (defmethod ig/halt-key! :chime/timer [_ timer]

@@ -95,7 +95,17 @@
            [:button.button.is-link {:type "submit"} "Save"]]]]]
        [:div
         [:h3.title.is-5.mb-4 "Danger zone"]
-        [:div "Coming soon"]]
+        [:p.mb-4 "Account deletion is an irreversible action. Your email will be changed to a random value and your content will be hidden."]
+        [:p.mb-4 "You will need to type " [:code "I am awesome!"] " in the input field below to confirm this action."]
+        [:form {:action "/user/delete" :method "post"}
+         [:input {:type "hidden" :id "__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
+         [:div.field
+          [:label.label "Confirmation"]
+          [:div.control
+           [:input.input {:name "confirmation" :type "input" :autocomplete "off"}]]]
+         [:div.field.is-grouped
+          [:div.control
+           [:button.button.is-danger {:type "submit"} "Delete my account"]]]]]
 
        #_[:form {:action "/user/signup" :method "post"}
           [:input {:type "hidden" :id "__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]

@@ -120,3 +120,17 @@
           :flash {:type :info :message "Your settings have been updated"})
         ))
     ))
+
+(defn delete [req]
+  (let [db (:db req)
+        user-id (req/user-id req)
+        verification (-> req :params :confirmation)
+        ]
+    (if (not= verification "I am awesome!")
+      (r/redirect "/user/account"
+        :flash {:type :danger :message "You are not awesome enough to delete your account. Please try again"})
+      (do
+        (user2/delete-user db user-id)
+        (r/logout {:message "Your account has been deleted"})
+        ))
+    ))
