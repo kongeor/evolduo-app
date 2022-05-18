@@ -1,6 +1,6 @@
 (ns evolduo-app.model.invitation
   (:require [next.jdbc :as jdbc]
-            [next.jdbc.sql :as sql])
+            [evolduo-app.sql :as sql])
   (:import (java.time Instant)))
 
 (defn insert-invitations! [db user-id evolution-id emails]

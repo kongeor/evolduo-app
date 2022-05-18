@@ -236,11 +236,13 @@ select e.*
                            [:e.total_iterations]
                            [[:- :e.total_iterations :i.num] :iterations_to_go]]
                   :from   [[:evolution :e]]
-                  :join   [[:iteration :i] [:= :i/evolution_id :e/id]]
+                  :join   [[:iteration :i] [:= :i/evolution_id :e/id]
+                           [:user :u] [:= :e.user_id :u.id]]
                   :where  [:and
                            [:<= :i.num :e.total_iterations]
                            [:= :e.public 1]
                            [:= :i.last 1]
+                           [:= :u.deleted 0]
                            (when user-id
                              [:!= :e/user-id user-id])]}]
     (sql/query db (h/format q-sqlmap) {:builder-fn sqlite-builder})))

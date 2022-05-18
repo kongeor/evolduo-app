@@ -3,25 +3,24 @@
             [evolduo-app.sql :as esql]
             [evolduo-app.model.evolution-manager :as em]
             [crypto.password.pbkdf2 :as password]
-            [crypto.random :as rnd])
+            [crypto.random :as rnd]
+            [clojure.pprint :as pp])
   (:import (java.time Instant)))
 
 (defn- insert-user
   [db user]
   (esql/insert! db :user user))
 
-;; TODO pepper
+;; Not using pepper per https://stackoverflow.com/questions/16891729/best-practices-salting-peppering-passwords
 (defn create
   "Returns only the user id"
   [db email pass]
-  (let [salt (rnd/hex 32)
-        encrypted (password/encrypt (str salt pass))
+  (let [encrypted (password/encrypt pass)
         verification_token (rnd/hex 100)]
     ;; TODO schema check - adjust defaults
     (insert-user db {:created_at         (Instant/now)
                      :role               "admin"
                      :email              email
-                     :salt               salt
                      :password           encrypted
                      :verified           true
                      :verification_token verification_token
@@ -32,7 +31,9 @@
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (create db "foo@example.com" "12345"))
   (let [db (:database.sql/connection integrant.repl.state/system)]
-    (sql/query db ["select * from user"])))
+    (sql/query db ["select json_extract(u.subscription, '$.notifications') as n from user u "]))
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    (pp/print-table (sql/query db ["select email, deleted from user"]))))
 
 (defn find-user-by-email
   [db email]

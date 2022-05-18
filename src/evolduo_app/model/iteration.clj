@@ -8,14 +8,17 @@
   (:import (java.time Instant)))
 
 (defn find-iterations-to-evolve [db]
-  (let [q-sqlmap {:select [:i/id]
+  (let [q-sqlmap {:select [[:i/id :id] [:e/id :evolution_id]]
                   :from   [[:evolution :e]]
-                  :join   [[:iteration :i] [:= :i/evolution_id :e/id]]
+                  :join   [[:iteration :i] [:= :i/evolution_id :e/id]
+                           [:user :u] [:= :e.user_id :u.id]]
                   :where
                   [:and
                    [:> [:raw ["strftime('%s', 'now') * 1000"]] :i.evolve_after]
                    [:>= :i.ratings :e.min_ratings]          ;; TODO <= total_iterations! mark as finished?
-                   [:= :i.last 1]]}]                        ;; TODO check
+                   [:>= :e.total_iterations :i.num]
+                   [:= :i.last 1]
+                   [:= :u.deleted 0]]}]                        ;; TODO check
     (sql/query db (h/format q-sqlmap) {:builder-fn em/sqlite-builder})))
 
 (comment

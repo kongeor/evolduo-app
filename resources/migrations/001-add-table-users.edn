@@ -3,7 +3,6 @@
                             created_at TIMESTAMP NOT NULL,
                             role VARCHAR(30) NOT NULL DEFAULT 'user',
                             email varchar(255) NOT NULL UNIQUE,
-                            salt varchar(64),
                             password varchar(2000),
                             verified BOOL NOT NULL DEFAULT 0,
                             verification_token VARCHAR(200),

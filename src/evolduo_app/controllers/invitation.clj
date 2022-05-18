@@ -1,12 +1,14 @@
 (ns evolduo-app.controllers.invitation
   (:require [evolduo-app.request :as request]
             [evolduo-app.model.evolution-manager :as evolution-model]
+            [evolduo-app.model.user2-manager :as user-model]
             [evolduo-app.model.invitation :as model]
             [evolduo-app.response :as r]
             [evolduo-app.views.evolution :as evolution-views]
             [clojure.string :as str]
             [evolduo-app.schemas :as schemas]
-            [evolduo-app.urls :as u]))
+            [evolduo-app.urls :as u]
+            [evolduo-app.mail :as mail]))
 
 (defn invitation-form [req]
   (let [db (:db req)
@@ -30,6 +32,7 @@
 
 (defn invitation-save [req]
   (let [db (:db req)
+        settings (:settings req)
         user-id (request/user-id req)
         emails-input (-> req :params :emails)
         emails (str/split emails-input #"[\s,]+")
@@ -57,8 +60,11 @@
           :flash {:type :danger :message "You need to be logged in, man ..."}) ;; wrong
 
       :else
-      (let [emails (-> sanitized-data :data :emails)]
-        ;; TODO get ids, send emails
+      ;; TODO get ids, send emails
+      (let [user (user-model/find-user-by-id db user-id)
+            emails (-> sanitized-data :data :emails)]
         (model/insert-invitations! db user-id evolution-id emails)
+        (mail/send-collaboration-email settings evolution-id (:email user) emails)
         (r/redirect "/" :flash {:type :info :message "Your friends have been invited!"})))))
 
+;; TODO store cookie data
