@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  evolduo:
+    #    image: kongeor/evolduo
+    container_name: evolduo-app
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - ENVIRONMENT
+    volumes:
+      - type: bind
+        source: ./evolduo.db
+        target: /evolduo.db

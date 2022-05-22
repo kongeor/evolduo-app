@@ -5,4 +5,8 @@
 *.iml
 *.idea/
 
+target/
+.env
+
+
 resources/config.edn

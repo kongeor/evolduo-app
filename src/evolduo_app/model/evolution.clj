@@ -1,4 +1,4 @@
-(ns evolduo-app.model.evolution-manager
+(ns evolduo-app.model.evolution
   (:require [next.jdbc.sql :as sql]
             [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]

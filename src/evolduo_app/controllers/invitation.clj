@@ -1,7 +1,7 @@
 (ns evolduo-app.controllers.invitation
   (:require [evolduo-app.request :as request]
-            [evolduo-app.model.evolution-manager :as evolution-model]
-            [evolduo-app.model.user2-manager :as user-model]
+            [evolduo-app.model.evolution :as evolution-model]
+            [evolduo-app.model.user :as user-model]
             [evolduo-app.model.invitation :as model]
             [evolduo-app.response :as r]
             [evolduo-app.views.evolution :as evolution-views]

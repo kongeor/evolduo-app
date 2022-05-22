@@ -2,7 +2,7 @@
   (:require [compojure.route :as route]
             [compojure.core :refer [defroutes GET POST ANY]]
             [clojure.tools.logging :as log]
-            [evolduo-app.controllers.user2 :as user2-ctl]
+            [evolduo-app.controllers.user :as user-ctl]
             [evolduo-app.controllers.home :as home-ctl]
             [evolduo-app.controllers.evolution :as evolution-ctl]
             [evolduo-app.controllers.explorer :as explorer-ctl]
@@ -50,15 +50,15 @@
 
 (defroutes routes
   (GET "/" [] home-ctl/home)
-  (GET "/user/signup" [] user2-ctl/signup-form)
-  (POST "/user/signup" [] user2-ctl/signup)
-  (GET "/user/login" [] user2-ctl/login-form)
-  (POST "/user/login" [] user2-ctl/login)
-  (POST "/user/logout" [] user2-ctl/logout-user)
-  (GET "/user/account" [] user2-ctl/account)
-  (GET "/user/verify" [] user2-ctl/verify-user)
-  (POST "/user/subscription" [] user2-ctl/update-subscription)
-  (POST "/user/delete" [] user2-ctl/delete)
+  (GET "/user/signup" [] user-ctl/signup-form)
+  (POST "/user/signup" [] user-ctl/signup)
+  (GET "/user/login" [] user-ctl/login-form)
+  (POST "/user/login" [] user-ctl/login)
+  (POST "/user/logout" [] user-ctl/logout-user)
+  (GET "/user/account" [] user-ctl/account)
+  (GET "/user/verify" [] user-ctl/verify-user)
+  (POST "/user/subscription" [] user-ctl/update-subscription)
+  (POST "/user/delete" [] user-ctl/delete)
   (GET "/evolution/form" [] evolution-ctl/edit)
   (POST "/evolution/save" [] evolution-ctl/save)
   (GET "/evolution/list" [] evolution-ctl/list)

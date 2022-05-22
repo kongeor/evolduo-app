@@ -1,7 +1,7 @@
-(ns evolduo-app.model.user2-manager
+(ns evolduo-app.model.user
   (:require [next.jdbc.sql :as sql]
             [evolduo-app.sql :as esql]
-            [evolduo-app.model.evolution-manager :as em]
+            [evolduo-app.model.evolution :as em]
             [crypto.password.pbkdf2 :as password]
             [crypto.random :as rnd]
             [clojure.pprint :as pp])

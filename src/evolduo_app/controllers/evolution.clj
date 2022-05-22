@@ -1,5 +1,5 @@
 (ns evolduo-app.controllers.evolution
-  (:require [evolduo-app.model.evolution-manager :as model]
+  (:require [evolduo-app.model.evolution :as model]
             [evolduo-app.model.reaction :as reaction-model]
             [evolduo-app.views.evolution :as evolution-views]
             [evolduo-app.schemas :as schemas]

@@ -2,7 +2,7 @@
   (:require [clojure.tools.logging :as log]
             [ring.util.response :as resp]
             [evolduo-app.model.reaction :as model]
-            [evolduo-app.model.evolution-manager :as evolution-model]
+            [evolduo-app.model.evolution :as evolution-model]
             [evolduo-app.schemas :as schemas]
             [next.jdbc :as jdbc])
   (:import (java.time Instant)))

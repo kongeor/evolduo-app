@@ -23,4 +23,6 @@
  :aliases
  {:dev {:extra-paths ["dev"]
         :extra-deps {integrant/repl {:mvn/version "0.3.2"}}}
-  :server {:main-opts ["-m" "evolduo-app.system"]}}}
+  :server {:main-opts ["-m" "evolduo-app.system"]}
+  :build {:deps {io.github.clojure/tools.build {:git/tag "v0.8.2" :git/sha "ba1a2bf"}}
+          :ns-default build}}}

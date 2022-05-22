@@ -52,6 +52,10 @@
       (navbar req)
       (notification req)
       content]]
+    [:footer.footer
+     [:div.content.has-text-centered
+      [:p "da footer"]
+      [:p (str (-> req :settings :version))]]]
     (when custom-script
       [:script {:type "text/javascript"}
        custom-script])

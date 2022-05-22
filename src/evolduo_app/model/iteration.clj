@@ -1,10 +1,10 @@
 (ns evolduo-app.model.iteration
-  (:require [next.jdbc.sql :as sql]
-            [evolduo-app.model.evolution-manager :as em]
+  (:require [evolduo-app.model.evolution :as em]
             [honey.sql :as h]
             [next.jdbc :as jdbc]
             [evolduo-app.music :as music]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [next.jdbc.sql :as sql])
   (:import (java.time Instant)))
 
 (defn find-iterations-to-evolve [db]

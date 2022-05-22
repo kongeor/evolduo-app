@@ -1,7 +1,6 @@
 (ns evolduo-app.mail
   (:require [postal.core :as mail]
-            [cprop.core :as cp]
-            [evolduo-app.model.user2-manager :as user2]
+            [evolduo-app.model.user :as user]
             [hiccup.core :as html]))
 
 ;; common
@@ -62,6 +61,6 @@
 (comment
   (let [settings (:config/settings integrant.repl.state/system)
         db (:database.sql/connection integrant.repl.state/system)
-        user (user2/find-user-by-email db "foo@example.com")]
+        user (user/find-user-by-email db "foo@example.com")]
     (send-collaboration-email settings 1 "foo@example.com" ["bar@example.com"])))
 

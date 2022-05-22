@@ -1,6 +1,6 @@
 (ns evolduo-app.controllers.home
   (:require [evolduo-app.response :as response]
-            [evolduo-app.model.evolution-manager :as model]
+            [evolduo-app.model.evolution :as model]
             [evolduo-app.views.home :as view]
             [evolduo-app.request :as r]))
 

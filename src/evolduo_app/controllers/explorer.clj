@@ -1,5 +1,5 @@
 (ns evolduo-app.controllers.explorer
-  (:require [evolduo-app.model.evolution-manager :as model]
+  (:require [evolduo-app.model.evolution :as model]
             [evolduo-app.views.explorer :as explorer-views]
             [evolduo-app.schemas :as schemas]
             [evolduo-app.music :as music]

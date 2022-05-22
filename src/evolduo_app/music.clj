@@ -1,5 +1,6 @@
 (ns evolduo-app.music
   (:require [clojure.string :as string]
+            [clojure.set :as set]
             [evolduo-app.urls :as urls]))
 
 (def measure-sixteens 16)
@@ -91,7 +92,7 @@
    83 "b"
    })
 
-(def note-abc-map (clojure.set/map-invert abc-note-map))
+(def note-abc-map (set/map-invert abc-note-map))
 
 (defn abc-note-dur [cnt]
   (let [t (/ cnt 4)]

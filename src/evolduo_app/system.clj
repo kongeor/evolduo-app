@@ -3,10 +3,10 @@
             [next.jdbc :as jdbc]
             [ring.adapter.jetty :refer [run-jetty]]
             [evolduo-app.handler :as handler]
-            [evolduo-app.model.user-manager :refer [populate]]
             [evolduo-app.timer :as timer]
             [cprop.core :as cp])
-  (:import (org.eclipse.jetty.server Server)))
+  (:import (org.eclipse.jetty.server Server))
+  (:gen-class))
 
 (def db-spec {:dbtype "sqlite" :dbname "evolduo.db"})       ;; TODO move to config
 
@@ -34,7 +34,6 @@
 
 (defmethod ig/init-key :database.sql/connection [_ db-spec]
   (let [conn (jdbc/get-datasource db-spec)]
-    #_(populate conn (:dbtype db-spec))                     ;; TODO delete
     conn))
 
 (defmethod ig/halt-key! :adapter/jetty [_ ^Server server]

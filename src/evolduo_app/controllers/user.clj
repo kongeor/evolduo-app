@@ -1,83 +1,139 @@
-;; copyright (c) 2019 Sean Corfield, all rights reserved
-
 (ns evolduo-app.controllers.user
-  "The main controller for the user management portion of this app."
-  (:require [ring.util.response :as resp]
-            [selmer.parser :as tmpl]
-            [evolduo-app.model.user-manager :as model]))
+  (:require [evolduo-app.response :as r]
+            [evolduo-app.request :as req]
+            [evolduo-app.model.user :as user]
+            [evolduo-app.views.user :as user-views]
+            [evolduo-app.mail :as mail]
+            [ring.util.response :as response]
+            [evolduo-app.schemas :as s]
+            [evolduo-app.music :as music]
+            [clojure.tools.logging :as log]
+            [clojure.string :as str]))
 
-(def ^:private changes
-  "Count the number of changes (since the last reload)."
-  (atom 0))
-
-(defn render-page
-  "Each handler function here adds :application/view to the request
-  data to indicate which view file they want displayed. This allows
-  us to put the rendering logic in one place instead of repeating it
-  for every handler."
+(defn signup-form
   [req]
-  (let [data (assoc (:params req) :changes @changes)
-        view (:application/view req "default")
-        html (tmpl/render-file (str "views/user/" view ".html") data)]
-    (-> (resp/response (tmpl/render-file "layouts/default.html"
-                                         (assoc data :body [:safe html])))
-        (resp/content-type "text/html"))))
+  (r/render-html user-views/signup-form req))
 
-(defn reset-changes
-  [req]
-  (reset! changes 0)
-  (assoc-in req [:params :message] "The change tracker has been reset."))
-
-(defn default [req]
-  (let [session (:session req)]
-    (println "current session" session)
-    (assoc-in req [:params :message]
-      (str "Welcome to the User Manager application demo! "
-        "This uses just Reitit, Ring, and Selmer."
-        "Current user " (:user/id session)))))
-
-(defn get-users
-  "Render the list view with all the users in the addressbook."
-  [req]
-  (let [users (model/get-users (:db req))]
-    (-> req
-        (assoc-in [:params :users] users)
-        (assoc :application/view "list"))))
-
-(defn edit
-  "Display the add/edit form.
-  If the :id parameter is present, Compojure will have coerced it to an
-  int and we can use it to populate the edit form by loading that user's
-  data from the addressbook."
-  [req]
+(defn signup [req]
   (let [db (:db req)
-        user (when-let [id (get-in req [:path-params :id])]
-               (model/get-user-by-id db id))]
-    (-> req
-        (update :params assoc
-                :user user
-                :departments (model/get-departements db))
-        (assoc :application/view "form"))))
+        action-seed (-> req :session :action-seed)
+        settings (:settings req)
+        params (-> req :params (select-keys [:email :password :password_confirmation :captcha]))
+        sanitized-data (s/decode-and-validate s/Signup params)]
+    (cond
+      (:error sanitized-data)
+      (r/render-html user-views/signup-form req {:signup params
+                                                 :errors (:error sanitized-data)})
 
-(defn save
-  "This works for saving new users as well as updating existing users, by
-  delegatin to the model, and either passing nil for :addressbook/id or
-  the numeric value that was passed to the edit form."
+      (not=
+        (music/get-chord-for-action-seed action-seed)
+        (str/replace (-> sanitized-data :data :captcha) #"♯" "#")) ;; poundseption - for those about to copy/paste
+      (do
+        ;; TODO update for nginx
+        ;; TODO reset for invalid submissions
+        ;; Fix
+        (log/warn "Invalid action seed from" (:remote-addr req))
+        (r/render-html user-views/signup-form req {:signup params
+                                                   :errors {:captcha ["not valid"]}}))
+
+      (user/find-user-by-email db (-> sanitized-data :data :email))
+      (r/render-html user-views/signup-form req {:signup params
+                                                 :errors {:email ["this email is already in use"]}})
+
+      ;; TODO check vip list
+      (not ((set (:vip_list settings)) (-> sanitized-data :data :email)))
+      (r/render-html user-views/signup-form req {:signup params
+                                                 :errors {:email ["unfortunately you are not in the vip list"]}})
+
+      :else
+      (do
+        (if-let [user (user/create
+                        db
+                        (-> sanitized-data :data :email)
+                        (-> sanitized-data :data :password))]
+          (let [user' (user/find-user-by-id db (:id user))]
+            (mail/send-welcome-email settings user')
+            (->
+              (r/redirect "/"
+                :flash {:type :info :message "Great success!"})
+              (assoc-in [:session :user/id] (:id user'))))
+          (r/redirect "/"
+            :flash {:type :danger :message "Ooops"}))))
+    ))
+
+(defn login-form
   [req]
-  (swap! changes inc)
-  (-> req
-      :params
-      (select-keys [:id :first_name :last_name :email :department_id])
-      (update :id #(some-> % not-empty Long/parseLong))
-      (update :department_id #(some-> % not-empty Long/parseLong))
-      (->> (reduce-kv (fn [m k v] (assoc! m (keyword "addressbook" (name k)) v))
-                      (transient {}))
-           (persistent!)
-           (model/save-user (:db req))))
-  (resp/redirect "/user/list"))
+  (r/render-html user-views/login-form req))
 
-(defn delete-by-id [req]
-  (swap! changes inc)
-  (model/delete-user-by-id (:db req)
-                           (get-in req [:path-params :id]))
-  (resp/redirect "/user/list"))
+(defn login [req]
+  (let [db (:db req)
+        email (-> req :params :email)
+        password (-> req :params :password)
+        session (:session req)]
+    (if-let [user (user/login-user db email password)]
+      (let [session' (assoc session :user/id (:id user))]
+        (-> (response/redirect "/")
+          (assoc :session session'))))))
+
+(defn logout-user [req]
+  (r/logout))
+
+(defn verify-user [req]
+  (let [db (:db req)
+        token (-> req :params :token)]
+    ;; TODO
+    ;; sentry event?
+    ;; delete verification token
+    ;; login after verification
+    ;; ensure users are not verified again
+    ;; add verification date?
+    ;; TODO always verified?
+    (if-let [res (user/verify-user db token)]
+      (do
+        (assoc (response/redirect "/")
+          :flash {:type :info :message "Cool, you are now verified!"}))
+      (assoc (response/redirect "/")
+        :flash {:type :danger :message "Oops, something was wrong."}))))
+
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    (login-user db "foo@example.com" "12345")))
+
+(defn account
+  [req]
+  (if-let [user-id (req/user-id req)]
+    (let [db   (:db req)
+          user (user/find-user-by-id db user-id)]
+      (r/render-html user-views/account req {:user user}))
+    (r/render-404)))
+
+(defn update-subscription [req]
+  (let [db (:db req)
+        user-id (req/user-id req)
+        data (-> req :params (select-keys [:announcements :notifications]))
+        sanitized-data (s/decode-and-validate s/Subscription data)]
+    ;; (println "params" (-> params first val type))
+
+    (if (:error sanitized-data)
+      (r/redirect "/user/account"
+        :flash {:type :danger :message "Oops, something was wrong."})
+      (do
+        (user/update-subscription db user-id (:data sanitized-data))
+        (r/redirect "/user/account"
+          :flash {:type :info :message "Your settings have been updated"})
+        ))
+    ))
+
+(defn delete [req]
+  (let [db (:db req)
+        user-id (req/user-id req)
+        verification (-> req :params :confirmation)
+        ]
+    (if (not= verification "I am awesome!")
+      (r/redirect "/user/account"
+        :flash {:type :danger :message "You are not awesome enough to delete your account. Please try again"})
+      (do
+        (user/delete-user db user-id)
+        (r/logout {:message "Your account has been deleted"})
+        ))
+    ))

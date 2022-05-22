@@ -1,6 +1,6 @@
 (ns evolduo-app.model.reaction
   (:require [next.jdbc.sql :as sql]
-            [evolduo-app.model.evolution-manager :as em]))
+            [evolduo-app.model.evolution :as em]))
 
 (defn insert-reaction
   [db reaction]
