@@ -25,9 +25,9 @@
                                );"
         "CREATE TABLE invitation (id INTEGER PRIMARY KEY,
                                   created_at TIMESTAMP NOT NULL,
-                                  email VARCHAR(255) NOT NULL,
+                                  invitee_id INTEGER REFERENCES user(id) NOT NULL,
                                   evolution_id INTEGER REFERENCES evolution(id) NOT NULL,
-                                  created_by INTEGER REFERENCES user(id) NOT NULL
+                                  invited_by_id INTEGER REFERENCES user(id) NOT NULL
                                  );"]
  :down ["DROP TABLE invitation;"
         "DROP TABLE reaction;"

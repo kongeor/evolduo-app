@@ -3,7 +3,7 @@
             [evolduo-app.music :as music]
             [ring.middleware.anti-forgery :as anti-forgery]))
 
-(defn login-form [req]
+(defn login-form [req & {:keys [login notification]}]
   (base-view
     req
     [:div
@@ -13,7 +13,7 @@
       [:div.field
        [:label.label "Email"]
        [:div.control
-        [:input.input {:name "email" :type "email" :placeholder "user@example.com"}]]]
+        [:input.input {:name "email" :type "email" :placeholder "user@example.com" :value (:email login)}]]]
       [:div.field
        [:label.label "Password"]
        [:div.control
@@ -22,7 +22,8 @@
        [:div.control
         [:button.button.is-link {:type "submit"} "Login"]]
        [:div.control
-        [:button.button.is-link.is-light "Cancel"]]]]]))
+        [:button.button.is-link.is-light "Cancel"]]]]]
+    :notification notification))
 
 (defn signup-form [req & {:keys [signup errors]}]
   (let [action-seed (-> req :session :action-seed)]

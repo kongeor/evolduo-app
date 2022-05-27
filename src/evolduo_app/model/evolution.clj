@@ -265,11 +265,11 @@ select e.*
                   :from   [[:evolution :e]]
                   :join   [[:iteration :i] [:= :i/evolution_id :e/id]
                            [:invitation :v] [:= :v.evolution_id :e.id]
-                           [:user :u] [:= :u.email :v.email]
+                           [:user :u] [:= :u.id :v.invitee_id]
                            ]
                   :where  [:and
                            [:<= :i.num :e.total_iterations]
-                           [:= :e.public 0]
+                           #_[:= :e.public 0]
                            [:= :i.last 1]
                            [:= :u.id user-id]]}]
     #_(println "**" (h/format q-sqlmap))

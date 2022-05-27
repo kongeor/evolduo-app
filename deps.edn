@@ -1,28 +1,27 @@
 {:paths ["src" "resources"]
  :deps
- {ring/ring-core {:mvn/version "1.9.5"},
-  ring/ring-jetty-adapter {:mvn/version "1.9.5"}
-  selmer/selmer {:mvn/version "1.12.50"}
-  seancorfield/next.jdbc {:mvn/version "1.2.659"}
-  org.xerial/sqlite-jdbc {:mvn/version "3.36.0.2"}
-  integrant/integrant {:mvn/version "0.8.0"}
-  dev.weavejester/ragtime {:mvn/version "0.9.1"}
-  hiccup/hiccup {:mvn/version "1.0.5"}
-  crypto-password/crypto-password {:mvn/version "0.3.0"}
-  crypto-random/crypto-random {:mvn/version "1.2.0"}
-  ring/ring-anti-forgery {:mvn/version "1.3.0"}
-  ring/ring-defaults {:mvn/version "0.3.2"}
-  compojure/compojure {:mvn/version "1.6.2"}
-  metosin/malli {:mvn/version "0.8.4"}
-  io.sentry/sentry-clj {:mvn/version "5.7.177"}
-  cprop/cprop {:mvn/version "0.1.19"}
-  com.draines/postal {:mvn/version "2.0.5"}
-  com.github.seancorfield/honeysql {:mvn/version "2.2.868"}
-  jarohen/chime {:mvn/version "0.3.3"}
-  metosin/jsonista {:mvn/version "0.3.5"}}
+ {ring/ring-core                   {:mvn/version "1.9.5"},
+  ring/ring-jetty-adapter          {:mvn/version "1.9.5"}
+  selmer/selmer                    {:mvn/version "1.12.50"}
+  seancorfield/next.jdbc           {:mvn/version "1.2.659"}
+  org.xerial/sqlite-jdbc           {:mvn/version "3.36.0.3"}
+  integrant/integrant              {:mvn/version "0.8.0"}
+  dev.weavejester/ragtime          {:mvn/version "0.9.1"}
+  hiccup/hiccup                    {:mvn/version "1.0.5"}
+  crypto-password/crypto-password  {:mvn/version "0.3.0"}
+  crypto-random/crypto-random      {:mvn/version "1.2.1"}
+  ring/ring-defaults               {:mvn/version "0.3.3"}
+  compojure/compojure              {:mvn/version "1.6.3"}
+  metosin/malli                    {:mvn/version "0.8.4"}
+  io.sentry/sentry-clj             {:mvn/version "5.7.178"}
+  cprop/cprop                      {:mvn/version "0.1.19"}
+  com.draines/postal               {:mvn/version "2.0.5"}
+  com.github.seancorfield/honeysql {:mvn/version "2.2.891"}
+  jarohen/chime                    {:mvn/version "0.3.3"}
+  metosin/jsonista                 {:mvn/version "0.3.5"}}
  :aliases
- {:dev {:extra-paths ["dev"]
-        :extra-deps {integrant/repl {:mvn/version "0.3.2"}}}
+ {:dev    {:extra-paths ["dev"]
+           :extra-deps  {integrant/repl {:mvn/version "0.3.2"}}}
   :server {:main-opts ["-m" "evolduo-app.system"]}
-  :build {:deps {io.github.clojure/tools.build {:git/tag "v0.8.2" :git/sha "ba1a2bf"}}
-          :ns-default build}}}
+  :build  {:deps       {io.github.clojure/tools.build {:git/tag "v0.8.2" :git/sha "ba1a2bf"}}
+           :ns-default build}}}

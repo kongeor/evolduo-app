@@ -36,23 +36,24 @@
         (r/render-html user-views/signup-form req {:signup params
                                                    :errors {:captcha ["not valid"]}}))
 
-      (user/find-user-by-email db (-> sanitized-data :data :email))
+      (user/get-registered-user db (-> sanitized-data :data :email))
       (r/render-html user-views/signup-form req {:signup params
                                                  :errors {:email ["this email is already in use"]}})
 
       ;; TODO check vip list
-      (not ((set (:vip_list settings)) (-> sanitized-data :data :email)))
-      (r/render-html user-views/signup-form req {:signup params
+      #_(not ((set (:vip_list settings)) (-> sanitized-data :data :email)))
+      #_(r/render-html user-views/signup-form req {:signup params
                                                  :errors {:email ["unfortunately you are not in the vip list"]}})
 
       :else
       (do
-        (if-let [user (user/create
+        (if-let [user (user/upsert!
                         db
                         (-> sanitized-data :data :email)
                         (-> sanitized-data :data :password))]
           (let [user' (user/find-user-by-id db (:id user))]
-            (mail/send-welcome-email settings user')
+            ;; TODO mail
+            #_(mail/send-welcome-email settings user')
             (->
               (r/redirect "/"
                 :flash {:type :info :message "Great success!"})
@@ -73,7 +74,10 @@
     (if-let [user (user/login-user db email password)]
       (let [session' (assoc session :user/id (:id user))]
         (-> (response/redirect "/")
-          (assoc :session session'))))))
+          (assoc :session session')))
+      (r/render-html user-views/login-form req {:login {:email email}
+                                                :notification {:type "danger"
+                                                               :message "Invalid email or password"}}))))
 
 (defn logout-user [req]
   (r/logout))

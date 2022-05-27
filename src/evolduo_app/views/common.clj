@@ -31,14 +31,13 @@
              [:button.button.is-light {:type "submit"} "Log out"]]]
            [:a.button.is-light {:href "/user/login"} "Log in"])]]]]]))
 
-(defn- notification [req]
-  (when req
-    (when-let [flash (:flash req)]
-      [:div {:class (str "notification " (str "is-" (name (:type flash))))}
-       (:message flash)])))
+(defn- notification-div [data]
+  (when data
+    [:div {:class (str "notification " (str "is-" (name (:type data))))}
+     (:message data)]))
 
 (defn base-view
-  [req content & {:keys [enable-abc? custom-script body-load-hook]}]
+  [req content & {:keys [enable-abc? custom-script body-load-hook notification]}]
   [:html
    [:head
     [:meta {:charset "utf-8"}]
@@ -50,7 +49,8 @@
     [:section.section
      [:div.container
       (navbar req)
-      (notification req)
+      (notification-div (:flash req))
+      (notification-div notification)
       content]]
     [:footer.footer
      [:div.content.has-text-centered
