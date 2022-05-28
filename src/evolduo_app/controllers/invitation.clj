@@ -8,7 +8,7 @@
             [clojure.string :as str]
             [evolduo-app.schemas :as schemas]
             [evolduo-app.urls :as u]
-            [evolduo-app.mail :as mail]))
+            [evolduo-app.mailer :as mail]))
 
 (defn invitation-form [req]
   (let [db (:db req)

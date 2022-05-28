@@ -4,6 +4,7 @@
             [ring.adapter.jetty :refer [run-jetty]]
             [evolduo-app.handler :as handler]
             [evolduo-app.timer :as timer]
+            [evolduo-app.mailer :as mailer]
             [cprop.core :as cp])
   (:import (org.eclipse.jetty.server Server))
   (:gen-class))
@@ -11,13 +12,15 @@
 (def db-spec {:dbtype "sqlite" :dbname "evolduo.db"})       ;; TODO move to config
 
 (def config
-  {:adapter/jetty {:handler (ig/ref :handler/run-app) :port 3000}
-   :handler/run-app {:db (ig/ref :database.sql/connection)
-                     :settings (ig/ref :config/settings)}
+  {:adapter/jetty           {:handler (ig/ref :handler/run-app) :port 3000}
+   :handler/run-app         {:db       (ig/ref :database.sql/connection)
+                             :settings (ig/ref :config/settings)}
    :database.sql/connection db-spec
-   :config/settings {}
-   :chime/timer {:db (ig/ref :database.sql/connection)
-                 :settings (ig/ref :config/settings)}})
+   :config/settings         {}
+   :evolution/timer         {:db       (ig/ref :database.sql/connection)
+                             :settings (ig/ref :config/settings)}
+   :mail/timer              {:db       (ig/ref :database.sql/connection)
+                             :settings (ig/ref :config/settings)}})
 
 (defmethod ig/init-key :adapter/jetty [_ {:keys [handler] :as opts}]
   (run-jetty handler (-> opts (dissoc handler) (assoc :join? false))))
@@ -29,8 +32,11 @@
   ;; TODO validate config
   (cp/load-config))
 
-(defmethod ig/init-key :chime/timer [_ {:keys [db settings]}]
-  (timer/start db settings))
+(defmethod ig/init-key :evolution/timer [_ {:keys [db settings]}]
+  (timer/evolution db settings))
+
+(defmethod ig/init-key :mail/timer [_ {:keys [db settings]}]
+  (mailer/send-mails db settings))
 
 (defmethod ig/init-key :database.sql/connection [_ db-spec]
   (let [conn (jdbc/get-datasource db-spec)]
@@ -39,7 +45,7 @@
 (defmethod ig/halt-key! :adapter/jetty [_ ^Server server]
   (.stop server))
 
-(defmethod ig/halt-key! :chime/timer [_ timer]
+(defmethod ig/halt-key! :evolution/timer [_ timer]
   (.close timer))
 
 (defn -main []

@@ -2,6 +2,7 @@
   (:require [next.jdbc.sql :as sql]
             [evolduo-app.sql :as esql]
             [evolduo-app.model.evolution :as em]
+            [evolduo-app.model.mail :as mail-model]
             [crypto.password.pbkdf2 :as password]
             [crypto.random :as rnd]
             [clojure.pprint :as pp]
@@ -60,20 +61,26 @@
   "Doesn't return something useful (although it could)"
   [db email pass]
   (jdbc/with-transaction [tx db]
-    (if-let [user (find-user-by-email tx email)]
-      (let [encrypted          (password/encrypt pass)
-            verification_token (rnd/hex 100)]
-        (sql/update!
-          tx
-          :user
-          {:role               "admin"                      ;; TODO updated?
-           :password           encrypted
-           :verified           true                         ;; TODO fix
-           :verification_token verification_token           ;; TODO duplicated
-           :subscription       {:notifications true         ;; TODO hm
-                                :announcements true}}
-          {:email email}))
-      (create tx email pass))))
+    (let [{:keys [id]}
+          (if-let [user (find-user-by-email tx email)]
+            (let [encrypted          (password/encrypt pass)
+                  verification_token (rnd/hex 100)]
+              (sql/update!
+                tx
+                :user
+                {:role               "admin"                ;; TODO updated?
+                 :password           encrypted
+                 :verified           true                   ;; TODO fix
+                 :verification_token verification_token     ;; TODO duplicated
+                 :subscription       {:notifications true   ;; TODO hm
+                                      :announcements true}}
+                {:email email})
+              user)
+            (create tx email pass))]
+      (mail-model/insert tx {:created_at   (Instant/now)
+                             :recipient_id id
+                             :type         "signup"
+                             :data         {}}))))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]

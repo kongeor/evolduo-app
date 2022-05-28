@@ -3,7 +3,7 @@
             [evolduo-app.request :as req]
             [evolduo-app.model.user :as user]
             [evolduo-app.views.user :as user-views]
-            [evolduo-app.mail :as mail]
+            [evolduo-app.mailer :as mail]
             [ring.util.response :as response]
             [evolduo-app.schemas :as s]
             [evolduo-app.music :as music]

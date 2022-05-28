@@ -28,8 +28,15 @@
                                   invitee_id INTEGER REFERENCES user(id) NOT NULL,
                                   evolution_id INTEGER REFERENCES evolution(id) NOT NULL,
                                   invited_by_id INTEGER REFERENCES user(id) NOT NULL
-                                 );"]
- :down ["DROP TABLE invitation;"
+                                 );"
+        "CREATE TABLE mail (id INTEGER PRIMARY KEY,
+                            created_at TIMESTAMP NOT NULL,
+                            recipient_id INTEGER REFERENCES user(id) NOT NULL,
+                            type VARCHAR(25) NOT NULL,
+                            data CLOB NOT NULL,
+                            sent BOOL NOT NULL DEFAULT 0)"]
+ :down ["DROP TABLE mail;"
+        "DROP TABLE invitation;"
         "DROP TABLE reaction;"
         "DROP TABLE chromosome;"
         "DROP TABLE iteration;"]}
