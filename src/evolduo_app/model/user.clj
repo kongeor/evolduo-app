@@ -1,17 +1,17 @@
 (ns evolduo-app.model.user
   (:require [next.jdbc.sql :as sql]
-            [evolduo-app.sql :as esql]
             [evolduo-app.model.evolution :as em]
             [evolduo-app.model.mail :as mail-model]
             [crypto.password.pbkdf2 :as password]
             [crypto.random :as rnd]
             [clojure.pprint :as pp]
-            [next.jdbc :as jdbc])
+            [next.jdbc :as jdbc]
+            [next.jdbc.result-set :as rs])
   (:import (java.time Instant)))
 
 (defn- insert-user
   [db user]
-  (esql/insert! db :user user))
+  (sql/insert! db :users user))
 
 ;; Not using pepper per https://stackoverflow.com/questions/16891729/best-practices-salting-peppering-passwords
 (defn create
@@ -20,8 +20,7 @@
   (let [encrypted (password/encrypt pass)
         verification_token (rnd/hex 100)]
     ;; TODO schema check - adjust defaults
-    (insert-user db {:created_at         (Instant/now)
-                     :role               "admin"
+    (insert-user db {:role               "user"
                      :email              email
                      :password           encrypted
                      :verified           true               ;; TODO fix
@@ -33,8 +32,7 @@
   "Create a stub user, someone that was invited for example but doesn't exist on the platform"
   [db email]
   ;; TODO schema check
-  (insert-user db {:created_at         (Instant/now)
-                   :role               "user"
+  (insert-user db {:role               "user"
                    :email              email
                    :subscription       {:notifications true
                                         :announcements false}}))
@@ -43,44 +41,43 @@
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (create db "foo@example.com" "12345"))
   (let [db (:database.sql/connection integrant.repl.state/system)]
-    (sql/update! db :user {:verified 1} {:email "foo@example.com"} ))
+    (sql/update! db :users {:verified 1} {:email "foo@example.com"} ))
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (sql/query db ["select json_extract(u.subscription, '$.notifications') as n from user u "]))
   (let [db (:database.sql/connection integrant.repl.state/system)]
-    (pp/print-table (sql/query db ["select email, verified, deleted from user"]))))
+    (pp/print-table (sql/query db ["select email, verified, deleted from users"]))))
 
 (defn find-user-by-email
   [db email]
-  (first (sql/query db ["select * from user where email = ?" email] {:builder-fn em/sqlite-builder}))) ;; TODO first? query by attrs
+  (first (sql/find-by-keys db :users {:email email})))
 
 (defn get-registered-user
   [db email]
-  (first (sql/query db ["select * from user where email = ? and password is not null" email] {:builder-fn em/sqlite-builder}))) ;; TODO first? query by attrs
+  (first (sql/query db ["select * from users where email = ? and password is not null" email]))) ;; TODO first? query by attrs
 
 (defn upsert!
-  "Doesn't return something useful (although it could)"
   [db email pass]
   (jdbc/with-transaction [tx db]
-    (let [{:keys [id]}
-          (if-let [user (find-user-by-email tx email)]
-            (let [encrypted          (password/encrypt pass)
-                  verification_token (rnd/hex 100)]
-              (sql/update!
-                tx
-                :user
-                {:role               "admin"                ;; TODO updated?
-                 :password           encrypted
-                 :verified           true                   ;; TODO fix
-                 :verification_token verification_token     ;; TODO duplicated
-                 :subscription       {:notifications true   ;; TODO hm
-                                      :announcements true}}
-                {:email email})
-              user)
-            (create tx email pass))]
-      (mail-model/insert tx {:created_at   (Instant/now)
-                             :recipient_id id
-                             :type         "signup"
-                             :data         {}}))))
+    (let [tx-opts (jdbc/with-options tx {:builder-fn rs/as-unqualified-lower-maps})]
+      (let [{:keys [id]}
+            (if-let [user (find-user-by-email tx email)]
+              (let [encrypted          (password/encrypt pass)
+                    verification_token (rnd/hex 100)]
+                (sql/update!
+                  tx-opts
+                  :user
+                  {:role               "user"               ;; TODO updated?
+                   :password           encrypted
+                   :verified           true                 ;; TODO fix
+                   :verification_token verification_token   ;; TODO duplicated
+                   :subscription       {:notifications true ;; TODO hm
+                                        :announcements true}}
+                  {:email email})
+                user)
+              (create tx-opts email pass))]
+        (mail-model/insert tx-opts {:recipient_id id
+                               :type         "signup"
+                               :data         {}})))))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
@@ -88,14 +85,13 @@
 
 (defn find-user-by-id
   [db id]
-  (-> (sql/get-by-id db :user id {:builder-fn em/sqlite-builder})
+  (-> (sql/get-by-id db :users id)
     (select-keys [:id
                   :email
                   :verification_token
                   :subscription])))
 
 (defn create-stub-or-get!
-  "In the case of stub will just provide id"
   [db email]
   (or
     (find-user-by-email db email)
@@ -109,9 +105,9 @@
 
 (defn verify-user
   [db token]
-  (when-let [res (sql/update! db :user {:verified 1
+  (when-let [res (sql/update! db :users {:verified 1
                                         :verification_token nil
-                                        :verified_at (Instant/now)} {:verification_token token} {:builder-fn em/sqlite-builder})]
+                                        :verified_at (Instant/now)} {:verification_token token})]
     res)) ;; TODO factor out builder
 
 (defn login-user [db email pass]
@@ -123,21 +119,21 @@
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
-    (sql/find-by-keys db :user {:id 1} {:builder-fn em/sqlite-builder})))
+    (sql/find-by-keys db :users {:id 1})))
 
 ;; TODO updated at?
 (defn update-subscription
   [db user-id subscription]
-  (when-let [res (sql/update! db :user {:subscription subscription} {:id user-id} {:builder-fn em/sqlite-builder})]
+  (when-let [res (sql/update! db :users {:subscription subscription} {:id user-id})]
     res)) ;; TODO factor out builder
 
 (defn delete-user
   [db user-id]
-  (when-let [res (sql/update! db :user {:deleted true
+  (when-let [res (sql/update! db :users {:deleted true
                                         :email  (str (.toEpochMilli (Instant/now)) "-deleted@example.com")
                                         :verification_token nil
                                         :password nil
                                         :salt nil
                                         :subscription "{}"}
-                   {:id user-id} {:builder-fn em/sqlite-builder})]
+                   {:id user-id})]
     res)) ;; TODO factor out builder

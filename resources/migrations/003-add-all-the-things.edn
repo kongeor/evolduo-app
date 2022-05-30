@@ -1,42 +1,41 @@
 ;; resources/migrations/003-add-all-the-things.edn
-{:up   ["CREATE TABLE iteration (id INTEGER PRIMARY KEY,
-                                 created_at TIMESTAMP NOT NULL,
+{:up   ["CREATE TABLE iterations (id SERIAL PRIMARY KEY,
+                                 created_at TIMESTAMP NOT NULL DEFAULT NOW(),
                                  evolve_after TIMESTAMP NOT NULL,
-                                 num INT NOT NULL,
-                                 last BOOL NOT NULL DEFAULT 0,
-                                 ratings INT NOT NULL DEFAULT 0,
+                                 num SMALLINT NOT NULL,
+                                 last BOOLEAN NOT NULL DEFAULT FALSE,
+                                 ratings INTEGER NOT NULL DEFAULT 0,
                                  version VARCHAR(25) NOT NULL,
-                                 evolution_id INTEGER REFERENCES evolution(id) NOT NULL
+                                 evolution_id INTEGER REFERENCES evolutions(id) NOT NULL
                                 );"
-        "CREATE TABLE chromosome (id INTEGER PRIMARY KEY,
-                                  created_at TIMESTAMP NOT NULL,
+        "CREATE TABLE chromosomes (id BIGSERIAL PRIMARY KEY,
+                                  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
                                   fitness INT NOT NULL,
-                                  genes CLOB NOT NULL,
+                                  genes JSONB NOT NULL,
                                   abc TEXT NOT NULL,
-                                  iteration_id INTEGER REFERENCES iteration(id) NOT NULL
+                                  iteration_id INTEGER REFERENCES iterations(id) NOT NULL
                                  );"
-        "CREATE TABLE reaction (id INTEGER PRIMARY KEY,
-                                created_at TIMESTAMP NOT NULL,
-                                type VARCHAR(25) NOT NULL,
-                                value INT NOT NULL,
-                                iteration_id INTEGER REFERENCES iteration(id) NOT NULL,
-                                chromosome_id INTEGER REFERENCES chromosome(id) NOT NULL,
-                                user_id INTEGER REFERENCES user(id) NOT NULL
+        "CREATE TABLE ratings (id SERIAL PRIMARY KEY,
+                               created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                               value INT NOT NULL,
+                               iteration_id INTEGER REFERENCES iterations(id) NOT NULL,
+                               chromosome_id INTEGER REFERENCES chromosomes(id) NOT NULL,
+                               user_id INTEGER REFERENCES users(id) NOT NULL
                                );"
-        "CREATE TABLE invitation (id INTEGER PRIMARY KEY,
-                                  created_at TIMESTAMP NOT NULL,
-                                  invitee_id INTEGER REFERENCES user(id) NOT NULL,
-                                  evolution_id INTEGER REFERENCES evolution(id) NOT NULL,
-                                  invited_by_id INTEGER REFERENCES user(id) NOT NULL
+        "CREATE TABLE invitations (id SERIAL PRIMARY KEY,
+                                  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                                  invitee_id INTEGER REFERENCES users(id) NOT NULL,
+                                  evolution_id INTEGER REFERENCES evolutions(id) NOT NULL,
+                                  invited_by_id INTEGER REFERENCES users(id) NOT NULL
                                  );"
-        "CREATE TABLE mail (id INTEGER PRIMARY KEY,
-                            created_at TIMESTAMP NOT NULL,
-                            recipient_id INTEGER REFERENCES user(id) NOT NULL,
+        "CREATE TABLE mails (id SERIAL PRIMARY KEY,
+                            created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                            recipient_id INTEGER REFERENCES users(id) NOT NULL,
                             type VARCHAR(25) NOT NULL,
-                            data CLOB NOT NULL,
-                            sent BOOL NOT NULL DEFAULT 0)"]
- :down ["DROP TABLE mail;"
-        "DROP TABLE invitation;"
-        "DROP TABLE reaction;"
-        "DROP TABLE chromosome;"
-        "DROP TABLE iteration;"]}
+                            data JSONB NOT NULL,
+                            sent BOOLEAN NOT NULL DEFAULT FALSE)"]
+ :down ["DROP TABLE mails;"
+        "DROP TABLE invitations;"
+        "DROP TABLE reactions;"
+        "DROP TABLE chromosomes;"
+        "DROP TABLE iterations;"]}

@@ -4,22 +4,23 @@
             [next.jdbc :as jdbc]
             [evolduo-app.music :as music]
             [clojure.tools.logging :as log]
-            [next.jdbc.sql :as sql])
+            [next.jdbc.sql :as sql]
+            [next.jdbc.result-set :as rs])
   (:import (java.time Instant)))
 
 (defn find-iterations-to-evolve [db]
   (let [q-sqlmap {:select [[:i/id :id] [:e/id :evolution_id]]
-                  :from   [[:evolution :e]]
-                  :join   [[:iteration :i] [:= :i/evolution_id :e/id]
-                           [:user :u] [:= :e.user_id :u.id]]
+                  :from   [[:evolutions :e]]
+                  :join   [[:iterations :i] [:= :i/evolution_id :e/id]
+                           [:users :u] [:= :e.user_id :u.id]]
                   :where
                   [:and
-                   [:> [:raw ["strftime('%s', 'now') * 1000"]] :i.evolve_after]
+                   [:> [:raw ["now()"]] :i.evolve_after]
                    [:>= :i.ratings :e.min_ratings]          ;; TODO <= total_iterations! mark as finished?
-                   [:>= :e.total_iterations :i.num]
-                   [:= :i.last 1]
-                   [:= :u.deleted 0]]}]                        ;; TODO check
-    (sql/query db (h/format q-sqlmap) {:builder-fn em/sqlite-builder})))
+                   [:> :e.total_iterations :i.num]
+                   [:= :i.last true]
+                   [:= :u.deleted false]]}]                        ;; TODO check
+    (sql/query db (h/format q-sqlmap))))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
@@ -28,31 +29,31 @@
 ;; TODO duplicated, improve
 (defn evolve-iteration [db settings id]
   (jdbc/with-transaction [tx db]
-    (let [version (:version settings)
-          old-iteration (em/find-iteration-by-id tx id)
-          evolution (em/find-evolution-by-id tx (:evolution_id old-iteration))
-          now (Instant/now)
-          evolve-after (em/calc-evolve-after now (:evolve_after evolution))
-          iter-insert (em/sql-insert! tx :iteration {:created_at now
-                                                     :evolve_after evolve-after
-                                                     :num (inc (:num old-iteration))
-                                                     :last true
-                                                     :version version
-                                                     :evolution_id (:id evolution)})]
-      ;; TODO meh
-      (sql/update! tx :iteration (assoc old-iteration :last false) {:id (:id old-iteration)})
-      (doall
-        (map #(em/sql-insert! tx :chromosome
-                (let [{:keys [key mode pattern chord tempo]} evolution
-                      ;; TODO use strings instead
-                      genes (music/random-track {:key key :measures 4 :mode (keyword mode)})
-                      abc (music/->abc-track {:key   key :mode (keyword mode) :pattern pattern
-                                              :chord chord :tempo tempo}
-                            {:genes genes})
-                      ]
-                  (assoc % :iteration_id (:id iter-insert)
-                           :genes (vec genes)               ;; TODO fix
-                           :abc abc))) (repeat 2 em/sample-chromo))))))
+    (let [tx-opts (jdbc/with-options tx {:builder-fn rs/as-unqualified-lower-maps})]
+      (let [version       (:version settings)
+            old-iteration (em/find-iteration-by-id tx-opts id)
+            evolution     (em/find-evolution-by-id tx-opts (:evolution_id old-iteration))
+            now           (Instant/now)
+            evolve-after  (em/calc-evolve-after now (:evolve_after evolution))
+            iter-insert   (sql/insert! tx-opts :iterations {:evolve_after evolve-after
+                                                       :num          (inc (:num old-iteration))
+                                                       :last         true
+                                                       :version      version
+                                                       :evolution_id (:id evolution)})]
+        ;; TODO meh
+        (sql/update! tx :iterations (assoc old-iteration :last false) {:id (:id old-iteration)})
+        (doall
+          (map #(sql/insert! tx-opts :chromosomes
+                  (let [{:keys [key mode pattern chord tempo]} evolution
+                        ;; TODO use strings instead
+                        genes (music/random-track {:key key :measures 4 :mode (keyword mode)})
+                        abc   (music/->abc-track {:key   key :mode (keyword mode) :pattern pattern
+                                                  :chord chord :tempo tempo}
+                                {:genes genes})
+                        ]
+                    (assoc % :iteration_id (:id iter-insert)
+                             :genes (vec genes)             ;; TODO fix
+                             :abc abc))) (repeat 2 em/sample-chromo)))))))
 
 (defn evolve-all-iterations [db settings]
   (let [iterations (find-iterations-to-evolve db)]

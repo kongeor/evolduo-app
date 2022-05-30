@@ -1,6 +1,12 @@
 {:version "dev"
  :environment "dev"
  :app_url "http://localhost:3000"
+ :db          {:dbtype               "postgres"
+               :host                 "localhost"
+               :dbname               "evolduo"
+               :user                 "evolduo"
+               :password             "evolduo"
+               :dataSourceProperties {:socketTimeout 30}}
  :sentry_url "https://xxxx@xxxxx.ingest.sentry.io/xxxx"
  :mail_server {:host "mail.example.com"
                :user "username"

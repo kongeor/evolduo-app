@@ -55,23 +55,11 @@
 
 ;; TODO split schemas
 
-(def Reaction
+(def Rating
   [:map {:closed true}
    [:chromosome_id int?]
-   [:type string?]                                      ;; TODO enum
    [:value int?]])
 
-(defn decode-and-validate-reaction [reaction]
-  (let [decoded (m/decode Reaction reaction (mt/transformer mt/default-value-transformer mt/string-transformer))]
-    (if-let [error (m/explain Reaction decoded)]
-      {:error (me/humanize error)}
-      {:data decoded})))
-
-(comment
-  (decode-and-validate-reaction {:chromosome_id "42"
-                                 :type          "rating"
-                                 :value         1})
-  )
 
 (def email-regex #"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$")
 
@@ -133,3 +121,9 @@
 (comment
   (decode-and-validate Subscription {:announcements "true"
                                      :notifications false}))
+
+(comment
+  (decode-and-validate {:chromosome_id "42"
+                        :type          "rating"
+                        :value         1})
+  )

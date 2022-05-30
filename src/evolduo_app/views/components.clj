@@ -69,7 +69,6 @@
        {:action "/reaction" :method "POST"}
        [:input {:type "hidden" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
        [:input {:type "hidden" :name "chromosome_id" :value id}]
-       [:input {:type "hidden" :name "type" :value "rating"}]
        [:input {:type "hidden" :name "value" :value "1"}]
        [:input.button.is-link (merge
                                 {:type "submit" :value "Nice!"}

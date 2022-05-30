@@ -1,6 +1,6 @@
 (ns evolduo-app.controllers.evolution
   (:require [evolduo-app.model.evolution :as model]
-            [evolduo-app.model.reaction :as reaction-model]
+            [evolduo-app.model.rating :as reaction-model]
             [evolduo-app.views.evolution :as evolution-views]
             [evolduo-app.schemas :as schemas]
             [ring.util.response :as resp]
@@ -73,8 +73,7 @@
 
       :else
       (let [evolution (merge (:data sanitized-data)
-                        {:created_at (Instant/now)
-                         :user_id    user-id
+                        {:user_id    user-id
                          :rules {:foo true
                                  :bar true}})]
         (model/save-evolution (:db req) (:settings req) evolution)
@@ -84,7 +83,7 @@
 
 (defn detail [req]
   (let [db (:db req)
-        evolution-id (-> req :params :id)
+        evolution-id (parse-long (-> req :params :id))
         last-iteration-id (model/find-last-iteration-id-for-evolution db evolution-id)]
     ;; TODO conditions, conditions
     ;; TODO create util for url concat
@@ -99,7 +98,7 @@
         db (:db req)]
     (if-let [evolution (model/find-evolution-by-id db evolution-id)]
       (let [chromosomes (model/find-iteration-chromosomes db evolution-id iteration-id)
-            reactions (reaction-model/find-iteration-reactions-for-user db iteration-id user-id)
+            reactions (reaction-model/find-iteration-ratings-for-user db iteration-id user-id)
             reaction-map (update-vals (group-by :chromosome_id reactions) first)]
         (r/render-html evolution-views/evolution-detail req {:evolution evolution
                                                            :chromosomes chromosomes

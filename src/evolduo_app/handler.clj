@@ -42,7 +42,7 @@
          (catch Exception e
            (log/error e)
            (sentry/send-event {:message     (.getMessage e)
-                               :environment (-> request :settings :environment)
+                               :release     (-> request :settings :environment)
                                :version     (-> request :settings :version)
                                :throwable   e})
            {:status 500

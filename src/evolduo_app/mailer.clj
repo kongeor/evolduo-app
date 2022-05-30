@@ -3,7 +3,8 @@
             [evolduo-app.model.user :as user]
             [evolduo-app.model.mail :as mail]
             [hiccup.core :as html]
-            [next.jdbc :as jdbc]))
+            [next.jdbc :as jdbc]
+            [next.jdbc.result-set :as rs]))
 
 ;; common
 
@@ -134,7 +135,7 @@ table.body .article {
           [:tr
            [:td.content-block {:style "font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #999999; font-size: 12px; text-align: center;" :valign "top" :align "center"}
             [:span.apple-link {:style "color: #999999; font-size: 12px; text-align: center;"} "Company Inc, 3 Abbey Road, San Francisco CA 94102"]
-            [:br] "Don't like these emails?" [:a {:href "http://i.imgur.com/CScmqnj.gif" :style "text-decoration: underline; color: #999999; font-size: 12px; text-align: center;"} "Unsubscribe"] "."]]
+            [:br] "Don't like these emails? " [:a {:href "http://i.imgur.com/CScmqnj.gif" :style "text-decoration: underline; color: #999999; font-size: 12px; text-align: center;"} "Unsubscribe"] "."]]
           [:tr
            [:td.content-block.powered-by {:style "font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #999999; font-size: 12px; text-align: center;" :valign "top" :align "center"} "Powered by" [:a {:href "http://htmlemail.io" :style "color: #999999; font-size: 12px; text-align: center; text-decoration: none;"} "HTMLemail"] "."]]]]]]
       [:td {:style "font-family: sans-serif; font-size: 14px; vertical-align: top;" :valign "top"} "&nbsp;"]]]]])
@@ -202,8 +203,9 @@ table.body .article {
 (defn send-mails [db settings]
   (doseq [mail (mail/find-unsent-mails db)]
     (jdbc/with-transaction [tx db]
-      (let [user (user/find-user-by-id tx (:recipient_id mail))]
-        ;; TODO check if should receive
-        (condp = (:type mail)
-          "signup" (send-welcome-email settings user))
-        (mail/mark-as-sent tx (:id mail))))))
+      (let [tx-opts (jdbc/with-options tx {:builder-fn rs/as-unqualified-lower-maps})]
+        (let [user (user/find-user-by-id tx-opts (:recipient_id mail))]
+          ;; TODO check if should receive
+          (condp = (:type mail)
+            "signup" (send-welcome-email settings user))
+          (mail/mark-as-sent tx-opts (:id mail)))))))

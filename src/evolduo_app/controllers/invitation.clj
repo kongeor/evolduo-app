@@ -13,7 +13,7 @@
 (defn invitation-form [req]
   (let [db (:db req)
         user-id (request/user-id req)
-        evolution-id (-> req :params :id)
+        evolution-id (parse-long (-> req :params :id))
         evolution (evolution-model/find-evolution-by-id db evolution-id)]
     ;; have you logged in
     ;; have you verified
@@ -37,7 +37,7 @@
         emails-input (-> req :params :emails)
         emails (str/split emails-input #"[\s,]+")
         sanitized-data (schemas/decode-and-validate-invitation {:emails emails}) ;; TODO don't validate here
-        evolution-id (-> req :params :evolution_id)
+        evolution-id (parse-long (-> req :params :evolution_id))
         evolution (evolution-model/find-evolution-by-id db evolution-id)]
     ;; TODO similar validation?
     ;; have you logged in

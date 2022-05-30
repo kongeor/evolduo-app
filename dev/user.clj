@@ -19,12 +19,14 @@
 
 ;; ragtime
 
-(def rt-config
-  {:datastore  (rt-jdbc/sql-database system/db-spec)
-   :migrations (rt-jdbc/load-resources "migrations")})
+(comment
+  (let [db (:db (:config/settings integrant.repl.state/system))
+        rt-config {:datastore  (rt-jdbc/sql-database db)
+                   :migrations (rt-jdbc/load-resources "migrations")}]
+    (rt-repl/migrate rt-config)))
 
 (comment
-  (rt-repl/migrate rt-config))
-
-(comment
-  (rt-repl/rollback rt-config))
+  (let [db (:db (:config/settings integrant.repl.state/system))
+        rt-config {:datastore  (rt-jdbc/sql-database db)
+                   :migrations (rt-jdbc/load-resources "migrations")}]
+    (rt-repl/rollback rt-config)))

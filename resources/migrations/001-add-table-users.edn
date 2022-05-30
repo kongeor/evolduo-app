@@ -1,14 +1,14 @@
 ;; resources/migrations/001-add-table-users.edn
-{:up   ["CREATE TABLE user (id INTEGER PRIMARY KEY,
-                            created_at TIMESTAMP NOT NULL,
+{:up   ["CREATE TABLE users (id SERIAL PRIMARY KEY,
+                            created_at TIMESTAMP NOT NULL DEFAULT NOW(),
                             role VARCHAR(30) NOT NULL DEFAULT 'user',
                             email varchar(255) NOT NULL UNIQUE,
                             password varchar(2000),
-                            verified BOOL NOT NULL DEFAULT 0,
+                            verified BOOLEAN NOT NULL DEFAULT FALSE,
                             verification_token VARCHAR(200),
                             verified_at TIMESTAMP,
-                            subscription CLOB NOT NULL,
+                            subscription JSONB NOT NULL,
                             unsubscribe_token VARCHAR(200),
-                            deleted BOOL NOT NULL DEFAULT 0
+                            deleted BOOLEAN NOT NULL DEFAULT FALSE
                            );"]
  :down ["DROP TABLE user;"]}
