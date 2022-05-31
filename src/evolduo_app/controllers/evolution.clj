@@ -1,16 +1,14 @@
 (ns evolduo-app.controllers.evolution
-  (:require [evolduo-app.model.evolution :as model]
+  (:require [clojure.tools.logging :as log]
+            [evolduo-app.model.evolution :as model]
             [evolduo-app.model.rating :as reaction-model]
-            [evolduo-app.views.evolution :as evolution-views]
-            [evolduo-app.schemas :as schemas]
-            [ring.util.response :as resp]
-            [evolduo-app.response :as r]
+            [evolduo-app.model.iteration :as iteration-model]
             [evolduo-app.request :as request]
-            [evolduo-app.urls :as u]
+            [evolduo-app.response :as r]
+            [evolduo-app.schemas :as schemas]
+            [evolduo-app.views.evolution :as evolution-views]
             [hiccup.core :as hiccup]
-            [clojure.tools.logging :as log]
-            [clojure.string :as str])
-  (:import (java.time Instant)))
+            [ring.util.response :as resp]))
 
 (defn edit
   "Display the add/edit form."
@@ -43,7 +41,7 @@
       (assoc-in [:params :evolutions] evolutions)
       (assoc :application/view "evolution_list"))))
 
-(defn list
+(defn search
   [req]
   (let [evolutions (model/get-evolutions (:db req))]
     (-> (resp/response (hiccup/html (evolution-views/evolution-list req evolutions)))
@@ -84,27 +82,29 @@
 (defn detail [req]
   (let [db (:db req)
         evolution-id (parse-long (-> req :params :id))
-        last-iteration-id (model/find-last-iteration-id-for-evolution db evolution-id)]
+        last-iteration-num (model/find-last-iteration-num-for-evolution db evolution-id)]
     ;; TODO conditions, conditions
     ;; TODO create util for url concat
-    (resp/redirect (str "/evolution/" evolution-id "/iteration/" last-iteration-id))))
+    (resp/redirect (str "/evolution/" evolution-id "/iteration/" last-iteration-num))))
 
 ;; TODO move to iteration
 (defn iteration-detail
   [req]
   (let [evolution-id (parse-long (-> req :params :evolution-id))
-        iteration-id (parse-long (-> req :params :iteration-id))
-        user-id (-> req :session :user/id)                  ;; TODO helper
+        iteration-num (parse-long (-> req :params :iteration-num))
+        user-id (request/user-id req)
         db (:db req)]
     (if-let [evolution (model/find-evolution-by-id db evolution-id)]
-      (let [chromosomes (model/find-iteration-chromosomes db evolution-id iteration-id)
-            reactions (reaction-model/find-iteration-ratings-for-user db iteration-id user-id)
+      (let [chromosomes (model/find-iteration-chromosomes db evolution-id iteration-num)
+            iteration  (iteration-model/find-by-num db iteration-num)
+            last-iteration-num (model/find-last-iteration-num-for-evolution db evolution-id)
+            reactions (reaction-model/find-iteration-ratings-for-user db evolution-id iteration-num user-id)
             reaction-map (update-vals (group-by :chromosome_id reactions) first)]
         (r/render-html evolution-views/evolution-detail req {:evolution evolution
-                                                           :chromosomes chromosomes
-                                                           :user-id user-id
-                                                           :reaction-map reaction-map
-                                                           :pagination {:current iteration-id
-                                                                        :max (:total_iterations evolution)
-                                                                        :link-fn #(str "/evolution/" evolution-id "/iteration/" %)}}))
+                                                             :chromosomes chromosomes
+                                                             :user-id user-id
+                                                             :reaction-map reaction-map
+                                                             :pagination {:current (:num iteration)
+                                                                          :max last-iteration-num
+                                                                          :link-fn #(str "/evolution/" evolution-id "/iteration/" %)}}))
       (r/render-404))))

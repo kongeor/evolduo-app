@@ -69,9 +69,18 @@ select e.*
                              :genes (vec genes)             ;; TODO fix
                              :abc abc))) (repeat 2 sample-chromo)))))))
 
-(defn find-last-iteration-id-for-evolution [db evolution-id]
-  ;; TODO fix
-  (:max (first (sql/query db ["select max(id) from iterations where evolution_id = ?" evolution-id]))))
+(defn find-last-iteration-num-for-evolution [db evolution-id]
+  (let [q-sqlmap {:select [[:e/id :evolution_id]
+                           [:i/id :iteration_id]
+                           [:i/num :num]]
+                  :from   [[:evolutions :e]]
+                  :join   [[:iterations :i] [:= :i/evolution_id :e/id]]
+                  :where  [:and
+                           [:= :e/id evolution-id]
+                           [:= :i/last true]]}]
+    (-> (sql/query db (h/format q-sqlmap))
+      first
+      :num)))
 
 
 (defn find-iteration-chromosomes [db iteration-id]
@@ -88,9 +97,9 @@ select e.*
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
-    #_(find-last-iteration-id-for-evolution db 2)
+    (find-last-iteration-num-for-evolution db 4)
     #_(sql/query db ["select max(id) from iterations where evolution_id = ?" 2])
-    (find-chromosome-by-id db 2)))
+    #_(find-chromosome-by-id db 2)))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
@@ -124,7 +133,7 @@ select e.*
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (sql/query db ["select * from iterations"])))
 
-(defn find-iteration-chromosomes [db evolution-id iteration-id]
+(defn find-iteration-chromosomes [db evolution-id iteration-num]
   (let [q-sqlmap {:select [[:e/id :evolution_id]
                            [:i/id :iteration_id]
                            [:c.id :chromosome_id]
@@ -134,7 +143,7 @@ select e.*
                            [:chromosomes :c] [:= :c/iteration_id :i/id]]
                   :where  [:and
                            [:= :e/id evolution-id]
-                           [:= :i/id iteration-id]]}]
+                           [:= :i/num iteration-num]]}]
     (sql/query db (h/format q-sqlmap))))
 
 (comment

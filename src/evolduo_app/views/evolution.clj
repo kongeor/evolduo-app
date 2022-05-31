@@ -112,7 +112,7 @@
          [:td (:tempo e)]
          [:td (:user_id e)]])]]))
 
-(defn evolution-detail [req {:keys [evolution chromosomes reaction-map pagination]}]
+(defn evolution-detail [req {:keys [user-id evolution chromosomes reaction-map pagination]}]
   (base-view
     req
     [:div
@@ -122,7 +122,7 @@
      [:div
       (for [c chromosomes]
         (let [reaction (-> c :chromosome_id reaction-map)]
-          (comps/abc-track c :reaction reaction)))]
+          (comps/abc-track c :evolution-id (:id evolution) :reaction reaction :user-id user-id)))]
      [:div
       (comps/pagination pagination)]]
     :enable-abc? true

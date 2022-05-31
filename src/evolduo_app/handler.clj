@@ -10,6 +10,7 @@
             [evolduo-app.controllers.invitation :as invitation-ctl]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [sentry-clj.core :as sentry]
+            [sentry-clj.ring :as sentry-ring]
             [evolduo-app.music :as music]))
 
 (defn- update-action-seed [existing-seed]
@@ -61,11 +62,11 @@
   (POST "/user/delete" [] user-ctl/delete)
   (GET "/evolution/form" [] evolution-ctl/edit)
   (POST "/evolution/save" [] evolution-ctl/save)
-  (GET "/evolution/list" [] evolution-ctl/list)
+  (GET "/evolution/list" [] evolution-ctl/search)
   (GET "/evolution/:id{[0-9]+}" [] evolution-ctl/detail)
   (GET "/evolution/:id{[0-9]+}/invitation/form" [] invitation-ctl/invitation-form)
   (POST "/evolution/:id{[0-9]+}/invitation/save" [] invitation-ctl/invitation-save)
-  (GET "/evolution/:evolution-id{[0-9]+}/iteration/:iteration-id{[0-9]+}" [] evolution-ctl/iteration-detail)
+  (GET "/evolution/:evolution-id{[0-9]+}/iteration/:iteration-num{[0-9]+}" [] evolution-ctl/iteration-detail)
   (GET "/explorer" [] explorer-ctl/explorer)
   (POST "/reaction" [] reaction-ctl/save)
   (route/not-found "404"))
@@ -76,4 +77,5 @@
     (wrap-db db)
     (wrap-defaults site-defaults)
     wrap-exception                                          ;; TODO why?!
-    (wrap-settings settings)))
+    (wrap-settings settings)
+    sentry-ring/wrap-sentry-tracing))

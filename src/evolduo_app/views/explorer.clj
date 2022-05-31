@@ -13,31 +13,31 @@
         [:div.field.is-horizontal
          [:div.field-label.is-normal
           [:label.label {:for "key"} "Key"]]
-         [:div.field
+         [:div.field.mr-4
           [:div.control
            [:div.select
             (comps/keys-select key)]]]
          [:div.field-label.is-normal
           [:label.label {:for "mode"} "Mode"]]
-         [:div.field
+         [:div.field.mr-4
           [:div.control
            [:div.select
             (comps/mode-select mode)]]]
          [:div.field-label.is-normal
           [:label.label {:for "pattern"} "Pattern"]]
-         [:div.field
+         [:div.field.mr-4
           [:div.control
            [:div.select
             (comps/pattern-select pattern)]]]
          [:div.field-label.is-normal
-          [:label.label {:for "chord"} "Chord Intervals"]]
-         [:div.field
+          [:label.label {:for "chord"} "Chord"]]
+         [:div.field.mr-4
           [:div.control
            [:div.select
             (comps/chord-select chord)]]]
          [:div.field-label.is-normal
           [:label.label {:for "tempo"} "Tempo"]]
-         [:div.field
+         [:div.field.mr-2
           [:div.control
            [:input.input {:type "number" :name "tempo" :value tempo :min "40" :max "240"}]]]
          [:div.control

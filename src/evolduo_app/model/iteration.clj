@@ -8,6 +8,14 @@
             [next.jdbc.result-set :as rs])
   (:import (java.time Instant)))
 
+(defn find-by-id
+  [db id]
+  (sql/get-by-id db :iterations id))
+
+(defn find-by-num
+  [db num]
+  (first (sql/find-by-keys db :iterations {:num num})))
+
 (defn find-iterations-to-evolve [db]
   (let [q-sqlmap {:select [[:i/id :id] [:e/id :evolution_id]]
                   :from   [[:evolutions :e]]
@@ -57,7 +65,6 @@
 
 (defn evolve-all-iterations [db settings]
   (let [iterations (find-iterations-to-evolve db)]
-    (log/infof "Found %s iterations to evolve" (count iterations))
     ;; TODO measure times
     (doall
       (map #(do

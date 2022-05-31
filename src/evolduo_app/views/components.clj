@@ -1,7 +1,8 @@
 (ns evolduo-app.views.components
   (:require [evolduo-app.music :as music]
             [evolduo-app.schemas :as s]
-            [ring.middleware.anti-forgery :as anti-forgery]))
+            [ring.middleware.anti-forgery :as anti-forgery]
+            [evolduo-app.urls :as urls]))
 
 (defn evolve-after-select [evolve-after]
   [:select {:name "evolve_after"}
@@ -39,7 +40,7 @@
                   {:selected true})) c])])
 
 ;;
-(defn abc-track [{:keys [chromosome_id abc]} & {:keys [reaction]}]
+(defn abc-track [{:keys [chromosome_id abc]} & {:keys [evolution-id user-id reaction]}]
   (let [id chromosome_id
         abc-id (str "abc_" id)
         abc-activate (str "activate-audio-" id)
@@ -69,20 +70,44 @@
        {:action "/reaction" :method "POST"}
        [:input {:type "hidden" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
        [:input {:type "hidden" :name "chromosome_id" :value id}]
+       [:input {:type "hidden" :name "redirect_url" :value (urls/url-for :evolution-detail {:evolution-id evolution-id})}]
        [:input {:type "hidden" :name "value" :value "1"}]
-       [:input.button.is-link (merge
+       [:input.button.is-link.mr-2 (merge
                                 {:type "submit" :value "Nice!"}
+                                (when (or reaction (not user-id))
+                                  {:disabled true})
                                 (when reaction
-                                  {:class "is-selected"
-                                   :disabled true}))]]]
+                                  {:title "You have already rated this track"})
+                                (when (not user-id)
+                                  {:title "You need to be logged in to rate this track"}))]]
+      [:form
+       {:action "/reaction" :method "POST"}
+       [:input {:type "hidden" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
+       [:input {:type "hidden" :name "chromosome_id" :value id}]
+       [:input {:type "hidden" :name "redirect_url" :value (urls/url-for :evolution-detail {:evolution-id evolution-id})}]
+       [:input {:type "hidden" :name "value" :value "-1"}]
+       [:input.button.is-warning (merge
+                                {:type "submit" :value "Meh!"}
+                                (when (or reaction (not user-id))
+                                  {:disabled true})
+                                (when reaction
+                                  {:title "You have already rated this track"})
+                                (when (not user-id)
+                                  {:title "You need to be logged in to rate this track"}))]]]
      [:hr.mb-4]]))
 
 (defn pagination [{:keys [current max link-fn]}]
   [:nav.pagination {:role "navigation" :aria-label "pagination"}
-   [:a.pagination-previous.is-disabled {:title "This is the first page"} "Previous"]
-   [:a.pagination-next "Next page"]
+   [:a.pagination-previous
+    (if (zero? current)
+      {:disabled true}
+      {:href (link-fn (dec current))}) "Previous"]
+   [:a.pagination-next
+    (if (= current max)
+      {:disabled true}
+      {:href (link-fn (inc current))}) "Next"]
    [:ul.pagination-list
-    (for [i (range 1 (inc max))]
+    (for [i (range 0 (inc max))]
       [:li
        [:a.pagination-link
         (merge

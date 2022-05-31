@@ -14,6 +14,7 @@
                                            :type
                                            :value
                                            ]))
+        redirect-url (-> req :params :redirect_url)
         sanitized-data (schemas/decode-and-validate schemas/Rating data)
         {:keys [iteration_id]} (evolution-model/find-chromosome-by-id db (:chromosome_id (:data sanitized-data)))
         ]
@@ -23,7 +24,7 @@
       (:error sanitized-data)
       (assoc
         (resp/redirect "/evolution/list")
-        :flash {:type :danger :message "oops"})
+        :flash {:type :danger :message "Ooops, this shouldn't have happened."})
 
       :else
       (let [reaction (merge (:data sanitized-data)
@@ -34,5 +35,5 @@
           (evolution-model/increase-iteration-ratings tx iteration_id)
           (model/insert-rating tx reaction))
         (assoc
-          (resp/redirect "/evolution/list")
+          (resp/redirect redirect-url)
           :flash {:type :info :message "Thanks! Your rating has been recorded"})))))
