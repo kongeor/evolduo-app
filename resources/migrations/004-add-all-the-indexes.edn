@@ -1,0 +1,11 @@
+;; resources/migrations/004-add-all-the-indexes.edn
+{:up   ["CREATE UNIQUE INDEX unique_invitation_idx ON invitations(evolution_id, invitee_id, invited_by_id);"
+        "CREATE UNIQUE INDEX unique_rating_idx ON ratings(chromosome_id, user_id);"
+        "CREATE INDEX sent_mails_idx ON mails (sent);"
+        ]
+ :down [
+        "DROP INDEX unique_invitation_idx;"
+        "DROP INDEX unique_rating_idx;"
+        "DROP INDEX sent_mails_idx;"
+
+        ]}

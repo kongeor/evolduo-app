@@ -36,35 +36,46 @@
         user-id (request/user-id req)
         emails-input (-> req :params :emails)
         emails (str/split emails-input #"[\s,]+")
-        sanitized-data (schemas/decode-and-validate-invitation {:emails emails}) ;; TODO don't validate here
+        sanitized-data (schemas/decode-and-validate-invitation {:emails emails})
         evolution-id (parse-long (-> req :params :evolution_id))
         evolution (evolution-model/find-evolution-by-id db evolution-id)]
-    ;; TODO similar validation?
-    ;; have you logged in
-    ;; have you verified
-    ;; is this yours
-    ;; is this a private one? hm?
-    ;; how many?
-    ;; quota check
     (cond
       (nil? user-id)
       (r/redirect (u/url-for :invitation-form {:evolution-id evolution-id})
-        :flash {:type :danger :message "You need to be logged in, man ..."})
+        :flash {:type :danger :message "You need to be logged in"})
+
+      (not (:verified (user-model/find-user-by-id db user-id)))
+      (r/render-html evolution-views/invitation-form req {:evolution evolution
+                                                          :notification {:type "danger"
+                                                                         :message "You need to verify your email"}
+                                                          :emails    emails-input})
+
+      (not (evolution-model/find-evolution-by-id-and-user-id db evolution-id user-id))
+      (r/render-html evolution-views/invitation-form req {:evolution evolution
+                                                          :notification {:type "danger"
+                                                                         :message "Oops!"}
+                                                          :emails    emails-input})
 
       (:error sanitized-data)
       (r/render-html evolution-views/invitation-form req {:evolution evolution
                                                           :errors    (:error sanitized-data)
                                                           :emails    emails-input})
 
-      #_(r/render-html evolution-views/invitation-form req {:evolution evolution}
-          :flash {:type :danger :message "You need to be logged in, man ..."}) ;; wrong
+      (> (count emails) 5)
+      (r/render-html evolution-views/invitation-form req {:evolution evolution
+                                                          :errors    {:emails [["You can invite up to 5 friends at a time"]]}
+                                                          :emails    emails-input})
+
+      (> (model/num-of-invitations-in-last-day db user-id) 30)
+      (r/render-html evolution-views/invitation-form req {:evolution evolution
+                                                          :notification {:type "danger"
+                                                                         :message "That's too many invitations for today. Come again later"}
+                                                          :emails    emails-input})
 
       :else
-      ;; TODO get ids, send emails
       (let [user (user-model/find-user-by-id db user-id)
             emails (-> sanitized-data :data :emails)]
         (model/insert-invitations! db user-id evolution-id emails)
-        (mail/send-collaboration-email settings evolution-id (:email user) emails)
         (r/redirect "/" :flash {:type :info :message "Your friends have been invited!"})))))
 
 ;; TODO store cookie data

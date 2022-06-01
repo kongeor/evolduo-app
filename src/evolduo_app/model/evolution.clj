@@ -14,6 +14,10 @@
   [db id]
   (sql/get-by-id db :evolutions id))
 
+(defn find-evolution-by-id-and-user-id [db id user-id]
+  (first (sql/find-by-keys db :evolutions {:id      id
+                                           :user_id user-id})))
+
 (defn get-evolutions
   [db]
   (sql/query db

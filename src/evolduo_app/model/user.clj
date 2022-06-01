@@ -18,7 +18,8 @@
   "Returns only the user id"
   [db email pass]
   (let [encrypted (password/encrypt pass)
-        verification_token (rnd/hex 100)]
+        verification_token (rnd/hex 100)
+        unsubscribe_token (rnd/hex 100)]
     ;; TODO schema check - adjust defaults
     (insert-user db {:role               "user"
                      :email              email
@@ -26,16 +27,19 @@
                      :verified           true               ;; TODO fix
                      :verification_token verification_token
                      :subscription       {:notifications true
-                                          :announcements true}})))
+                                          :announcements true}
+                     :unsubscribe_token  unsubscribe_token})))
 
 (defn create-stub
   "Create a stub user, someone that was invited for example but doesn't exist on the platform"
   [db email]
   ;; TODO schema check
-  (insert-user db {:role               "user"
-                   :email              email
-                   :subscription       {:notifications true
-                                        :announcements false}}))
+  (let [unsubscribe_token (rnd/hex 100)]
+    (insert-user db {:role              "user"
+                     :email             email
+                     :subscription      {:notifications true
+                                         :announcements false}
+                     :unsubscribe_token unsubscribe_token})))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
@@ -62,22 +66,24 @@
       (let [{:keys [id]}
             (if-let [user (find-user-by-email tx email)]
               (let [encrypted          (password/encrypt pass)
-                    verification_token (rnd/hex 100)]
+                    verification_token (rnd/hex 100)
+                    unsubscribe_token (rnd/hex 100)]
                 (sql/update!
                   tx-opts
                   :user
                   {:role               "user"               ;; TODO updated?
                    :password           encrypted
-                   :verified           true                 ;; TODO fix
+                   :verified           false
                    :verification_token verification_token   ;; TODO duplicated
                    :subscription       {:notifications true ;; TODO hm
-                                        :announcements true}}
+                                        :announcements true}
+                   :unsubscribe_token unsubscribe_token}
                   {:email email})
                 user)
               (create tx-opts email pass))]
         (mail-model/insert tx-opts {:recipient_id id
-                               :type         "signup"
-                               :data         {}})))))
+                                    :type         "signup"
+                                    :data         {}})))))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
@@ -88,8 +94,10 @@
   (-> (sql/get-by-id db :users id)
     (select-keys [:id
                   :email
+                  :verified
                   :verification_token
-                  :subscription])))
+                  :subscription
+                  :unsubscribe_token])))
 
 (defn create-stub-or-get!
   [db email]

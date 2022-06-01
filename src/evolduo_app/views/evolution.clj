@@ -117,8 +117,9 @@
     req
     [:div
      [:h2.is-size-3.mb-4 (str "Evolution #" (:id evolution))]
-     [:div.mb-4
-      [:a.button.is-primary {:href (u/url-for :invitation-form {:evolution-id (:id evolution)})} "Invite"]]
+     (when (= user-id (:user_id evolution))
+       [:div.mb-4
+        [:a.button.is-primary {:href (u/url-for :invitation-form {:evolution-id (:id evolution)})} "Invite"]])
      [:div
       (for [c chromosomes]
         (let [reaction (-> c :chromosome_id reaction-map)]
@@ -132,7 +133,7 @@
 (defn first-not-null [errors]
   (ffirst (filter some? errors)))
 
-(defn invitation-form [req {:keys [evolution errors emails] :as content}]
+(defn invitation-form [req {:keys [evolution errors emails notification] :as content}]
   (base-view
     req
     [:div
@@ -147,4 +148,5 @@
        (when-let [email-errors (:emails errors)]
          [:p.help.is-danger (first-not-null email-errors)])]
       [:div.control
-       [:input.button.is-link {:type "submit" :value "Invite"}]]]]))
+       [:input.button.is-link {:type "submit" :value "Invite"}]]]]
+    :notification notification))
