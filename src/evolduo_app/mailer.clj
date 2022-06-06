@@ -8,12 +8,36 @@
 
 ;; common
 
-(defn email-template []
+(defn- p [text]
+  [:p {:style "font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;"} text])
+
+(defn- a [{:keys [href text]}]
+  [:table.btn.btn-primary {:role "presentation" :border "0" :cellpadding "0" :cellspacing "0" :style "border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; width: 100%;" :width "100%"}
+   [:tbody
+    [:tr
+     [:td {:align "left" :style "font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;" :valign "top"}
+      [:table {:role "presentation" :border "0" :cellpadding "0" :cellspacing "0" :style "border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;"}
+       [:tbody
+        [:tr
+         [:td {:style "font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background-color: #3498db;" :valign "top" :align "center" :bgcolor "#3498db"}
+          [:a {:href href :target "_blank" :style "border: solid 1px #3498db; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; text-transform: capitalize; background-color: #3498db; border-color: #3498db; color: #ffffff;"} text]]]]]]]]])
+
+(defn- verification-url [app-url token]
+  (str app-url "/user/verify?token=" token))
+
+(defn- unsubscribe-url [app-url token]
+  (str app-url "/user/unsubscribe?token=" token))
+
+(defn evolution-url [app-url evolution-id]
+  (str app-url "/evolution/" evolution-id))
+
+
+(defn email-template [{:keys [app_url company_address] :as settings} {:keys [unsubscribe_token] :as user} {:keys [title content]}]
   [:html
    [:head
     [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
     [:meta {:http-equiv "Content-Type" :content "text/html; charset=UTF-8"}]
-    [:title "Simple Transactional Email"]
+    [:title title]
     [:style "@media only screen and (max-width: 620px) {
   table.body h1 {
     font-size: 28px !important;
@@ -117,81 +141,64 @@ table.body .article {
            [:table {:role "presentation" :border "0" :cellpadding "0" :cellspacing "0" :style "border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" :width "100%"}
             [:tr
              [:td {:style "font-family: sans-serif; font-size: 14px; vertical-align: top;" :valign "top"}
-              [:p {:style "font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;"} "Hi there,"]
-              [:p {:style "font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;"} "Sometimes you just want to send a simple HTML email with a simple design and clear call to action. This is it."]
-              [:table.btn.btn-primary {:role "presentation" :border "0" :cellpadding "0" :cellspacing "0" :style "border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; width: 100%;" :width "100%"}
-               [:tbody
-                [:tr
-                 [:td {:align "left" :style "font-family: sans-serif; font-size: 14px; vertical-align: top; padding-bottom: 15px;" :valign "top"}
-                  [:table {:role "presentation" :border "0" :cellpadding "0" :cellspacing "0" :style "border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;"}
-                   [:tbody
-                    [:tr
-                     [:td {:style "font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background-color: #3498db;" :valign "top" :align "center" :bgcolor "#3498db"}
-                      [:a {:href "http://htmlemail.io" :target "_blank" :style "border: solid 1px #3498db; border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; text-transform: capitalize; background-color: #3498db; border-color: #3498db; color: #ffffff;"} "Call To Action"]]]]]]]]]
-              [:p {:style "font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;"} "This is a really simple email template. Its sole purpose is to get the recipient to click the button with no distractions."]
-              [:p {:style "font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;"} "Good luck! Hope it works."]]]]]]]
+              (apply list content)
+              ]]]]]]
         [:div.footer {:style "clear: both; margin-top: 10px; text-align: center; width: 100%;"}
          [:table {:role "presentation" :border "0" :cellpadding "0" :cellspacing "0" :style "border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" :width "100%"}
           [:tr
            [:td.content-block {:style "font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #999999; font-size: 12px; text-align: center;" :valign "top" :align "center"}
-            [:span.apple-link {:style "color: #999999; font-size: 12px; text-align: center;"} "Company Inc, 3 Abbey Road, San Francisco CA 94102"]
-            [:br] "Don't like these emails? " [:a {:href "http://i.imgur.com/CScmqnj.gif" :style "text-decoration: underline; color: #999999; font-size: 12px; text-align: center;"} "Unsubscribe"] "."]]
-          [:tr
-           [:td.content-block.powered-by {:style "font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #999999; font-size: 12px; text-align: center;" :valign "top" :align "center"} "Powered by" [:a {:href "http://htmlemail.io" :style "color: #999999; font-size: 12px; text-align: center; text-decoration: none;"} "HTMLemail"] "."]]]]]]
+            [:span.apple-link {:style "color: #999999; font-size: 12px; text-align: center;"} company_address]
+            [:br] "Don't like these emails? " [:a {:href (unsubscribe-url app_url unsubscribe_token) :style "text-decoration: underline; color: #999999; font-size: 12px; text-align: center;"} "Unsubscribe"] "."]]]]]]
       [:td {:style "font-family: sans-serif; font-size: 14px; vertical-align: top;" :valign "top"} "&nbsp;"]]]]])
 
-;; TODO add unsubscribe url etc.
-(defn footer []
-  [:p "Click " [:a {:href "#"} "here"] "to stop receiving messages "])
+(comment
+  (html/html [:p
+              (apply list
+                [
+                 [:p "foo"]
+                 [:p "foo"]])]))
 
-
+(comment
+  (html/html (apply list [(p "foo")
+                          (p "bar")])))
 ;;
 
-(defn verification-url [app-url verification-url]
-  (str app-url "/user/verify?token=" verification-url))
-
-(defn welcome-html [verification-url]
-  (html/html [:div
-              [:p "Welcome to Evolduo"]
-              [:p "Click "
-               [:a {:href verification-url} "here"]
-               " to verify your email"]
-              ]))
-
-(defn send-welcome-email [settings user]
+(defn- send-email [settings user title content]
   (let [mail-server (:mail_server settings)
-        app-url (:app_url settings)
-        {:keys [email verification_token]} user
-        verification-url (verification-url app-url verification_token)]
+        {:keys [email]} user]
     (postal/send-message mail-server
       {:from    (:user mail-server)
        :to      email
-       :subject "Welcome to Evolduo"
+       :subject title
        :body    [{:type    "text/html"
-                  :content (html/html (email-template)) #_(welcome-html verification-url)}]})))
+                  :content (html/html content)}]})))
 
-(defn evolution-url [app-url evolution-id]
-  (str app-url "/evolution/" evolution-id))
+(defn- invitation-content [{:keys [app_url] :as settings} mail]
+  (let [{:keys [evolution-id invited-by-email]} (:data mail)]
+    [(p (str "User " invited-by-email " invited you to collaborate on the following track"))
+     (a {:href (evolution-url app_url evolution-id) :text "View"})]))
 
-(defn collaboration-html [sender-email evolution-url]
-  (html/html [:div
-              [:p (str sender-email " has invited you to collaborate on")
-               [:a {:href evolution-url} " music generation"]]]))
+(defn- get-email-data [{:keys [app_url] :as settings} {:keys [verification_token subscription] :as user} mail]
+  (condp = (:type mail)
+    "signup" {:should-receive? true :title "Welcome to Evolduo"
+              :content         (email-template settings user {:title "Welcome to Evolduo"
+                                                              :content [(p "Welcome to Evolduo")
+                                                                      (p "Please click the following link to verify your account")
+                                                                      (a {:href (verification-url app_url verification_token) :text "Verify"})]})}
+    "invitation" {:should-receive? (:notifications subscription)
+                  :title "Invitation to collaborate" ;; TODO should receive, duplication
+                  :content         (email-template settings user {:title "Invitation to collaborate"
+                                                                  :content (invitation-content settings mail)})}))
 
-
-;; TODO insert emails to a table for auditing, spam prevention and quotas
-(defn send-collaboration-email [settings evolution-id sender-email emails]
-  (let [mail-server (:mail_server settings)
-        app-url (:app_url settings)
-        ;; TODO create stuff user for notifications? Is this allowed?
-        evolution-url (evolution-url app-url evolution-id)]
-    (doseq [email emails]
-      (postal/send-message mail-server
-        {:from    (:user mail-server)
-         :to      email
-         :subject "Collaboration invitation"
-         :body    [{:type    "text/html"
-                    :content (collaboration-html sender-email evolution-url)}]}))))
+(defn send-mails [db settings]
+  (doseq [mail (mail/find-unsent-mails db)]
+    (jdbc/with-transaction [tx db]
+      (let [tx-opts (jdbc/with-options tx {:builder-fn rs/as-unqualified-lower-maps})
+            user (user/find-user-by-id tx-opts (:recipient_id mail))
+            {:keys [should-receive? title content]} (get-email-data settings user mail)]
+        (when should-receive?
+          (send-email settings user title content))
+        (mail/mark-as-sent tx-opts (:id mail))))))
 
 (comment
   (let [settings (:config/settings integrant.repl.state/system)
@@ -199,13 +206,3 @@ table.body .article {
         user (user/find-user-by-email db "foo@example.com")]
     (send-collaboration-email settings 1 "foo@example.com" ["bar@example.com"])))
 
-
-(defn send-mails [db settings]
-  (doseq [mail (mail/find-unsent-mails db)]
-    (jdbc/with-transaction [tx db]
-      (let [tx-opts (jdbc/with-options tx {:builder-fn rs/as-unqualified-lower-maps})]
-        (let [user (user/find-user-by-id tx-opts (:recipient_id mail))]
-          ;; TODO check if should receive
-          (condp = (:type mail)
-            "signup" (send-welcome-email settings user))
-          (mail/mark-as-sent tx-opts (:id mail)))))))

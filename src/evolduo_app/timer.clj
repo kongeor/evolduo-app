@@ -8,7 +8,7 @@
 (defn evolution [db settings]
   (let [now (Instant/now)]
     (c/chime-at
-      (c/periodic-seq (.plusSeconds (Instant/now) 60) (Duration/ofMinutes 1))
+      (c/periodic-seq (Instant/now) (Duration/ofMinutes 1))
 
       (fn [time]
         (model/evolve-all-iterations db settings))
@@ -22,7 +22,7 @@
 (defn mail [db settings]
   (let [now (Instant/now)]
     (c/chime-at
-      (c/periodic-seq (.plusSeconds (Instant/now) 60) (Duration/ofMinutes 1))
+      (c/periodic-seq (Instant/now) (Duration/ofMinutes 1))
 
       (fn [time]
         (mailer/send-mails db settings))

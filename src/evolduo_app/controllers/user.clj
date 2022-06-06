@@ -99,6 +99,17 @@
       (assoc (response/redirect "/")
         :flash {:type :danger :message "Oops, something was wrong."}))))
 
+(defn unsubscribe [req]
+  (let [db (:db req)
+        token (-> req :params :token)]
+    ;; TODO rotate token
+    (if-let [res (user/unsubscribe! db token)]
+      (do
+        (assoc (response/redirect "/")
+          :flash {:type :info :message "Your subscription settings have been updated"}))
+      (assoc (response/redirect "/")
+        :flash {:type :danger :message "Oops, something was wrong."}))))
+
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (login-user db "foo@example.com" "12345")))

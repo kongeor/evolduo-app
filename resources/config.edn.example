@@ -1,6 +1,7 @@
 {:version "dev"
  :environment "dev"
  :app_url "http://localhost:3000"
+ :company_address "Company Inc, 3 Abbey Road, San Francisco CA 94102"
  :db          {:dbtype               "postgres"
                :host                 "localhost"
                :dbname               "evolduo"

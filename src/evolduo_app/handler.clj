@@ -58,6 +58,7 @@
   (POST "/user/logout" [] user-ctl/logout-user)
   (GET "/user/account" [] user-ctl/account)
   (GET "/user/verify" [] user-ctl/verify-user)
+  (GET "/user/unsubscribe" [] user-ctl/unsubscribe)
   (POST "/user/subscription" [] user-ctl/update-subscription)
   (POST "/user/delete" [] user-ctl/delete)
   (GET "/evolution/form" [] evolution-ctl/edit)

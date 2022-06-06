@@ -113,10 +113,15 @@
 
 (defn verify-user
   [db token]
-  (when-let [res (sql/update! db :users {:verified 1
-                                        :verification_token nil
-                                        :verified_at (Instant/now)} {:verification_token token})]
-    res)) ;; TODO factor out builder
+  (when-let [res (sql/update! db :users {:verified true
+                                         :verification_token nil
+                                         :verified_at (Instant/now)} {:verification_token token})]
+    res))
+
+(defn unsubscribe!
+  [db token]
+  (sql/update! db :users {:subscription {}
+                          :verified_at  (Instant/now)} {:unsubscribe_token token}))
 
 (defn login-user [db email pass]
   (if-let [user (find-user-by-email db email)]

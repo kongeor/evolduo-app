@@ -49,7 +49,7 @@
                                                        :version      version
                                                        :evolution_id (:id evolution)})]
         ;; TODO meh
-        (sql/update! tx :iterations (assoc old-iteration :last false) {:id (:id old-iteration)})
+        (sql/update! tx-opts :iterations (assoc old-iteration :last false) {:id (:id old-iteration)})
         (doall
           (map #(sql/insert! tx-opts :chromosomes
                   (let [{:keys [key mode pattern chord tempo]} evolution
