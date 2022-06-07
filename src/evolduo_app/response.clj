@@ -1,18 +1,19 @@
 (ns evolduo-app.response
   (:require [ring.util.response :as resp]
             [evolduo-app.music :as music]
-            [hiccup.core :as hiccup]))
+            [hiccup.core :as hiccup]
+            [hiccup.page :as page]))
 
 (defn render-html
   ([view req]
-   (-> (resp/response (hiccup/html (view req)))
+   (-> (resp/response (page/html5 (view req)))
      (resp/content-type "text/html")))
   ([view req data]
-   (-> (resp/response (hiccup/html (view req data)))
+   (-> (resp/response (page/html5 (view req data)))
      (resp/content-type "text/html"))))
 
 (defn render-404 []
-  (-> (resp/not-found (hiccup/html [:h1 "oops"]))
+  (-> (resp/not-found (page/html5 [:h1 "oops"]))
     (resp/content-type "text/html")))
 
 (defn redirect [url & {:keys [flash]}]

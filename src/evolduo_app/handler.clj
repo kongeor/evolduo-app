@@ -63,7 +63,7 @@
   (POST "/user/delete" [] user-ctl/delete)
   (GET "/evolution/form" [] evolution-ctl/edit)
   (POST "/evolution/save" [] evolution-ctl/save)
-  (GET "/evolution/list" [] evolution-ctl/search)
+  (GET "/evolution/search" [] evolution-ctl/search)
   (GET "/evolution/:id{[0-9]+}" [] evolution-ctl/detail)
   (GET "/evolution/:id{[0-9]+}/invitation/form" [] invitation-ctl/invitation-form)
   (POST "/evolution/:id{[0-9]+}/invitation/save" [] invitation-ctl/invitation-save)

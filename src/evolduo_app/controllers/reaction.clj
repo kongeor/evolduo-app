@@ -23,7 +23,7 @@
     (cond
       (:error sanitized-data)
       (assoc
-        (resp/redirect "/evolution/list")
+        (resp/redirect "/evolution/search")
         :flash {:type :danger :message "Ooops, this shouldn't have happened."})
 
       :else

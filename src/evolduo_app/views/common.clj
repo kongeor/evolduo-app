@@ -15,7 +15,7 @@
      [:div#navbarBasicExample.navbar-menu
       [:div.navbar-start
        [:a.navbar-item {:href "/evolution/form"} "New Evolution"]
-       [:a.navbar-item {:href "/evolution/list"} "Evolutions"]
+       [:a.navbar-item {:href "/evolution/search"} "Search"]
        [:a.navbar-item {:href "/explorer"} "Explorer"]]
       [:div.navbar-end
        [:div.navbar-item
@@ -44,8 +44,10 @@
     [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
     [:title "Hello Bulma!"]
     [:link {:rel "stylesheet" :href "/css/abcjs-audio.css"}]
-    [:link {:rel "stylesheet" :href "/css/bulma.min.css"}]]
-   [:body (when body-load-hook {:onload body-load-hook})
+    [:link {:rel "stylesheet" :href "/css/bulma.min.css"}]
+    [:link {:rel "stylesheet" :href "/css/cookie-consent.css"}]
+    ]
+   [:body (when (and body-load-hook enable-abc?) {:onload body-load-hook})
     [:section.section
      [:div.container
       (navbar req)
@@ -65,5 +67,8 @@
                  :src  "https://cdn.jsdelivr.net/npm/abcjs@6.0.2/dist/abcjs-basic-min.js"}]
        [:script {:type "text/javascript"
                  :src  "/js/abc-player.js"}]])
+    [:div
+     [:script {:defer true :type "text/javascript" :src "/js/cookie-consent.js"}]
+     [:script {:defer true :type "text/javascript" :src "/js/main.js"}]]
     ]])
 

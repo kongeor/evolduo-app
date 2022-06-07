@@ -33,19 +33,10 @@
                                                                           :errors errors})))
        (resp/content-type "text/html")))))
 
-(defn get-evolutions
-  [req]
-  (let [evolutions (model/get-evolutions (:db req))]
-    (println "****" evolutions)
-    (-> req
-      (assoc-in [:params :evolutions] evolutions)
-      (assoc :application/view "evolution_list"))))
-
 (defn search
   [req]
   (let [evolutions (model/get-evolutions (:db req))]
-    (-> (resp/response (hiccup/html (evolution-views/evolution-list req evolutions)))
-      (resp/content-type "text/html"))))
+    (r/render-html evolution-views/evolution-list req evolutions)))
 
 (defn save
   [req]
@@ -76,7 +67,7 @@
                                  :bar true}})]
         (model/save-evolution (:db req) (:settings req) evolution)
         (assoc
-          (resp/redirect "/evolution/list")
+          (resp/redirect "/evolution/search")
           :flash {:type :info :message "Great success!"})))))
 
 (defn detail [req]

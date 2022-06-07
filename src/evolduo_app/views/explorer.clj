@@ -50,5 +50,5 @@
        ]
       :enable-abc? (some? abc)
       ; :custom-script (str "var abc = \"" abc "\";")
-      :body-load-hook "load()"
+      :body-load-hook "load()"                              ;; TODO fix
       )))
