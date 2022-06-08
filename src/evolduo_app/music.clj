@@ -16,12 +16,12 @@
 
 (def all-degrees-progression "I-II-III-IV-V-VI-VII-I")
 
-(def patterns ["I-IV-V-I"
-               "I-II-VI-I"
-               "I-IV-I-IV"
-               "I-I-VII-I"
-               all-degrees-progression
-               ])
+(def progressions ["I-IV-V-I"
+                   "I-II-VI-I"
+                   "I-IV-I-IV"
+                   "I-I-VII-I"
+                   all-degrees-progression
+                   ])
 
 (def chord-intervals [["R" [0]]
                       ["R + 5 + R" [0 4 7]]
@@ -336,37 +336,37 @@
               "VI" 5
               "VII" 6})
 
-(defn pattern->degrees [mode pattern]
-  (map degrees (string/split pattern #"-")))
+(defn progression->degrees [mode progression]
+  (map degrees (string/split progression #"-")))
 
 (comment
-  (pattern->offsets :major "I-IV-V-I"))
+  (progression->offsets :major "I-IV-V-I"))
 
-(defn gen-chord-progression [{:keys [key mode duration pattern chord]}]
-  (let [dgs (pattern->degrees mode pattern)
+(defn gen-chord-progression [{:keys [key mode duration progression chord]}]
+  (let [dgs (progression->degrees mode progression)
         chords (map #(gen-chord {:key key :mode mode :duration duration
                                  :chord chord :degree %}) dgs)]
     (string/join " | " chords)))
 
-(defn gen-chord-names [{:keys [key mode duration pattern chord] :as settings}]
-  (let [dgs (pattern->degrees mode pattern)]
+(defn gen-chord-names [{:keys [key mode duration progression chord] :as settings}]
+  (let [dgs (progression->degrees mode progression)]
     (map #(gen-chord-2 (merge settings {:degree %})) dgs)))
 
 (comment
-  (gen-chord-names {:key "C" :mode :major :pattern all-degrees-progression :chord "R + 3 + 3 + 3"}))
+  (gen-chord-names {:key "C" :mode :major :progression all-degrees-progression :chord "R + 3 + 3 + 3"}))
 
 (comment
-  (gen-chord-progression {:key "C" :mode :major :duration 8 :pattern "I-IV-V-I"}))
+  (gen-chord-progression {:key "C" :mode :major :duration 8 :progression "I-IV-V-I"}))
 
-(defn progression->abc [{:keys [key mode pattern] :as data}]
+(defn progression->abc [{:keys [key mode progression] :as data}]
   (str
     "X:1\\n"
     "K:" (->abc-key key mode) "\\n"
-    (str "| " (gen-chord-progression {:key key :mode mode :duration 8 :pattern pattern})
+    (str "| " (gen-chord-progression {:key key :mode mode :duration 8 :progression progression})
       "|")))
 
 (comment
-  (progression->abc {:key "C" :mode :major :pattern "I-IV"}))
+  (progression->abc {:key "C" :mode :major :progression "I-IV"}))
 
 #_(mode->nums :major)
 
@@ -375,7 +375,7 @@
   )
 
 (defn ->abc-track
-  [{:keys [key mode pattern chord tempo] :as settings} {:keys [genes]}]
+  [{:keys [key mode progression chord tempo] :as settings} {:keys [genes]}]
   (let [chord-names (gen-chord-names settings)]
     (str
       "X:1\\n"
@@ -386,11 +386,11 @@
       (str "[V:V1] | " (chromo->abc genes chord-names) " | \\n")
       #_(str "[V:V2] | " (gen-chord-progression {:key key :mode mode
                                                  :chord chord
-                                                 :duration 8 :pattern pattern})
+                                                 :duration 8 :progression progression})
           "|"))))
 
 (comment
-  (->abc-track {:key "C" :mode :major :duration 8 :pattern "I-IV-V-I" :chord "R + 3 + 3 + 3"} {:genes c}))
+  (->abc-track {:key "C" :mode :major :duration 8 :progression "I-IV-V-I" :chord "R + 3 + 3 + 3"} {:genes c}))
 
 (defn generate-action-seed []
   [(rand-int (count music-keys))
@@ -411,7 +411,7 @@
      [:span "Not sure? Check the " (inc degree) " measure "
       [:a {:target "_blank" :href (urls/url-for :explorer :query (assoc opts
                                                                    :chord "R + 3 + 3 + 3"
-                                                                   :pattern all-degrees-progression))} "here"]
+                                                                   :progression all-degrees-progression))} "here"]
       "."]]))
 
 (comment
@@ -423,7 +423,7 @@
   (let [{:keys [key mode degree]} (get-settings-from-action-seed seed)
         chord-names (gen-chord-names {:key key
                                       :mode (keyword mode)
-                                      :pattern all-degrees-progression
+                                      :progression all-degrees-progression
                                       :chord "R + 3 + 3 + 3"})]
     (nth chord-names degree)))
 

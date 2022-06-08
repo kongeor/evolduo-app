@@ -44,6 +44,5 @@
         (sql/insert! tx-opts :mails {:recipient_id id
                                :type         "invitation"
                                :data         {:invited-by-id user-id
-                                              :invited-by-email (:email user)
                                               :evolution-id evolution-id}})
         (sql/insert! tx-opts :invitations (assoc base-invitation :invitee_id id))))))

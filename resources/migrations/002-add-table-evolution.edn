@@ -11,7 +11,7 @@
                                  mutation_rate SMALLINT NOT NULL,
                                  key VARCHAR(2) NOT NULL,
                                  mode VARCHAR(50) NOT NULL,
-                                 pattern VARCHAR(20) NOT NULL,
+                                 progression VARCHAR(20) NOT NULL,
                                  repetitions SMALLINT NOT NULL DEFAULT 1,
                                  chord VARCHAR(20) NOT NULL,
                                  tempo INTEGER NOT NULL,

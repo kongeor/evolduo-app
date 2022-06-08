@@ -7,7 +7,7 @@
     [:nav.navbar.mb-4 {:role "navigation" :aria-label "main navigation"}
      [:div.navbar-brand
       [:a.navbar-item {:href "/"}
-       [:img {:src "https://bulma.io/images/bulma-logo.png" :width "112" :height "28"}]]
+       [:img {:src "/img/logo.png" :width "112" :height "28"}]]
       [:a.navbar-burger {:role "button" :aria-label "menu" :aria-expanded "false" :data-target "navbarBasicExample"}
        [:span {:aria-hidden "true"}]
        [:span {:aria-hidden "true"}]
@@ -42,7 +42,7 @@
    [:head
     [:meta {:charset "utf-8"}]
     [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
-    [:title "Hello Bulma!"]
+    [:title "Evolduo"]
     [:link {:rel "stylesheet" :href "/css/abcjs-audio.css"}]
     [:link {:rel "stylesheet" :href "/css/bulma.min.css"}]
     [:link {:rel "stylesheet" :href "/css/cookie-consent.css"}]

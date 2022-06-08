@@ -4,7 +4,7 @@
             [clojure.string :as str]))
 
 (defn explorer [req & {:keys [abc] :as track}]
-  (let [{:keys [key mode pattern chord tempo]} (-> req :params)
+  (let [{:keys [key mode progression chord tempo]} (-> req :params)
         tempo (if (str/blank? tempo) "110" tempo)]          ;; TODO sanitized params
     (base-view
       req
@@ -24,11 +24,11 @@
            [:div.select
             (comps/mode-select mode)]]]
          [:div.field-label.is-normal
-          [:label.label {:for "pattern"} "Pattern"]]
+          [:label.label {:for "progression"} "Progression"]]
          [:div.field.mr-4
           [:div.control
            [:div.select
-            (comps/pattern-select pattern)]]]
+            (comps/progression-select progression)]]]
          [:div.field-label.is-normal
           [:label.label {:for "chord"} "Chord"]]
          [:div.field.mr-4

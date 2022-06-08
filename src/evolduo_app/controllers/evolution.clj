@@ -7,7 +7,6 @@
             [evolduo-app.response :as r]
             [evolduo-app.schemas :as schemas]
             [evolduo-app.views.evolution :as evolution-views]
-            [hiccup.core :as hiccup]
             [ring.util.response :as resp]))
 
 (defn edit
@@ -15,9 +14,7 @@
   ([req]
    (edit req nil nil))
   ([req evolution errors]
-   (let [db (:db req)
-         ; evolution (when-let [id (get-in req [:path-params :id])] (model/get-evolution-by-id db id))
-         evolution (or evolution
+   (let [evolution (or evolution
                      {:public             true
                       :min_ratings        2
                       :initial_iterations 10
@@ -26,12 +23,12 @@
                       :crossover_rate     30
                       :mutation_rate      5
                       :key                "D"
-                      :pattern            "I-IV-V-I"
+                      :progression        "I-IV-V-I"
+                      :repetitions        1
                       :chord              "R + 3 + 3"
                       :tempo              70})]
-     (-> (resp/response (hiccup/html (evolution-views/evolution-form req {:evolution evolution
-                                                                          :errors errors})))
-       (resp/content-type "text/html")))))
+     (r/render-html evolution-views/evolution-form req {:evolution evolution
+                                                        :errors errors}))))
 
 (defn search
   [req]
@@ -51,10 +48,11 @@
                                            :mutation_rate
                                            :key
                                            :mode
-                                           :pattern
+                                           :progression
+                                           :repetitions
                                            :chord
                                            :tempo]))
-        sanitized-data (schemas/decode-and-validate-evolution data)]
+        sanitized-data (schemas/decode-and-validate schemas/Evolution data)]
     (log/info "sanitized" sanitized-data)
     (cond
       (:error sanitized-data)

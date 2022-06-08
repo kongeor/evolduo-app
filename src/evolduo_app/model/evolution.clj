@@ -62,10 +62,10 @@ select e.*
                                                       :evolution_id (:id evol-insert)})]
         (doall
           (map #(sql/insert! tx-opts :chromosomes
-                  (let [{:keys [key mode pattern chord tempo]} evolution
+                  (let [{:keys [key mode progression chord tempo]} evolution
                         ;; TODO use strings instead
                         genes (music/random-track {:key key :measures 4 :mode (keyword mode)})
-                        abc   (music/->abc-track {:key   key :mode (keyword mode) :pattern pattern
+                        abc   (music/->abc-track {:key   key :mode (keyword mode) :progression progression
                                                   :chord chord :tempo tempo}
                                 {:genes genes})
                         ]
@@ -159,7 +159,7 @@ select e.*
   (let [q-sqlmap {:select [[:e/id :evolution_id]
                            [:i/id :iteration_id]
                            [:e.key]
-                           [:e.pattern]
+                           [:e.progression]
                            [:i.num]
                            [:e.created_at]
                            [:e.total_iterations]
@@ -182,7 +182,7 @@ select e.*
   (let [q-sqlmap {:select [[:e/id :evolution_id]
                            [:i/id :iteration_id]
                            [:e.key]
-                           [:e.pattern]
+                           [:e.progression]
                            [:i.num]
                            [:e.created_at]
                            [:e.total_iterations]
@@ -209,7 +209,7 @@ select e.*
   (let [q-sqlmap {:select [[:e/id :evolution_id]
                            [:i/id :iteration_id]
                            [:e.key]
-                           [:e.pattern]
+                           [:e.progression]
                            [:i.num]
                            [:e.created_at]
                            [:e.total_iterations]

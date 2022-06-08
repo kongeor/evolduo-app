@@ -173,12 +173,13 @@ table.body .article {
        :body    [{:type    "text/html"
                   :content (html/html content)}]})))
 
-(defn- invitation-content [{:keys [app_url] :as settings} mail]
-  (let [{:keys [evolution-id invited-by-email]} (:data mail)]
+(defn- invitation-content [db {:keys [app_url] :as settings} mail]
+  (let [{:keys [evolution-id invited-by-id]} (:data mail)
+        invited-by-email (:email (user/find-user-by-id db invited-by-id))]
     [(p (str "User " invited-by-email " invited you to collaborate on the following track"))
      (a {:href (evolution-url app_url evolution-id) :text "View"})]))
 
-(defn- get-email-data [{:keys [app_url] :as settings} {:keys [verification_token subscription] :as user} mail]
+(defn- get-email-data [db {:keys [app_url] :as settings} {:keys [verification_token subscription] :as user} mail]
   (condp = (:type mail)
     "signup" {:should-receive? true :title "Welcome to Evolduo"
               :content         (email-template settings user {:title "Welcome to Evolduo"
@@ -188,14 +189,14 @@ table.body .article {
     "invitation" {:should-receive? (:notifications subscription)
                   :title "Invitation to collaborate" ;; TODO should receive, duplication
                   :content         (email-template settings user {:title "Invitation to collaborate"
-                                                                  :content (invitation-content settings mail)})}))
+                                                                  :content (invitation-content db settings mail)})}))
 
 (defn send-mails [db settings]
   (doseq [mail (mail/find-unsent-mails db)]
     (jdbc/with-transaction [tx db]
       (let [tx-opts (jdbc/with-options tx {:builder-fn rs/as-unqualified-lower-maps})
             user (user/find-user-by-id tx-opts (:recipient_id mail))
-            {:keys [should-receive? title content]} (get-email-data settings user mail)]
+            {:keys [should-receive? title content]} (get-email-data db settings user mail)]
         (when should-receive?
           (send-email settings user title content))
         (mail/mark-as-sent tx-opts (:id mail))))))

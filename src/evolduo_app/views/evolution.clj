@@ -2,7 +2,8 @@
   (:require [evolduo-app.views.common :refer [base-view]]
             [evolduo-app.views.components :as comps]
             [ring.middleware.anti-forgery :as anti-forgery]
-            [evolduo-app.urls :as u]))
+            [evolduo-app.urls :as u]
+            [evolduo-app.schemas :as s]))
 
 (defn evolution-form [req {:keys [evolution errors] :as content}]
   (base-view
@@ -64,10 +65,15 @@
        (when-let [key-errors (:mode errors)]
          [:p.help.is-danger (first key-errors)])]
       [:div.field
-       [:label.label {:for "pattern"} "Pattern"]
+       [:label.label {:for "progression"} "Progression"]
        [:div.control
         [:div.select
-         (comps/pattern-select (:pattern evolution))]]]
+         (comps/progression-select (:progression evolution))]]]
+      [:div.field
+       [:label.label {:for "repetitions"} "Repetitions"]
+       [:div.control
+        [:div.select
+         (comps/select "repetitions" (:progression evolution) s/repetition-options)]]]
       [:div.field
        [:label.label {:for "chord"} "Chord Intervals"]
        [:div.control
@@ -94,7 +100,7 @@
        [:th "Crossover Rate"]
        [:th "Mutation Rate"]
        [:th "Key"]
-       [:th "Pattern"]
+       [:th "Progression"]
        [:th "Tempo"]
        [:th "User"]]]
      [:tbody
@@ -108,7 +114,7 @@
          [:td (:crossover_rate e)]
          [:td (:mutation_rate e)]
          [:td (:key e)]
-         [:td (:pattern e)]
+         [:td (:progression e)]
          [:td (:tempo e)]
          [:td (:user_id e)]])]]))
 

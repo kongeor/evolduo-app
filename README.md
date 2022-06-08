@@ -6,12 +6,12 @@
 - [ ] Repetitions
 - [ ] Instrument 
 - [ ] Logging config
-- [ ] Generate a random chromosome based on mode and pattern
+- [ ] Generate a random chromosome based on mode and progression
 - [ ] Show the list of chromosomes per evolution iteration
 - [ ] Delete old code, upgrade deps
-- [ ] Moar modes and chord patterns.
+- [ ] Moar modes and chord progression
 - [ ] Upvote/Downvote a track
-- [ ] Add missing fields: Evolution(abc pattern, evolve after, mode), Chromosome(version)
+- [ ] Add missing fields: Evolution(abc progression, evolve after, mode), Chromosome(version)
 - [ ] Limits
 - [ ] Add background task to evolve tracks
 - [ ] Indexes, indexes, indexes

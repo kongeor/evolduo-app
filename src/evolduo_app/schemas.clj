@@ -7,6 +7,7 @@
 ;; TODO labels
 ;; only admin immediately
 (def evolve-after-options ["1-min" "5-min" "30-min" "8-hour" "1-day"])
+(def repetition-options [1 2 3 4])
 
 (def Evolution
   [:map {:closed true}
@@ -20,11 +21,13 @@
    [:mutation_rate int?]
    [:mode (vec (cons :enum music/modes))]
    [:key (vec (cons :enum music/music-keys))]
-   [:pattern (vec (cons :enum music/patterns))]
+   [:progression (vec (cons :enum music/progressions))]
+   [:repetitions [:int {:min 1 :max 4}]]
    [:chord (vec (cons :enum music/chord-intervals-keys))]
    [:tempo int?]])
 
-(def example-evolution {:min_ratings        "5"
+(def example-evolution {:public             true
+                        :min_ratings        "5"
                         :evolve_after       "5-min"
                         :initial_iterations 10
                         :total_iterations   20
@@ -34,24 +37,17 @@
                         :mode               "major"
                         :key                "D"
                         :chord              "R + 3 + 3"
-                        :pattern            "I-IV-V-I"
+                        :progression        "I-IV-V-I"
+                        :repetitions        "1"
                         :tempo              60})
 
 (comment
   (me/humanize (m/explain Evolution example-evolution)))
 
 (comment
-  (m/decode Evolution {:public      "true"
-                       :min_ratings "2"} mt/string-transformer))
-
-(defn decode-and-validate-evolution [evolution]
-  (let [decoded (m/decode Evolution evolution (mt/transformer mt/default-value-transformer mt/string-transformer))]
-    (if-let [error (m/explain Evolution decoded)]
-      {:error (me/humanize error)}
-      {:data decoded})))
-
-(comment
-  (decode-and-validate-evolution example-evolution))
+  (me/humanize
+    (m/explain Evolution
+      (m/decode Evolution example-evolution mt/string-transformer))))
 
 ;; TODO split schemas
 

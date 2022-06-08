@@ -4,6 +4,13 @@
             [ring.middleware.anti-forgery :as anti-forgery]
             [evolduo-app.urls :as urls]))
 
+(defn select [name selected options]
+  [:select {:name name}
+   (for [o options]
+     [:option (merge {:value o}
+                (when (= o selected)
+                  {:selected true})) o])])
+
 (defn evolve-after-select [evolve-after]
   [:select {:name "evolve_after"}
    (for [a s/evolve-after-options]
@@ -25,11 +32,11 @@
                 (when (= m mode)
                   {:selected true})) m])])
 
-(defn pattern-select [pattern]
-  [:select {:name "pattern"}
-   (for [p music/patterns]
+(defn progression-select [progression]
+  [:select {:name "progression"}
+   (for [p music/progressions]
      [:option (merge {:value p}
-                (when (= p pattern)
+                (when (= p progression)
                   {:selected true})) p])])
 
 (defn chord-select [chord]
@@ -125,7 +132,7 @@
      [:th "Created At"]
      [:th "Progress"]
      [:th "Key"]
-     [:th "Pattern"]
+     [:th "Progression"]
      ]]
    [:tbody
     (for [e evolutions]
@@ -137,4 +144,4 @@
          [:td (:created_at e)]
          [:td [:progress.progress {:value (:num e) :max (:total_iterations e)} perc-str]]
          [:td (:key e)]
-         [:td (:pattern e)]]))]])                           ;; TODO add a date
+         [:td (:progression e)]]))]])                           ;; TODO add a date

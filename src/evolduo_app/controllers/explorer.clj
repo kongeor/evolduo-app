@@ -6,10 +6,12 @@
 (defn explorer
   [req]
   ;; TODO validate
-  (let [{:keys [key mode pattern chord tempo]} (-> req :params)
-        abc (when (and key pattern)
-              (let [settings {:key     key :mode (keyword mode)
-                              :pattern pattern :chord chord
+  (let [{:keys [key mode progression chord tempo]} (-> req :params)
+        abc (when (and key progression)
+              (let [settings {:key     key
+                              :mode (keyword mode)
+                              :progression progression
+                              :chord chord
                               :tempo   tempo}
                     chord-names (music/gen-chord-names settings)]
                 (music/->abc-track settings

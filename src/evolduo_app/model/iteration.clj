@@ -52,10 +52,10 @@
         (sql/update! tx-opts :iterations (assoc old-iteration :last false) {:id (:id old-iteration)})
         (doall
           (map #(sql/insert! tx-opts :chromosomes
-                  (let [{:keys [key mode pattern chord tempo]} evolution
+                  (let [{:keys [key mode progression chord tempo]} evolution
                         ;; TODO use strings instead
                         genes (music/random-track {:key key :measures 4 :mode (keyword mode)})
-                        abc   (music/->abc-track {:key   key :mode (keyword mode) :pattern pattern
+                        abc   (music/->abc-track {:key   key :mode (keyword mode) :progression progression
                                                   :chord chord :tempo tempo}
                                 {:genes genes})
                         ]
