@@ -26,7 +26,7 @@ jobs:
         run: clojure -T:build uber
 
       - name: Publish to Registry
-        uses: elgohr/Publish-Docker-Github-Action@4
+        uses: elgohr/Publish-Docker-Github-Action@v4
         with:
           name: kongeor/evolduo-app
           username: ${{ secrets.DOCKER_USERNAME }}
