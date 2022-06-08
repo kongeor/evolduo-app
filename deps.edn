@@ -26,4 +26,9 @@
            :extra-deps  {integrant/repl {:mvn/version "0.3.2"}}}
   :server {:main-opts ["-m" "evolduo-app.system"]}
   :build  {:deps       {io.github.clojure/tools.build {:git/tag "v0.8.2" :git/sha "ba1a2bf"}}
-           :ns-default build}}}
+           :ns-default build}
+  :test   {:extra-paths ["test"]
+           :extra-deps  {io.github.cognitect-labs/test-runner
+                         {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
+           :main-opts   ["-m" "cognitect.test-runner"]
+           :exec-fn     cognitect.test-runner.api/test}}}

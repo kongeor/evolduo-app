@@ -148,7 +148,6 @@
 
 (defn chromo->abc [chromo chord-names]
   (let [measures (chromo->measures chromo)]
-    (println "**" chord-names measures)
     (clojure.string/join " | " (map #(str "\\\"" %2 "\\\" " (measure->abc %)) measures chord-names))))
 
 (def c1 [60 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2
