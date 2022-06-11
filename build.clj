@@ -4,7 +4,7 @@
 
 
 (def lib 'evolduo)
-(def version (subs (b/git-process {:git-args "describe --abbrev=0"}) 1))
+(def version (format "0.1.%s" (b/git-count-revs nil)))
 (def class-dir "target/classes")
 (def config-example (str class-dir "/config.edn.example"))
 (def basis (b/create-basis {:project "deps.edn"}))
@@ -13,12 +13,15 @@
 (defn clean [_]
   (b/delete {:path "target"}))
 
+(defn version-from-tag []
+  (subs (b/git-process {:git-args "describe --abbrev=0"}) 1))
+
 (defn config-string []
   (str/replace (slurp config-example)
-    #":version \"dev\"" (str ":version \"" version "\"")))
+    #":version \"dev\"" (str ":version \"" (version-from-tag) "\"")))
 
 (defn print-version [_]
-  (println version))
+  (println (version-from-tag)))
 
 (defn uber [_]
   (clean nil)
