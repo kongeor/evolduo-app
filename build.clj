@@ -13,15 +13,12 @@
 (defn clean [_]
   (b/delete {:path "target"}))
 
-(defn version-from-tag []
-  (subs (b/git-process {:git-args "describe --abbrev=0"}) 1))
-
 (defn config-string []
   (str/replace (slurp config-example)
-    #":version \"dev\"" (str ":version \"" (version-from-tag) "\"")))
+    #":version \"dev\"" (str ":version \"" version "\"")))
 
 (defn print-version [_]
-  (println (version-from-tag)))
+  (println version))
 
 (defn uber [_]
   (clean nil)
