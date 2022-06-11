@@ -4,7 +4,7 @@
 
 
 (def lib 'evolduo)
-(def version (format "0.1.%s" (b/git-count-revs nil)))
+(def version (subs (b/git-process {:git-args "describe --abbrev=0"}) 1))
 (def class-dir "target/classes")
 (def config-example (str class-dir "/config.edn.example"))
 (def basis (b/create-basis {:project "deps.edn"}))
