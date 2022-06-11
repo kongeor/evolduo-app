@@ -1,6 +1,7 @@
-{:version "dev"
+{:port 4000
+ :version "dev"
  :environment "dev"
- :app-url "http://localhost:3000"
+ :app-url "http://localhost:4000"
  :company-address "Company Inc, 3 Abbey Road, San Francisco CA 94102"
  :db          {:dbtype               "postgres"
                :host                 "localhost"

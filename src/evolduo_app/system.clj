@@ -18,7 +18,8 @@
   (:gen-class))
 
 (def config
-  {:adapter/jetty           {:handler (ig/ref :handler/run-app) :port 3000}
+  {:adapter/jetty           {:handler (ig/ref :handler/run-app)
+                             :settings (ig/ref :config/settings)}
    :handler/run-app         {:db       (ig/ref :database.sql/connection)
                              :settings (ig/ref :config/settings)}
    :database.sql/connection {:settings (ig/ref :config/settings)}
@@ -29,8 +30,8 @@
    :mail/timer              {:db       (ig/ref :database.sql/connection)
                              :settings (ig/ref :config/settings)}})
 
-(defmethod ig/init-key :adapter/jetty [_ {:keys [handler] :as opts}]
-  (run-jetty handler (-> opts (dissoc handler) (assoc :join? false))))
+(defmethod ig/init-key :adapter/jetty [_ {:keys [handler settings] :as opts}]
+  (run-jetty handler (-> {:port (:port settings)} (assoc :join? false))))
 
 (defmethod ig/init-key :handler/run-app [_ {:keys [db settings]}]
   (handler/app db settings))
