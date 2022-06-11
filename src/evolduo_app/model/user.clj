@@ -24,7 +24,7 @@
     (insert-user db {:role               "user"
                      :email              email
                      :password           encrypted
-                     :verified           true               ;; TODO fix
+                     :verified           false
                      :verification_token verification_token
                      :subscription       {:notifications true
                                           :announcements true}
@@ -138,7 +138,7 @@
 (defn update-subscription
   [db user-id subscription]
   (when-let [res (sql/update! db :users {:subscription subscription} {:id user-id})]
-    res)) ;; TODO factor out builder
+    res))
 
 (defn delete-user
   [db user-id]
@@ -149,4 +149,4 @@
                                         :salt nil
                                         :subscription "{}"}
                    {:id user-id})]
-    res)) ;; TODO factor out builder
+    res))

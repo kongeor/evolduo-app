@@ -17,6 +17,9 @@
   (str/replace (slurp config-example)
     #":version \"dev\"" (str ":version \"" version "\"")))
 
+(defn print-version [_]
+  (println version))
+
 (defn uber [_]
   (clean nil)
   (b/copy-dir {:src-dirs ["src" "resources"]
