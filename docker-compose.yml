@@ -8,9 +8,6 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
-    environment:
-      - ENVIRONMENT
-    volumes:
-      - type: bind
-        source: ./evolduo.db
-        target: /evolduo.db
+    env_file:
+      - .env
+    network_mode: host
