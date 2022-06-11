@@ -32,7 +32,7 @@
   (str app-url "/evolution/" evolution-id))
 
 
-(defn email-template [{:keys [app_url company_address] :as settings} {:keys [unsubscribe_token] :as user} {:keys [title content]}]
+(defn email-template [{:keys [app-url company-address] :as settings} {:keys [unsubscribe_token] :as user} {:keys [title content]}]
   [:html
    [:head
     [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
@@ -147,8 +147,8 @@ table.body .article {
          [:table {:role "presentation" :border "0" :cellpadding "0" :cellspacing "0" :style "border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" :width "100%"}
           [:tr
            [:td.content-block {:style "font-family: sans-serif; vertical-align: top; padding-bottom: 10px; padding-top: 10px; color: #999999; font-size: 12px; text-align: center;" :valign "top" :align "center"}
-            [:span.apple-link {:style "color: #999999; font-size: 12px; text-align: center;"} company_address]
-            [:br] "Don't like these emails? " [:a {:href (unsubscribe-url app_url unsubscribe_token) :style "text-decoration: underline; color: #999999; font-size: 12px; text-align: center;"} "Unsubscribe"] "."]]]]]]
+            [:span.apple-link {:style "color: #999999; font-size: 12px; text-align: center;"} company-address]
+            [:br] "Don't like these emails? " [:a {:href (unsubscribe-url app-url unsubscribe_token) :style "text-decoration: underline; color: #999999; font-size: 12px; text-align: center;"} "Unsubscribe"] "."]]]]]]
       [:td {:style "font-family: sans-serif; font-size: 14px; vertical-align: top;" :valign "top"} "&nbsp;"]]]]])
 
 (comment
@@ -164,7 +164,7 @@ table.body .article {
 ;;
 
 (defn- send-email [settings user title content]
-  (let [mail-server (:mail_server settings)
+  (let [mail-server (:mail-server settings)
         {:keys [email]} user]
     (postal/send-message mail-server
       {:from    (:user mail-server)
@@ -173,19 +173,19 @@ table.body .article {
        :body    [{:type    "text/html"
                   :content (html/html content)}]})))
 
-(defn- invitation-content [db {:keys [app_url] :as settings} mail]
+(defn- invitation-content [db {:keys [app-url] :as settings} mail]
   (let [{:keys [evolution-id invited-by-id]} (:data mail)
         invited-by-email (:email (user/find-user-by-id db invited-by-id))]
     [(p (str "User " invited-by-email " invited you to collaborate on the following track"))
-     (a {:href (evolution-url app_url evolution-id) :text "View"})]))
+     (a {:href (evolution-url app-url evolution-id) :text "View"})]))
 
-(defn- get-email-data [db {:keys [app_url] :as settings} {:keys [verification_token subscription] :as user} mail]
+(defn- get-email-data [db {:keys [app-url] :as settings} {:keys [verification_token subscription] :as user} mail]
   (condp = (:type mail)
     "signup" {:should-receive? true :title "Welcome to Evolduo"
               :content         (email-template settings user {:title "Welcome to Evolduo"
                                                               :content [(p "Welcome to Evolduo")
                                                                       (p "Please click the following link to verify your account")
-                                                                      (a {:href (verification-url app_url verification_token) :text "Verify"})]})}
+                                                                      (a {:href (verification-url app-url verification_token) :text "Verify"})]})}
     "invitation" {:should-receive? (:notifications subscription)
                   :title "Invitation to collaborate" ;; TODO should receive, duplication
                   :content         (email-template settings user {:title "Invitation to collaborate"

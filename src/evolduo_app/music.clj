@@ -38,7 +38,6 @@
            (map (partial + (* i 12)) intervals)) (iterate inc 0))))
 
 (defn ->abc-key [key mode]
-  (println "abc key " key mode)
   (if (#{:minor :dorian} mode)                               ;; TODO
     (str key "m")
     key))
@@ -180,6 +179,13 @@
     (when (= l1 l2)
       (assoc c idx2 -2))))
 
+
+(comment
+  (take 16 c1)
+  (take 16 (-> c1
+             (split-note 0)
+             (split-note 0))))
+
 (comment
   (take 16 (-> c1
              (split-note 0)
@@ -248,7 +254,6 @@
 (defn key->int-note [k]
   (let [[n s] k
         abc-note (if s (str "^" n) (str n))]
-    (println n s abc-note)
     (note-abc-map abc-note)))
 
 (comment
@@ -300,7 +305,6 @@
 (defn chord->str [[root :as chord]]
   (let [r (notes (mod root 12))
         chord-ivs (chord-intervals chord)
-        _ (println chord-ivs)
         chord-str (chords chord-ivs)]
     (str r chord-str)))
 
@@ -321,7 +325,6 @@
   (let [root-note (key->int-note key)
         scale-notes (intervals* (mode->nums mode))
         chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) (get chord-intervals-map chord [0 2 4]))]
-    (println "!!!" chord-notes chord)
     (chord->str chord-notes)))
 
 (comment
@@ -339,7 +342,7 @@
   (map degrees (string/split progression #"-")))
 
 (comment
-  (progression->offsets :major "I-IV-V-I"))
+  (progression->degrees :major "I-IV-V-I"))
 
 (defn gen-chord-progression [{:keys [key mode duration progression chord]}]
   (let [dgs (progression->degrees mode progression)

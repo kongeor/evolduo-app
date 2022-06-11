@@ -38,7 +38,9 @@
 (defmethod ig/init-key :config/settings [_ _]
   ;; TODO validate config
   (let [config (cp/load-config)]
-    (sentry/init! (:sentry_url config) {:traces-sample-rate 1.0})
+    (sentry/init! (:sentry-url config) {:traces-sample-rate 1.0
+                                        :release            (:version config)
+                                        :environment        (:environment config)})
     config))
 
 (defmethod ig/init-key :evolution/timer [_ {:keys [db settings]}]

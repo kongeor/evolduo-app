@@ -14,7 +14,6 @@
             [evolduo-app.music :as music]))
 
 (defn- update-action-seed [existing-seed]
-  (println "see>" existing-seed)
   (if existing-seed
     existing-seed
     (music/generate-action-seed)))
@@ -43,8 +42,6 @@
          (catch Exception e
            (log/error e)
            (sentry/send-event {:message     (.getMessage e)
-                               :release     (-> request :settings :environment)
-                               :version     (-> request :settings :version)
                                :throwable   e})
            {:status 500
             :body "Oh no! :'("}))))
