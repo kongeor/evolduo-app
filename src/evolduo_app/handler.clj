@@ -1,32 +1,16 @@
 (ns evolduo-app.handler
-  (:require [compojure.route :as route]
-            [compojure.core :refer [defroutes GET POST ANY]]
-            [clojure.tools.logging :as log]
-            [evolduo-app.controllers.user :as user-ctl]
-            [evolduo-app.controllers.home :as home-ctl]
+  (:require [clojure.tools.logging :as log]
+            [compojure.core :refer [GET POST defroutes]]
+            [compojure.route :as route]
             [evolduo-app.controllers.evolution :as evolution-ctl]
             [evolduo-app.controllers.explorer :as explorer-ctl]
-            [evolduo-app.controllers.reaction :as reaction-ctl]
+            [evolduo-app.controllers.home :as home-ctl]
             [evolduo-app.controllers.invitation :as invitation-ctl]
-            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
+            [evolduo-app.controllers.reaction :as reaction-ctl]
+            [evolduo-app.controllers.user :as user-ctl]
+            [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
             [sentry-clj.core :as sentry]
-            [sentry-clj.ring :as sentry-ring]
-            [evolduo-app.music :as music]))
-
-(defn- update-action-seed [existing-seed]
-  (if existing-seed
-    existing-seed
-    (music/generate-action-seed)))
-
-(defn wrap-action-seed [handler]
-  (fn [req]
-    (let [session (:session req)
-          action-seed (:action-seed session)]
-      (if action-seed
-        (handler req)
-        (->
-          (handler req)
-          (assoc :session (assoc session :action-seed (music/generate-action-seed))))))))
+            [sentry-clj.ring :as sentry-ring]))
 
 (defn wrap-settings [handler settings]
   (fn [req]
@@ -71,7 +55,6 @@
 
 (defn app [db settings]
   (-> routes
-    wrap-action-seed
     (wrap-db db)
     (wrap-defaults site-defaults)
     wrap-exception                                          ;; TODO why?!

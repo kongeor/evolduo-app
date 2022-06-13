@@ -1,14 +1,12 @@
 (ns evolduo-app.controllers.user
-  (:require [evolduo-app.response :as r]
-            [evolduo-app.request :as req]
+  (:require [clojure.tools.logging :as log]
+            [evolduo-app.middleware :as middleware]
             [evolduo-app.model.user :as user]
-            [evolduo-app.views.user :as user-views]
-            [evolduo-app.mailer :as mail]
-            [ring.util.response :as response]
+            [evolduo-app.request :as req]
+            [evolduo-app.response :as r]
             [evolduo-app.schemas :as s]
-            [evolduo-app.music :as music]
-            [clojure.tools.logging :as log]
-            [clojure.string :as str]))
+            [evolduo-app.views.user :as user-views]
+            [ring.util.response :as response]))
 
 (defn signup-form
   [req]
@@ -16,8 +14,8 @@
 
 (defn signup [req]
   (let [db (:db req)
-        action-seed (-> req :session :action-seed)
-        settings (:settings req)
+        captcha-code (middleware/anti-forgery->captcha-code)
+        real-ip (req/get-x-forwarded-for-header req)
         params (-> req :params (select-keys [:email :password :password_confirmation :captcha]))
         sanitized-data (s/decode-and-validate s/Signup params)]
     (cond
@@ -25,14 +23,12 @@
       (r/render-html user-views/signup-form req {:signup params
                                                  :errors (:error sanitized-data)})
 
-      (not=
-        (music/get-chord-for-action-seed action-seed)
-        (str/replace (-> sanitized-data :data :captcha) #"♯" "#")) ;; poundseption - for those about to copy/paste
+      (not= captcha-code (-> sanitized-data :data :captcha))
       (do
         ;; TODO update for nginx
         ;; TODO reset for invalid submissions
         ;; Fix
-        (log/warn "Invalid action seed from" (:remote-addr req))
+        (log/warn "Invalid signup attempt from" real-ip)
         (r/render-html user-views/signup-form req {:signup params
                                                    :errors {:captcha ["not valid"]}}))
 
@@ -51,13 +47,10 @@
                         db
                         (-> sanitized-data :data :email)
                         (-> sanitized-data :data :password))]
-          (let [user' (user/find-user-by-id db (:id user))]
-            ;; TODO mail
-            #_(mail/send-welcome-email settings user')
-            (->
-              (r/redirect "/"
-                :flash {:type :info :message "Great success!"})
-              (assoc-in [:session :user/id] (:id user'))))
+          (->
+            (r/redirect "/"
+              :flash {:type :info :message "Welcome to Evolduo! You should receive an email verification in the next few minutes. Don't forget to check your spam folder"})
+            (assoc-in [:session :user/id] (:id user)))
           (r/redirect "/"
             :flash {:type :danger :message "Ooops"}))))
     ))
@@ -70,14 +63,17 @@
   (let [db (:db req)
         email (-> req :params :email)
         password (-> req :params :password)
+        real-ip (req/get-x-forwarded-for-header req)
         session (:session req)]
     (if-let [user (user/login-user db email password)]
       (let [session' (assoc session :user/id (:id user))]
         (-> (response/redirect "/")
           (assoc :session session')))
-      (r/render-html user-views/login-form req {:login {:email email}
-                                                :notification {:type "danger"
-                                                               :message "Invalid email or password"}}))))
+      (do
+        (log/warn "Invalid login attempt from" real-ip)
+        (r/render-html user-views/login-form req {:login        {:email email}
+                                                  :notification {:type    "danger"
+                                                                 :message "Invalid email or password"}})))))
 
 (defn logout-user [req]
   (r/logout))

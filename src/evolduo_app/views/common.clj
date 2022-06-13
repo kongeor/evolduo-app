@@ -29,7 +29,7 @@
             [:form.mb-0 {:action "/user/logout" :method "post"}
              [:input {:type "hidden" :id "__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
              [:button.button.is-light {:type "submit"} "Log out"]]]
-           [:a.button.is-light {:href "/user/login"} "Log in"])]]]]]))
+           [:a.button.is-light {:href "/user/login"} "Login"])]]]]]))
 
 (defn- notification-div [data]
   (when data
@@ -56,7 +56,7 @@
       content]]
     [:footer.footer
      [:div.content.has-text-centered
-      [:p "da footer"]
+      [:p [:a {:href "https://github.com/kongeor/evolduo-app"} "Source"]]
       [:p (str (-> req :settings :version))]]]
     (when custom-script
       [:script {:type "text/javascript"}

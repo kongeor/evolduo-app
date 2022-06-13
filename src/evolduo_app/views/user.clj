@@ -1,6 +1,7 @@
 (ns evolduo-app.views.user
   (:require [evolduo-app.views.common :refer [base-view]]
-            [evolduo-app.music :as music]
+            [evolduo-app.middleware :as middleware]
+            [evolduo-app.image :as image]
             [ring.middleware.anti-forgery :as anti-forgery]))
 
 (defn login-form [req & {:keys [login notification]}]
@@ -20,13 +21,11 @@
         [:input.input {:name "password" :type "password" :placeholder "Text input"}]]]
       [:div.field.is-grouped
        [:div.control
-        [:button.button.is-link {:type "submit"} "Login"]]
-       [:div.control
-        [:button.button.is-link.is-light "Cancel"]]]]]
+        [:button.button.is-link {:type "submit"} "Login"]]]]]
     :notification notification))
 
 (defn signup-form [req & {:keys [signup errors]}]
-  (let [action-seed (-> req :session :action-seed)]
+  (let [captcha-code (middleware/anti-forgery->captcha-code)]
     (base-view
       req
       [:div
@@ -44,7 +43,8 @@
          [:div.control
           [:input.input {:name "password" :type "password" :autocomplete "off" :placeholder ""}]]
          (when-let [e (:password errors)]
-           [:p.help.is-danger (first e)])]
+           [:p.help.is-danger (first e)])
+         [:p.help.is-info "Password should have at minimum eight characters, at least one uppercase letter, one lowercase letter and one number"]]
         [:div.field
          [:label.label "Password Confirmation"]
          [:div.control
@@ -53,11 +53,12 @@
            [:p.help.is-danger (first e)])]
         [:div.field
          [:label.label "Captcha"]
+         [:img {:src (str "data:image/png;base64, " (image/text-to-base64 captcha-code))}]
          [:div.control
           [:input.input {:name "captcha" :type "input" :autocomplete "off" :placeholder "" :value (:captcha signup)}]]
          (when-let [e (:captcha errors)]
            [:p.help.is-danger (first e)])
-         [:p.help.is-info (music/describe-action-seed-markup action-seed)]]
+         [:p.help.is-info "You are not a robot, are you? Please enter the number you see above"]]
         [:div.field.is-grouped
          [:div.control
           [:button.button.is-link {:type "submit"} "Sign up"]]]]])))
@@ -73,7 +74,7 @@
         [:label.label "Email"]
         [:div.control
          [:input.input {:name "email" :type "email" :disabled true :autocomplete "off" :value (:email user)}]]]
-       [:div
+       [:div.mb-5
         [:h3.title.is-5.mb-4 "Subscription"]
         [:form {:action "/user/subscription" :method "post"}
          [:input {:type "hidden" :id "__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
@@ -106,29 +107,5 @@
            [:input.input {:name "confirmation" :type "input" :autocomplete "off"}]]]
          [:div.field.is-grouped
           [:div.control
-           [:button.button.is-danger {:type "submit"} "Delete my account"]]]]]
-
-       #_[:form {:action "/user/signup" :method "post"}
-          [:input {:type "hidden" :id "__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
-          [:div.field
-           [:label.label "Email"]
-           [:div.control
-            [:input.input {:name "email" :type "email" :autocomplete "off" :placeholder "user@example.com" :value (:email signup)}]]
-           (when-let [e (:email errors)]
-             [:p.help.is-danger (first e)])]
-          [:div.field
-           [:label.label "Password"]
-           [:div.control
-            [:input.input {:name "password" :type "password" :autocomplete "off" :placeholder ""}]]
-           (when-let [e (:password errors)]
-             [:p.help.is-danger (first e)])]
-          [:div.field
-           [:label.label "Password Confirmation"]
-           [:div.control
-            [:input.input {:name "password_confirmation" :type "password" :autocomplete "off" :placeholder ""}]]
-           (when-let [e (:password_confirmation errors)]
-             [:p.help.is-danger (first e)])]
-          [:div.field.is-grouped
-           [:div.control
-            [:button.button.is-link {:type "submit"} "Sign up"]]]]])))
+           [:button.button.is-danger {:type "submit"} "Delete my account"]]]]] ])))
 

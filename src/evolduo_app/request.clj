@@ -4,3 +4,8 @@
   (some-> request
     :session
     :user/id))
+
+(defn get-x-forwarded-for-header [request]
+  (-> request
+    :headers
+    (get "x-forwarded-for")))

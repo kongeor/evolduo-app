@@ -28,10 +28,5 @@
       :flash {:type :info :message message})
     (assoc :session nil)))
 
-(defn set-sensitive-actions-seed [resp]
-  (update-in resp [:session :action-seed] #(if %
-                                             %
-                                             (music/generate-action-seed))))
-
 (comment
   (update-in {:a 1} [:ab] #(if % (inc %) 0)))

@@ -76,13 +76,13 @@
 
 ;; Minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character:
 ;; https://stackoverflow.com/questions/19605150/regex-for-password-must-contain-at-least-eight-characters-at-least-one-number-a
-(def password-regex #"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$")
+(def password-regex #"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$")
 
 (def Signup
   [:and
    [:map {:closed true}
     [:email [:re {:error/message "invalid email"} email-regex]]
-    [:password [:re password-regex]]
+    [:password [:re {:error/message "Invalid password"} password-regex]]
     [:password_confirmation [:string {:min 1}]]
     [:captcha [:string {:min 1}]]]
    [:fn {:error/message "passwords must match"
@@ -92,8 +92,8 @@
 
 (comment
   (me/humanize (m/explain Signup {:email                 "foo@examplecom"
-                                  :password              "Pa$$word1"
-                                  :password_confirmation "Pa$$word1"})))
+                                  :password              "Foo123456"
+                                  :password_confirmation ""})))
 
 (defn decode-and-validate [schema data]
   (let [decoded (m/decode schema data (mt/transformer mt/default-value-transformer mt/string-transformer))]

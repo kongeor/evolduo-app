@@ -59,31 +59,38 @@
   [db email]
   (first (sql/query db ["select * from users where email = ? and password is not null" email]))) ;; TODO first? query by attrs
 
+(def user-keys [:id
+                :email
+                :verified
+                :verification_token
+                :subscription
+                :unsubscribe_token])
+
 (defn upsert!
   [db email pass]
   (jdbc/with-transaction [tx db]
     (let [tx-opts (jdbc/with-options tx {:builder-fn rs/as-unqualified-lower-maps})]
-      (let [{:keys [id]}
-            (if-let [user (find-user-by-email tx email)]
-              (let [encrypted          (password/encrypt pass)
-                    verification_token (rnd/hex 100)
-                    unsubscribe_token (rnd/hex 100)]
-                (sql/update!
-                  tx-opts
-                  :user
-                  {:role               "user"               ;; TODO updated?
-                   :password           encrypted
-                   :verified           false
-                   :verification_token verification_token   ;; TODO duplicated
-                   :subscription       {:notifications true ;; TODO hm
-                                        :announcements true}
-                   :unsubscribe_token unsubscribe_token}
-                  {:email email})
-                user)
-              (create tx-opts email pass))]
-        (mail-model/insert tx-opts {:recipient_id id
+      (let [user (if-let [user (find-user-by-email tx email)]
+                   (let [encrypted          (password/encrypt pass)
+                         verification_token (rnd/hex 100)
+                         unsubscribe_token (rnd/hex 100)]
+                     (sql/update!
+                       tx-opts
+                       :user
+                       {:role               "user"               ;; TODO updated?
+                        :password           encrypted
+                        :verified           false
+                        :verification_token verification_token   ;; TODO duplicated
+                        :subscription       {:notifications true ;; TODO hm
+                                             :announcements true}
+                        :unsubscribe_token unsubscribe_token}
+                       {:email email})
+                     user)
+                   (create tx-opts email pass))]
+        (mail-model/insert tx-opts {:recipient_id (:id user)
                                     :type         "signup"
-                                    :data         {}})))))
+                                    :data         {}})
+        (select-keys user user-keys)))))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
@@ -92,12 +99,7 @@
 (defn find-user-by-id
   [db id]
   (-> (sql/get-by-id db :users id)
-    (select-keys [:id
-                  :email
-                  :verified
-                  :verification_token
-                  :subscription
-                  :unsubscribe_token])))
+    (select-keys user-keys)))
 
 (defn create-stub-or-get!
   [db email]
