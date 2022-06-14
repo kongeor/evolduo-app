@@ -51,6 +51,22 @@
 (def notes ["C" "C#" "D" "D#" "E" "F"
             "F#" "G" "G#" "A" "A#" "B"])
 
+(def sharps
+  {"C"  #{}
+   "G"  #{6}
+   "D"  #{6 1}
+   "A"  #{6 1 8}
+   "E"  #{6 1 8 3}
+   "B"  #{6 1 8 3 10}
+   "F#" #{6 1 8 3 10 5}})
+
+(def flats
+  {"F"  #{11}
+   "Bb" #{11 3}
+   "Eb" #{11 3 8}
+   "Ab" #{11 3 8 1}
+   "Db" #{11 3 8 1 6}})
+
 (def abc-note-map
   {-1 "z"
    48 "C,"
@@ -93,6 +109,46 @@
 
 (def note-abc-map (set/map-invert abc-note-map))
 
+(def abc-note-map-flats
+  {-1 "z"
+   48 "C,"
+   49 "_D,"
+   50 "D,"
+   51 "_E,"
+   52 "E,"
+   53 "F,"
+   54 "_G,"
+   55 "G,"
+   56 "_A,"
+   57 "A,"
+   58 "_B,"
+   59 "B,"
+   60 "C"
+   61 "_D"
+   62 "D"
+   63 "_E"
+   64 "E"
+   65 "F"
+   66 "_G"
+   67 "G"
+   68 "_A"
+   69 "A"
+   70 "_B"
+   71 "B"
+   72 "c"
+   73 "_d"
+   74 "d"
+   75 "_e"
+   76 "e"
+   77 "f"
+   78 "_g"
+   79 "g"
+   80 "_a"
+   81 "a"
+   82 "_b"
+   83 "b"
+   })
+
 (defn abc-note-dur [cnt]
   (let [t (/ cnt 4)]
     (condp = t
@@ -133,8 +189,41 @@
     []
     notes))
 
-(defn note->abc [{:keys [note total]}]
-  (str (abc-note-map note) (abc-note-dur total)))
+(defn note->abc-sharps [{:keys [note total key]}]
+  (let [sharp-notes (get sharps key {})
+        natural-notes (->> sharp-notes (map dec) (into #{})) ;; TODO memo
+        oct-note (mod note 12)
+        sharp? (sharp-notes oct-note)
+        natural? (natural-notes oct-note)
+        abc-note (abc-note-map note)
+        abc-note' (cond
+                    (and sharp? natural?) (str "^" (abc-note-map (dec note)))
+                    sharp? (if (= 2 (count abc-note))
+                             (subs abc-note 1)
+                             abc-note)
+                    natural? (str "=" abc-note)
+                    :else abc-note)]
+    (str abc-note' (abc-note-dur total))))
+
+(defn note->abc-flats [{:keys [note total key]}]
+  (let [sharp-notes (get sharps key {})
+        natural-notes (->> sharp-notes (map dec) (into #{})) ;; TODO memo
+        oct-note (mod note 12)
+        sharp? (sharp-notes oct-note)
+        natural? (natural-notes oct-note)
+        abc-note (abc-note-map note)
+        abc-note' (cond
+                    (and sharp? natural?) (str "^" (abc-note-map (dec note)))
+                    sharp? (if (= 2 (count abc-note))
+                             (subs abc-note 1)
+                             abc-note)
+                    natural? (str "=" abc-note)
+                    :else abc-note)]
+    (str abc-note' (abc-note-dur total))))
+
+(defn note->abc [{:keys [note total key]}]
+  (let [sharp? ((set (keys sharps)) key)]))
+
 
 (defn chromo->measures [chromo]
   (partition measure-sixteens chromo))

@@ -1,6 +1,14 @@
 (ns evolduo-app.music-test
   (:require [clojure.test :refer :all]
-            [evolduo-app.music :refer [chromo->abc]]))
+            [evolduo-app.music :refer [chromo->abc note->abc]]))
+
+(deftest note->abc-test
+  (is (= "C8" (note->abc {:note 60 :total 16})))
+  (is (= "^C8" (note->abc {:note 61 :total 16 :key "C"})))
+  (is (= "C8" (note->abc {:note 61 :total 16 :key "D"})))
+  (is (= "=C8" (note->abc {:note 60 :total 16 :key "D"})))
+  (is (= "^E8" (note->abc {:note 65 :total 16 :key "F#"})))
+  (is (= "=E8" (note->abc {:note 64 :total 16 :key "F#"}))))
 
 (def c1 [60 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2
          62 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2
