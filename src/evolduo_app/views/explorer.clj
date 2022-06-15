@@ -45,8 +45,8 @@
          ]]
        (when (some? abc)
          [:div
-          (comps/abc-track {:chromosome_id 1 :abc abc})
-          (comps/abc-track {:chromosome_id 2 :abc abc})])
+          (comps/abc-track {:chromosome_id 1 :abc abc } :hide-reaction? true)
+          #_(comps/abc-track {:chromosome_id 2 :abc abc})])
        ]
       :enable-abc? (some? abc)
       ; :custom-script (str "var abc = \"" abc "\";")

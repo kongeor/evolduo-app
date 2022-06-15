@@ -5,7 +5,7 @@
 
 (def measure-sixteens 16)
 
-(def music-keys ["A" "A#" "B" "C" "C#" "D" "D#" "E" "F" "F#" "G" "G#"])
+(def music-keys ["C" "Db" "D" "Eb" "E" "F" "F#" "G" "Ab" "A" "Bb" "B"])
 
 (def modes ["major" "minor" "dorian"])
 
@@ -48,8 +48,8 @@
 (comment
   ((intervals* major-intervals) 100))                       ;; don't eval this
 
-(def notes ["C" "C#" "D" "D#" "E" "F"
-            "F#" "G" "G#" "A" "A#" "B"])
+(def notes      ["C" "C#" "D" "D#" "E" "F" "F#" "G" "G#" "A" "A#" "B"])
+(def notes-flat ["C" "Db" "D" "Eb" "E" "F" "Gb" "G" "Ab" "A" "Bb" "B"])
 
 (def sharps
   {"C"  #{}
@@ -61,11 +61,11 @@
    "F#" #{6 1 8 3 10 5}})
 
 (def flats
-  {"F"  #{11}
-   "Bb" #{11 3}
-   "Eb" #{11 3 8}
-   "Ab" #{11 3 8 1}
-   "Db" #{11 3 8 1 6}})
+  {"F"  #{10}
+   "Bb" #{10 3}
+   "Eb" #{10 3 8}
+   "Ab" #{10 3 8 1}
+   "Db" #{10 3 8 1 6}})
 
 (def abc-note-map
   {-1 "z"
@@ -149,6 +149,8 @@
    83 "b"
    })
 
+(def note-abc-map-flats (set/map-invert abc-note-map-flats))
+
 (defn abc-note-dur [cnt]
   (let [t (/ cnt 4)]
     (condp = t
@@ -167,6 +169,12 @@
         -1 -2 -2 -2 59 -2 60 -2 62 -2 64 -2 65 -2 -2 -2
         64 -2 -2 -2 64 -2 -2 -2 64 64 -1 -2 -2 -2 -2 -2
         ])
+
+(defn chromatic-chromosome [root chords]
+  (take (* (count chords) measure-sixteens)
+    (->> (iterate inc root)
+      (map #(cons % [-2 -2 -2]))
+      (apply concat))))
 
 (comment
   (reduce (fn [acc n]
@@ -198,7 +206,7 @@
         abc-note (abc-note-map note)
         abc-note' (cond
                     (and sharp? natural?) (str "^" (abc-note-map (dec note)))
-                    sharp? (if (= 2 (count abc-note))
+                    #_sharp? #_(if (= 2 (count abc-note))
                              (subs abc-note 1)
                              abc-note)
                     natural? (str "=" abc-note)
@@ -206,37 +214,45 @@
     (str abc-note' (abc-note-dur total))))
 
 (defn note->abc-flats [{:keys [note total key]}]
-  (let [sharp-notes (get sharps key {})
-        natural-notes (->> sharp-notes (map dec) (into #{})) ;; TODO memo
+  (let [flat-notes (get flats key {})
+        natural-notes (->> flat-notes (map inc) (into #{})) ;; TODO memo
         oct-note (mod note 12)
-        sharp? (sharp-notes oct-note)
+        flat? (flat-notes oct-note)
         natural? (natural-notes oct-note)
-        abc-note (abc-note-map note)
+        abc-note (abc-note-map-flats note)
         abc-note' (cond
-                    (and sharp? natural?) (str "^" (abc-note-map (dec note)))
-                    sharp? (if (= 2 (count abc-note))
+                    (and flat? natural?) (str "_" (abc-note-map-flats (inc note)))
+                    #_flat? #_(if (= 2 (count abc-note))
                              (subs abc-note 1)
                              abc-note)
                     natural? (str "=" abc-note)
                     :else abc-note)]
     (str abc-note' (abc-note-dur total))))
 
-(defn note->abc [{:keys [note total key]}]
-  (let [sharp? ((set (keys sharps)) key)]))
+(defn sharp? [key]
+  ((set (keys sharps)) key))                                ;; TODO memo
 
+(comment
+  (sharp? "Bb"))
+
+(defn note->abc [{:keys [note total key] :as data}]
+  (if (or (nil? key) (sharp? key))
+    (note->abc-sharps data)
+    (note->abc-flats data)))
 
 (defn chromo->measures [chromo]
   (partition measure-sixteens chromo))
 
-(defn measure->abc [measure]
+(defn measure->abc [measure key]
   (->> measure
     calc-note-times
+    (map #(assoc % :key key))
     (map note->abc)
     (clojure.string/join " ")))
 
-(defn chromo->abc [chromo chord-names]
+(defn chromo->abc [chromo chord-names key]
   (let [measures (chromo->measures chromo)]
-    (clojure.string/join " | " (map #(str "\\\"" %2 "\\\" " (measure->abc %)) measures chord-names))))
+    (clojure.string/join " | " (map #(str "\\\"" %2 "\\\" " (measure->abc % key)) measures chord-names))))
 
 (def c1 [60 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2
          62 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2
@@ -341,13 +357,15 @@
 
 
 (defn key->int-note [k]
-  (let [[n s] k
-        abc-note (if s (str "^" n) (str n))]
-    (note-abc-map abc-note)))
+  (let [[n acc] k]
+    (if (sharp? k)
+      (let [abc-note (if acc (str "^" n) (str n))]
+        (note-abc-map abc-note))
+      (let [abc-note (if acc (str "_" n) (str n))]
+        (note-abc-map-flats abc-note)))))
 
 (comment
-  #_(note-abc-map "C")
-  (key->int-note "C"))
+  (key->int-note "G"))
 
 (defn mode->nums [m]
   (case m
@@ -391,22 +409,22 @@
    #{0 3 6 11} "dim(Maj7)"
    })
 
-(defn chord->str [[root :as chord]]
-  (let [r (notes (mod root 12))
+(defn chord->str [[root :as chord] key]
+  (let [notes (if (sharp? key) notes notes-flat)
+        r (get notes (mod root 12))
         chord-ivs (chord-intervals chord)
         chord-str (chords chord-ivs)]
     (str r chord-str)))
 
 (comment
   (chord->str [60 63 67])
-  #_(chord->str [60 64 67 71])
   )
 
 (defn gen-chord [{:keys [key mode duration degree chord]}]
   (let [root-note (key->int-note key)
         scale-notes (intervals* (mode->nums mode))
         chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) (get chord-intervals-map chord [0 2 4]))
-        chord-str (chord->str chord-notes)]
+        chord-str (chord->str chord-notes key)]
     (str "\\\"" chord-str "\\\" [ "  (string/join (map str (map abc-note-map chord-notes) (repeat duration))) "]")
     ))
 
@@ -414,7 +432,7 @@
   (let [root-note (key->int-note key)
         scale-notes (intervals* (mode->nums mode))
         chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) (get chord-intervals-map chord [0 2 4]))]
-    (chord->str chord-notes)))
+    (chord->str chord-notes key)))
 
 (comment
   (gen-chord-2 {:key "C" :mode :major :duration 8 :degree 0 :chord "R + 3 + 3 + 3"}))
@@ -474,7 +492,7 @@
       "Q:" tempo "\\n"
       "V:V1 clef=treble \\n"
       ; "V:V2 clef=bass \\n"
-      (str "[V:V1] | " (chromo->abc genes chord-names) " | \\n")
+      (str "[V:V1] | " (chromo->abc genes chord-names key) " | \\n")
       #_(str "[V:V2] | " (gen-chord-progression {:key key :mode mode
                                                  :chord chord
                                                  :duration 8 :progression progression})
@@ -483,3 +501,6 @@
 (comment
   (->abc-track {:key "C" :mode :major :duration 8 :progression "I-IV-V-I" :chord "R + 3 + 3 + 3"} {:genes c}))
 
+
+(comment
+  (->abc-track {:key "A" :mode :major :duration 8 :progression "I-IV-V-I" :chord "R + 3 + 3 + 3"} {:genes (chromatic-chromosome 60)}))
