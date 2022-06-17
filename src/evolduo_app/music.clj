@@ -179,8 +179,8 @@
 (comment
   (reduce (fn [acc n]
             (if (= n -2)
-              (update-in acc [(dec (count acc)) :total] inc)
-              (conj acc {:note n :total 1})
+              (update-in acc [(dec (count acc)) :duration] inc)
+              (conj acc {:note n :duration 1})
               ))
     []
     c))
@@ -188,16 +188,16 @@
 (comment
   (update-in [{:note 60 :count 1}] [0 :count] inc))
 
-(defn calc-note-times [notes]
+(defn calc-note-times [measure]
   (reduce (fn [acc n]
             (if (= n -2)
-              (update-in acc [(dec (count acc)) :total] inc)
-              (conj acc {:note n :total 1})
+              (update-in acc [(dec (count acc)) :duration] inc)
+              (conj acc {:note n :duration 1})
               ))
     []
-    notes))
+    measure))
 
-(defn note->abc-sharps [{:keys [note total key]}]
+(defn note->abc-sharps [{:keys [note duration key]}]
   (let [sharp-notes (get sharps key {})
         natural-notes (->> sharp-notes (map dec) (into #{})) ;; TODO memo
         oct-note (mod note 12)
@@ -211,9 +211,9 @@
                              abc-note)
                     natural? (str "=" abc-note)
                     :else abc-note)]
-    (str abc-note' (abc-note-dur total))))
+    (str abc-note' (abc-note-dur duration))))
 
-(defn note->abc-flats [{:keys [note total key]}]
+(defn note->abc-flats [{:keys [note duration key]}]
   (let [flat-notes (get flats key {})
         natural-notes (->> flat-notes (map inc) (into #{})) ;; TODO memo
         oct-note (mod note 12)
@@ -227,7 +227,7 @@
                              abc-note)
                     natural? (str "=" abc-note)
                     :else abc-note)]
-    (str abc-note' (abc-note-dur total))))
+    (str abc-note' (abc-note-dur duration))))
 
 (defn sharp? [key]
   ((set (keys sharps)) key))                                ;; TODO memo
@@ -235,7 +235,7 @@
 (comment
   (sharp? "Bb"))
 
-(defn note->abc [{:keys [note total key] :as data}]
+(defn note->abc [{:keys [note duration key] :as data}]
   (if (or (nil? key) (sharp? key))
     (note->abc-sharps data)
     (note->abc-flats data)))
@@ -284,6 +284,17 @@
     (when (= l1 l2)
       (assoc c idx2 -2))))
 
+(defn note? [n]
+  (when (and
+          (not= n -1)
+          (not= n -2))
+    n))
+
+(defn chromo->measure-notes [c]
+  (map (fn [m] (filter note? m)) (partition measure-sixteens c)))
+
+(comment
+  (chromo->measure-notes c1))
 
 (comment
   (take 16 c1)
@@ -321,7 +332,8 @@
   (clojure.string/join " | " (map measure->abc (chromo->measures c))))
 
 (comment
-  (calc-note-times (first (chromo->measures c))))
+  (chromo->measures c)
+  (calc-note-times (second (chromo->measures c))))
 
 (comment
   (->> c
@@ -428,13 +440,18 @@
     (str "\\\"" chord-str "\\\" [ "  (string/join (map str (map abc-note-map chord-notes) (repeat duration))) "]")
     ))
 
-(defn gen-chord-2 [{:keys [key mode duration degree chord]}] ;; yey and also, check duration
+(defn gen-chord-notes [{:keys [key mode duration degree chord]}]
   (let [root-note (key->int-note key)
         scale-notes (intervals* (mode->nums mode))
         chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) (get chord-intervals-map chord [0 2 4]))]
+    chord-notes))
+
+(defn gen-chord-2 [{:keys [key mode duration degree chord] :as params}] ;; yey and also, check duration
+  (let [chord-notes (gen-chord-notes params)]
     (chord->str chord-notes key)))
 
 (comment
+  (gen-chord-notes {:key "C" :mode :major :duration 8 :degree 0 :chord "R + 3 + 3 + 3"})
   (gen-chord-2 {:key "C" :mode :major :duration 8 :degree 0 :chord "R + 3 + 3 + 3"}))
 
 (def degrees {"I" 0
@@ -456,6 +473,15 @@
         chords (map #(gen-chord {:key key :mode mode :duration duration
                                  :chord chord :degree %}) dgs)]
     (string/join " | " chords)))
+
+(defn gen-chord-progression-notes [{:keys [key mode duration progression chord]}]
+  (let [dgs (progression->degrees mode progression)
+        chords (map #(gen-chord-notes {:key key :mode mode :duration duration
+                                       :chord chord :degree %}) dgs)]
+    chords))
+
+(comment
+  (gen-chord-progression-notes {:key "C" :mode :major :duration 8 :progression "I-IV-V-I"}))
 
 (defn gen-chord-names [{:keys [key mode duration progression chord] :as settings}]
   (let [dgs (progression->degrees mode progression)]

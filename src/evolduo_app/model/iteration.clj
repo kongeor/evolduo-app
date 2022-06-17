@@ -3,6 +3,7 @@
             [honey.sql :as h]
             [next.jdbc :as jdbc]
             [evolduo-app.music :as music]
+            [evolduo-app.music.fitness :as fitness]
             [clojure.tools.logging :as log]
             [next.jdbc.sql :as sql]
             [next.jdbc.result-set :as rs])
@@ -17,7 +18,8 @@
   (first (sql/find-by-keys db :iterations {:num num})))
 
 (defn find-iterations-to-evolve [db]
-  (let [q-sqlmap {:select [[:i/id :id] [:e/id :evolution_id]]
+  (let [q-sqlmap {:select [[:i/id :id] [:e/id :evolution_id] [:e/key :key] [:e/mode :mode]
+                           [:e/progression :progression] [:i/id :iteration_id]]
                   :from   [[:evolutions :e]]
                   :join   [[:iterations :i] [:= :i/evolution_id :e/id]
                            [:users :u] [:= :e.user_id :u.id]]
@@ -30,9 +32,30 @@
                    [:= :u.deleted false]]}]                        ;; TODO check
     (sql/query db (h/format q-sqlmap))))
 
+(defn find-iterations-chromosomes [db iteration-id]
+  (let [q-sqlmap {:select [[:c/id :id] [:c/genes :genes]]
+                  :from   [[:iterations :i]]
+                  :join   [[:chromosomes :c] [:= :c.iteration_id :i.id]]
+                  :where
+                  [:and
+                   [:= :i.id iteration-id]
+                   ]}]
+    (sql/query db (h/format q-sqlmap))))
+
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
-    (find-iterations-to-evolve db)))
+    #_(find-by-id db 1)
+    (find-iterations-to-evolve db)
+    #_(find-iterations-chromosomes db 1)))
+
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)
+        iter (first (find-iterations-to-evolve db))
+        iter' (assoc iter :mode (keyword (:mode iter)))               ;; TODO fix keyword
+
+        ]
+    (fitness/fitness iter' (first (find-iterations-chromosomes db 1)))
+    ))
 
 ;; TODO duplicated, improve
 (defn evolve-iteration [db settings id]

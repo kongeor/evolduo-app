@@ -119,7 +119,6 @@
                                      :notifications false}))
 
 (comment
-  (decode-and-validate {:chromosome_id "42"
-                        :type          "rating"
-                        :value         1})
+  (decode-and-validate Rating {:chromosome_id "42"
+                               :value         1})
   )
