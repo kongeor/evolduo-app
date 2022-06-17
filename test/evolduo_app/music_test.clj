@@ -29,7 +29,7 @@
   (is (= "\\\"A\\\" C8 | \\\"B\\\" D8 | \\\"C\\\" E8 | \\\"D\\\" F8" (chromo->abc test-chromo ["A" "B" "C" "D"] "C"))))
 
 (deftest get-chord-progression-notes-test
-  (let [chords (gen-chord-progression-notes {:key "C" :mode :major :duration 8 :progression "I-IV-V-I"})]
+  (let [chords (gen-chord-progression-notes {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I"})]
     (is (= [[60 64 67]
             [65 69 72]
             [67 71 74]
