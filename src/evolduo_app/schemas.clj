@@ -19,7 +19,7 @@
    [:population_size int?]
    [:crossover_rate int?]
    [:mutation_rate int?]
-   [:mode (vec (cons :enum music/modes))]
+   [:mode (vec (cons :enum music/mode-names))]
    [:key (vec (cons :enum music/music-keys))]
    [:progression (vec (cons :enum music/progressions))]
    [:repetitions [:int {:min 1 :max 4}]]

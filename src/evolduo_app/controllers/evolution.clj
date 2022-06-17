@@ -22,7 +22,8 @@
                       :population_size    10
                       :crossover_rate     30
                       :mutation_rate      5
-                      :key                "D"
+                      :key                "C"
+                      :mode               "major"
                       :progression        "I-IV-V-I"
                       :repetitions        1
                       :chord              "R + 3 + 3"

@@ -8,13 +8,13 @@
   ;; TODO validate
   (let [{:keys [key mode progression chord tempo]} (-> req :params)
         abc (when (and key progression)
-              (let [settings {:key     key
-                              :mode (keyword mode)
-                              :progression progression
-                              :chord chord
-                              :tempo   tempo}
+              (let [settings    {:key         key
+                                 :mode        mode
+                                 :progression progression
+                                 :chord       chord
+                                 :tempo       tempo}
                     chord-names (music/gen-chord-names settings)]
                 (music/->abc-track settings
                   {:genes (music/chromatic-chromosome 48 chord-names) #_(music/random-track {:key  key :measures (count chord-names)
-                                               :mode (keyword mode)})})))]
+                                               :mode mode})})))]
     (r/render-html explorer-views/explorer req {:abc abc})))

@@ -27,7 +27,7 @@
 
 (defn mode-select [mode]
   [:select {:name "mode"}
-   (for [m music/modes]
+   (for [m music/mode-names]
      [:option (merge {:value m}
                 (when (= m mode)
                   {:selected true})) m])])
@@ -47,7 +47,7 @@
                   {:selected true})) c])])
 
 ;;
-(defn abc-track [{:keys [chromosome_id abc]} & {:keys [evolution-id user-id reaction hide-reaction?]}]
+(defn abc-track [{:keys [chromosome_id fitness abc]} & {:keys [evolution-id user-id reaction hide-reaction?]}]
   (let [id chromosome_id
         abc-id (str "abc_" id)
         abc-activate (str "activate-audio-" id)
@@ -63,6 +63,8 @@
       (str "var " abc-id " = \"" abc "\";")]
      [:div.abc-track {:style "display: none"} id]
      [:h3.title.is-size-4 (str "#" id)]
+     (when fitness
+       [:p (str "Fitness: " fitness)])
      [:div {:id abc-id}]
      [:div.mb-4 {:id audio-id}]
      [:div.buttons

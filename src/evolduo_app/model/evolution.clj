@@ -5,7 +5,8 @@
             [honey.sql :as h]
             [next.jdbc :as jdbc]
             [next.jdbc.sql :as sql]
-            [next.jdbc.result-set :as rs])
+            [next.jdbc.result-set :as rs]
+            [evolduo-app.music.fitness :as fitness])
   (:import (java.time Instant)
            (java.util.concurrent TimeUnit)))
 
@@ -63,14 +64,15 @@ select e.*
         (doall
           (map #(sql/insert! tx-opts :chromosomes
                   (let [{:keys [key mode progression chord tempo]} evolution
-                        ;; TODO use strings instead
-                        genes (music/random-track {:key key :measures 4 :mode (keyword mode)})
-                        abc   (music/->abc-track {:key   key :mode (keyword mode) :progression progression
+                        genes (music/random-track {:key key :measures 4 :mode mode})
+                        chromosome {:genes genes}
+                        abc   (music/->abc-track {:key   key :mode mode :progression progression
                                                   :chord chord :tempo tempo}
-                                {:genes genes})
-                        ]
+                                chromosome)
+                        fitness (fitness/fitness evolution chromosome)]
                     (assoc % :iteration_id (:id iter-insert)
-                             :genes (vec genes)             ;; TODO fix
+                             :genes (vec genes)             ;; TODO check
+                             :fitness fitness
                              :abc abc))) (repeat 2 sample-chromo)))))))
 
 (defn find-last-iteration-num-for-evolution [db evolution-id]
@@ -141,7 +143,8 @@ select e.*
   (let [q-sqlmap {:select [[:e/id :evolution_id]
                            [:i/id :iteration_id]
                            [:c.id :chromosome_id]
-                           [:c.abc :abc]]
+                           [:c.abc :abc]
+                           [:c/fitness :fitness]]
                   :from   [[:evolutions :e]]
                   :join   [[:iterations :i] [:= :i/evolution_id :e/id]
                            [:chromosomes :c] [:= :c/iteration_id :i/id]]

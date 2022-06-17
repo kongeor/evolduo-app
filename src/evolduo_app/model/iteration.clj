@@ -76,14 +76,15 @@
         (doall
           (map #(sql/insert! tx-opts :chromosomes
                   (let [{:keys [key mode progression chord tempo]} evolution
-                        ;; TODO use strings instead
-                        genes (music/random-track {:key key :measures 4 :mode (keyword mode)})
-                        abc   (music/->abc-track {:key   key :mode (keyword mode) :progression progression
+                        genes (music/random-track {:key key :measures 4 :mode mode})
+                        chromosome {:genes genes}
+                        abc   (music/->abc-track {:key   key :mode mode :progression progression
                                                   :chord chord :tempo tempo}
-                                {:genes genes})
-                        ]
+                                chromosome)
+                        fitness (fitness/fitness evolution chromosome)]
                     (assoc % :iteration_id (:id iter-insert)
                              :genes (vec genes)             ;; TODO fix
+                             :fitness fitness
                              :abc abc))) (repeat 2 em/sample-chromo)))))))
 
 (defn evolve-all-iterations [db settings]
@@ -91,7 +92,7 @@
     ;; TODO measure times
     (doall
       (map #(do
-              (log/info "Evolving iteration" (:id %))
+              (log/infof "Evolving iteration %s for evolution %s" (:id %) (:evolution_id %))
               ;; TODO notify users
               (evolve-iteration db settings (:id %))) iterations))))
 

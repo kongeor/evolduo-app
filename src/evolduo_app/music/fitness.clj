@@ -26,7 +26,7 @@
     ))
 
 (comment
-  (analyze {:key "C" :mode :major :duration 8 :progression "I-IV-V-I"} {:genes muse/c1}))
+  (analyze {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I"} {:genes muse/c1}))
 
 (defn fitness [settings chromo]
   (let [a (analyze settings chromo)]
@@ -37,4 +37,4 @@
                 acc)) 0 a)))
 
 (comment
-  (fitness {:key "C" :mode :major :duration 8 :progression "I-IV-V-I"} {:genes muse/c1}))
+  (fitness {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I"} {:genes muse/c1}))

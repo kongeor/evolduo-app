@@ -7,12 +7,38 @@
 
 (def music-keys ["C" "Db" "D" "Eb" "E" "F" "F#" "G" "Ab" "A" "Bb" "B"])
 
-(def modes ["major" "minor" "dorian"])
+(def ionian-intervals [2 2 1 2 2 2 1])
 
-(def major-intervals [0 2 4 5 7 9 11])
-(def minor-intervals [0 2 3 5 7 8 10])
+(defn intervals->scale [ivs]
+  (reduce (fn [acc i] (conj acc (+ i (last acc)))) [0] ivs))
 
-(def dorian-intervals [0 2 3 5 7 9 10])
+(comment
+  (intervals->scale ionian-intervals))
+
+(defn rotate-intervals [ivs degree]
+  (take 6 (drop degree (cycle ivs))))
+
+(comment
+  (rotate-intervals ionian-intervals 5))
+
+(defn scale-notes [intervals degree]
+  (intervals->scale (rotate-intervals intervals degree)))
+
+(comment
+  (scale-notes ionian-intervals 1))
+
+(def modes [["major"      (scale-notes ionian-intervals 0)]
+            ["dorian"     (scale-notes ionian-intervals 1)]
+            ["phrygian"   (scale-notes ionian-intervals 2)]
+            ["lydian"     (scale-notes ionian-intervals 3)]
+            ["mixolydian" (scale-notes ionian-intervals 4)]
+            ["minor"      (scale-notes ionian-intervals 5)]
+            ["phrygian"   (scale-notes ionian-intervals 6)]
+            ["locrian"    (scale-notes ionian-intervals 7)]])
+
+(def mode-map (into {} modes))
+
+(def mode-names (mapv first modes))
 
 (def all-degrees-progression "I-II-III-IV-V-VI-VII-I")
 
@@ -37,16 +63,25 @@
     (map (fn [i]
            (map (partial + (* i 12)) intervals)) (iterate inc 0))))
 
-(defn ->abc-key [key mode]
-  (if (#{:minor :dorian} mode)                               ;; TODO
+(defn minor-mode? [[_ _ third]]
+  (condp = third
+    3 true
+    4 false))
+
+(comment
+  (minor-mode? (get mode-map "dorian")))
+
+(defn mode->scale [m]
+  (let [s (get mode-map m)]
+    (assert s (str "Unknown scale: " m))
+    s))
+
+(defn ->abc-key [key mode-name]
+  ;; TODO fix?
+  key
+  #_(if (minor-mode? (mode->scale mode-name))
     (str key "m")
     key))
-
-(comment
-  (nth (intervals* major-intervals) 100))
-
-(comment
-  ((intervals* major-intervals) 100))                       ;; don't eval this
 
 (def notes      ["C" "C#" "D" "D#" "E" "F" "F#" "G" "G#" "A" "A#" "B"])
 (def notes-flat ["C" "Db" "D" "Eb" "E" "F" "Gb" "G" "Ab" "A" "Bb" "B"])
@@ -379,30 +414,24 @@
 (comment
   (key->int-note "G"))
 
-(defn mode->nums [m]
-  (case m
-    :major major-intervals
-    :minor minor-intervals
-    :dorian dorian-intervals))
-
 (defn gen-track [{:keys [key measures mode]}]
   (let [root-note (key->int-note key)
-        scale-notes (mode->nums mode)]
+        scale-notes (mode->scale mode)]
     (take (* 16 measures) (mapcat (fn [iv] [(+ root-note iv) -2 -2 -2]) (cycle scale-notes)))))
 
 (defn random-track [{:keys [key measures mode]}]
   (let [root-note (key->int-note key)
-        scale-notes (mode->nums mode)
+        scale-notes (mode->scale mode)
         ;; one day this will be much more intelligent
         scale-notes* (apply concat (repeat 10 scale-notes))]
     (take (* 16 measures) (mapcat (fn [iv] [(+ root-note iv) -2 -2 -2]) (shuffle scale-notes*)))))
 
 (comment
-  (random-track {:key "C" :measures 4 :mode :major}))
+  (random-track {:key "C" :measures 4 :mode "major"}))
 
 (comment
   (let [key "C"]
-    (->abc {:id "foo" :key key :genes (gen-track {:key key :measures 4 :mode :minor})})))
+    (->abc {:id "foo" :key key :genes (gen-track {:key key :measures 4 :mode "minor"})})))
 
 ;; chords
 
@@ -434,7 +463,7 @@
 
 (defn gen-chord [{:keys [key mode duration degree chord]}]
   (let [root-note (key->int-note key)
-        scale-notes (intervals* (mode->nums mode))
+        scale-notes (intervals* (mode->scale mode))
         chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) (get chord-intervals-map chord [0 2 4]))
         chord-str (chord->str chord-notes key)]
     (str "\\\"" chord-str "\\\" [ "  (string/join (map str (map abc-note-map chord-notes) (repeat duration))) "]")
@@ -442,7 +471,7 @@
 
 (defn gen-chord-notes [{:keys [key mode duration degree chord]}]
   (let [root-note (key->int-note key)
-        scale-notes (intervals* (mode->nums mode))
+        scale-notes (intervals* (mode->scale mode))
         chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) (get chord-intervals-map chord [0 2 4]))]
     chord-notes))
 
@@ -451,8 +480,8 @@
     (chord->str chord-notes key)))
 
 (comment
-  (gen-chord-notes {:key "C" :mode :major :duration 8 :degree 0 :chord "R + 3 + 3 + 3"})
-  (gen-chord-2 {:key "C" :mode :major :duration 8 :degree 0 :chord "R + 3 + 3 + 3"}))
+  (gen-chord-notes {:key "C" :mode "major" :duration 8 :degree 0 :chord "R + 3 + 3 + 3"})
+  (gen-chord-2 {:key "C" :mode "major" :duration 8 :degree 0 :chord "R + 3 + 3 + 3"}))
 
 (def degrees {"I" 0
               "II" 1
@@ -481,17 +510,17 @@
     chords))
 
 (comment
-  (gen-chord-progression-notes {:key "C" :mode :major :duration 8 :progression "I-IV-V-I"}))
+  (gen-chord-progression-notes {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I"}))
 
 (defn gen-chord-names [{:keys [key mode duration progression chord] :as settings}]
   (let [dgs (progression->degrees mode progression)]
     (map #(gen-chord-2 (merge settings {:degree %})) dgs)))
 
 (comment
-  (gen-chord-names {:key "C" :mode :major :progression all-degrees-progression :chord "R + 3 + 3 + 3"}))
+  (gen-chord-names {:key "C" :mode "major" :progression all-degrees-progression :chord "R + 3 + 3 + 3"}))
 
 (comment
-  (gen-chord-progression {:key "C" :mode :major :duration 8 :progression "I-IV-V-I"}))
+  (gen-chord-progression {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I"}))
 
 (defn progression->abc [{:keys [key mode progression] :as data}]
   (str
@@ -501,9 +530,7 @@
       "|")))
 
 (comment
-  (progression->abc {:key "C" :mode :major :progression "I-IV"}))
-
-#_(mode->nums :major)
+  (progression->abc {:key "C" :mode "major" :progression "I-IV"}))
 
 (comment
   (->abc-key "C" :dorian)
@@ -525,8 +552,8 @@
           "|"))))
 
 (comment
-  (->abc-track {:key "C" :mode :major :duration 8 :progression "I-IV-V-I" :chord "R + 3 + 3 + 3"} {:genes c}))
+  (->abc-track {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I" :chord "R + 3 + 3 + 3"} {:genes c}))
 
 
 (comment
-  (->abc-track {:key "A" :mode :major :duration 8 :progression "I-IV-V-I" :chord "R + 3 + 3 + 3"} {:genes (chromatic-chromosome 60)}))
+  (->abc-track {:key "A" :mode "major" :duration 8 :progression "I-IV-V-I" :chord "R + 3 + 3 + 3"} {:genes (chromatic-chromosome 60)}))
