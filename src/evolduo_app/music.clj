@@ -1,7 +1,6 @@
 (ns evolduo-app.music
-  (:require [clojure.string :as string]
-            [clojure.set :as set]
-            [evolduo-app.urls :as urls]))
+  (:require [clojure.set :as set]
+            [clojure.string :as str]))
 
 (def measure-sixteens 16)
 
@@ -33,12 +32,30 @@
             ["lydian"     (scale-notes ionian-intervals 3)]
             ["mixolydian" (scale-notes ionian-intervals 4)]
             ["minor"      (scale-notes ionian-intervals 5)]
-            ["phrygian"   (scale-notes ionian-intervals 6)]
-            ["locrian"    (scale-notes ionian-intervals 7)]])
+            ["locrian"    (scale-notes ionian-intervals 6)]])
 
 (def mode-map (into {} modes))
 
 (def mode-names (mapv first modes))
+
+
+(defn mode-degree [mode]
+  (.indexOf mode-names mode))
+
+(comment
+  (mode-degree "locrian"))
+
+(defn transpose-key [key mode]
+  (let [d (mode-degree mode)
+        ki (.indexOf music-keys key)
+        df (apply + (take d ionian-intervals))
+        idx (mod (- (+ ki 24) df) 12)]
+    (nth music-keys idx)))
+
+(comment
+  (transpose-key "C" "lydian"))
+
+;; progressions
 
 (def all-degrees-progression "I-II-III-IV-V-VI-VII-I")
 
@@ -78,7 +95,7 @@
 
 (defn ->abc-key [key mode-name]
   ;; TODO fix?
-  key
+  (str key " " (str/capitalize mode-name))
   #_(if (minor-mode? (mode->scale mode-name))
     (str key "m")
     key))
@@ -240,10 +257,10 @@
         natural? (natural-notes oct-note)
         abc-note (abc-note-map note)
         abc-note' (cond
-                    (and sharp? natural?) (str "^" (abc-note-map (dec note)))
-                    #_sharp? #_(if (= 2 (count abc-note))
-                             (subs abc-note 1)
-                             abc-note)
+                    ; (and sharp? natural?) (str "^" (abc-note-map (dec note)))
+                    ; sharp? (if (= 2 (count abc-note))
+                    ;          (subs abc-note 1)
+                    ;          abc-note)
                     natural? (str "=" abc-note)
                     :else abc-note)]
     (str abc-note' (abc-note-dur duration))))
@@ -256,10 +273,10 @@
         natural? (natural-notes oct-note)
         abc-note (abc-note-map-flats note)
         abc-note' (cond
-                    (and flat? natural?) (str "_" (abc-note-map-flats (inc note)))
-                    #_flat? #_(if (= 2 (count abc-note))
-                             (subs abc-note 1)
-                             abc-note)
+                    ; (and flat? natural?) (str "_" (abc-note-map-flats (inc note)))
+                    ; flat? (if (= 2 (count abc-note))
+                    ;          (subs abc-note 1)
+                    ;          abc-note)
                     natural? (str "=" abc-note)
                     :else abc-note)]
     (str abc-note' (abc-note-dur duration))))
@@ -270,24 +287,26 @@
 (comment
   (sharp? "Bb"))
 
-(defn note->abc [{:keys [note duration key] :as data}]
-  (if (or (nil? key) (sharp? key))
-    (note->abc-sharps data)
-    (note->abc-flats data)))
+(defn note->abc [{:keys [note duration key mode] :as data}]
+  (let [k (transpose-key key mode)
+        d {:note note :duration duration :key k}]
+    (if (or (nil? key) (sharp? k))
+      (note->abc-sharps d)
+      (note->abc-flats d))))
 
 (defn chromo->measures [chromo]
   (partition measure-sixteens chromo))
 
-(defn measure->abc [measure key]
+(defn measure->abc [measure key mode]
   (->> measure
     calc-note-times
-    (map #(assoc % :key key))
+    (map #(assoc % :key key :mode mode))
     (map note->abc)
-    (clojure.string/join " ")))
+    (str/join " ")))
 
-(defn chromo->abc [chromo chord-names key]
+(defn chromo->abc [chromo chord-names key mode]
   (let [measures (chromo->measures chromo)]
-    (clojure.string/join " | " (map #(str "\\\"" %2 "\\\" " (measure->abc % key)) measures chord-names))))
+    (str/join " | " (map #(str "\\\"" %2 "\\\" " (measure->abc % key mode)) measures chord-names))))
 
 (def c1 [60 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2
          62 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2
@@ -466,7 +485,7 @@
         scale-notes (intervals* (mode->scale mode))
         chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) (get chord-intervals-map chord [0 2 4]))
         chord-str (chord->str chord-notes key)]
-    (str "\\\"" chord-str "\\\" [ "  (string/join (map str (map abc-note-map chord-notes) (repeat duration))) "]")
+    (str "\\\"" chord-str "\\\" [ "  (str/join (map str (map abc-note-map chord-notes) (repeat duration))) "]")
     ))
 
 (defn gen-chord-notes [{:keys [key mode duration degree chord]}]
@@ -492,7 +511,7 @@
               "VII" 6})
 
 (defn progression->degrees [mode progression]
-  (map degrees (string/split progression #"-")))
+  (map degrees (str/split progression #"-")))
 
 (comment
   (progression->degrees :major "I-IV-V-I"))
@@ -501,7 +520,7 @@
   (let [dgs (progression->degrees mode progression)
         chords (map #(gen-chord {:key key :mode mode :duration duration
                                  :chord chord :degree %}) dgs)]
-    (string/join " | " chords)))
+    (str/join " | " chords)))
 
 (defn gen-chord-progression-notes [{:keys [key mode duration progression chord]}]
   (let [dgs (progression->degrees mode progression)
@@ -545,7 +564,7 @@
       "Q:" tempo "\\n"
       "V:V1 clef=treble \\n"
       ; "V:V2 clef=bass \\n"
-      (str "[V:V1] | " (chromo->abc genes chord-names key) " | \\n")
+      (str "[V:V1] | " (chromo->abc genes chord-names key mode) " | \\n")
       #_(str "[V:V2] | " (gen-chord-progression {:key key :mode mode
                                                  :chord chord
                                                  :duration 8 :progression progression})
