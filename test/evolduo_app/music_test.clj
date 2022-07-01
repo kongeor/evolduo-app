@@ -25,8 +25,14 @@
                   64 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2
                   65 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2])
 
+(def test-chromo-2 [61 -2 -2 -2
+                    62 -2 -2 -2
+                    71 -2 -2 -2
+                    60 -2 -2 -2 ])
+
 (deftest chromo->abc-test
-  (is (= "\\\"A\\\" C8 | \\\"B\\\" D8 | \\\"C\\\" E8 | \\\"D\\\" F8" (chromo->abc test-chromo ["A" "B" "C" "D"] "C"))))
+  #_(is (= "\\\"A\\\" C8 | \\\"B\\\" D8 | \\\"C\\\" E8 | \\\"D\\\" F8" (chromo->abc test-chromo ["A" "B" "C" "D"] "C" "major")))
+  (is (= (chromo->abc test-chromo-2 ["A"] "Bb" "major") "\\\"A\\\" C8")))
 
 (deftest get-chord-progression-notes-test
   (let [chords (gen-chord-progression-notes {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I"})]
