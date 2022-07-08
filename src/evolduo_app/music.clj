@@ -6,6 +6,9 @@
 
 (def music-keys ["C" "Db" "D" "Eb" "E" "F" "F#" "G" "Ab" "A" "Bb" "B"])
 
+(def notes      ["C" "C#" "D" "D#" "E" "F" "F#" "G" "G#" "A" "A#" "B"])
+(def notes-flat ["C" "Db" "D" "Eb" "E" "F" "Gb" "G" "Ab" "A" "Bb" "B"])
+
 (def ionian-intervals [2 2 1 2 2 2 1])
 
 (defn intervals->scale [ivs]
@@ -53,7 +56,7 @@
     (nth music-keys idx)))
 
 (comment
-  (transpose-key "C" "lydian"))
+  (transpose-key "F#" "mixolydian"))
 
 ;; progressions
 
@@ -100,9 +103,6 @@
     (str key "m")
     key))
 
-(def notes      ["C" "C#" "D" "D#" "E" "F" "F#" "G" "G#" "A" "A#" "B"])
-(def notes-flat ["C" "Db" "D" "Eb" "E" "F" "Gb" "G" "Ab" "A" "Bb" "B"])
-
 (def sharps
   {"C"  #{}
    "G"  #{6}
@@ -117,7 +117,9 @@
    "Bb" #{10 3}
    "Eb" #{10 3 8}
    "Ab" #{10 3 8 1}
-   "Db" #{10 3 8 1 6}})
+   "Db" #{10 3 8 1 6}
+   "Gb" #{10 3 8 1 6 11}
+   "B"  #{10 3 8 1 6 11 4}})
 
 (def abc-note-map
   {-1 "z"
@@ -222,9 +224,9 @@
         64 -2 -2 -2 64 -2 -2 -2 64 64 -1 -2 -2 -2 -2 -2
         ])
 
-(defn chromatic-chromosome [root chords]
+(defn chromatic-chromosome [root chords & {:keys [asc?] :or {asc? true}}]
   (take (* (count chords) measure-sixteens)
-    (->> (iterate inc root)
+    (->> (iterate (if asc? inc dec) root)
       (map #(cons % [-2 -2 -2]))
       (apply concat))))
 
@@ -250,53 +252,52 @@
     measure))
 
 (defn note->abc-sharps [{:keys [note duration key]} sharp-notes]
-  (let [natural-notes (->> sharp-notes (map dec) (into #{})) ;; TODO memo
-        oct-note (mod note 12)
-        sharp? (sharp-notes oct-note)
-        natural? (natural-notes oct-note)
+  (let [oct-note (mod note 12)
+        next-oct-note (mod (inc oct-note) 12)
+        sharp-sig? (sharp-notes oct-note)
         abc-note (abc-note-map note)
-        abc-note' (cond
-                    ; (and sharp? natural?) (str "^" (abc-note-map (dec note)))
-                    ; sharp? (if (= 2 (count abc-note))
-                    ;          (subs abc-note 1)
-                    ;          abc-note)
-                    natural? [(str "=" abc-note) (disj sharp-notes oct-note)]
-                    :else [abc-note sharp-notes])]
+        sharp?    (str/starts-with? abc-note "^")
+        abc-note'     (cond
+                        (and sharp? sharp-sig?) [(subs abc-note 1) sharp-notes]
+                        (sharp-notes next-oct-note) [(str "=" abc-note) (disj sharp-notes next-oct-note)]
+                        sharp? [abc-note (conj sharp-notes oct-note)]
+                        :else [abc-note sharp-notes])]
     [(str (first abc-note') (abc-note-dur duration)) (second abc-note')]))
 
 (defn note->abc-flats [{:keys [note duration key]} flat-notes]
-  (let [natural-notes (->> flat-notes (map inc) (into #{})) ;; TODO memo
-        oct-note (mod note 12)
-        flat? (flat-notes oct-note)
-        natural? (natural-notes oct-note)
+  (let [oct-note (mod note 12)
+        prev-oct-note (mod (dec oct-note) 12)
+        flat-sig? (flat-notes oct-note)
         abc-note (abc-note-map-flats note)
+        flat?    (str/starts-with? abc-note "_")
         abc-note'     (cond
-                        (and flat? natural?) [(str "_" (abc-note-map-flats (inc note))) flat-notes]
-                        flat? (if (= 2 (count abc-note))
-                                [(subs abc-note 1) flat-notes]
-                                [abc-note flat-notes])
-                        natural? [(str "=" abc-note) (disj flat-notes oct-note)]
+                        (and flat? flat-sig?) [(subs abc-note 1) flat-notes]
+                        (flat-notes prev-oct-note) [(str "=" abc-note) (disj flat-notes prev-oct-note)]
+                        flat? [abc-note (conj flat-notes oct-note)]
                         :else [abc-note flat-notes])]
     [(str (first abc-note') (abc-note-dur duration)) (second abc-note')]))
 
 (defn sharp? [key]
   ((set (keys sharps)) key))                                ;; TODO memo
 
+(defn flat? [key]
+  ((set (keys flats)) key))                                ;; TODO memo
+
 (comment
   (get sharps "G")
   (sharp? "G")
   (sharp? "Bb"))
 
-(defn note->abc [{:keys [sharp?] :as data} {:keys [sharps flats] :as accs}]
+(defn note->abc [{:keys [sharp?] :as data} & {:keys [sharps flats] :or {sharps #{} flats #{}}}]
   (if sharp?
     (note->abc-sharps data sharps)
     (note->abc-flats data flats)))
 
 (defn measure->abc [measure key mode]
   (let [key'          (transpose-key key mode)
-        sharp?        (sharp? key')
-        sharps'       (when sharp? (get sharps key' {}))
-        flats'        (when-not sharp? (get flats key' {}))
+        sharp?        (not (flat? key'))                    ;; TODO meh
+        sharps'       (when sharp? (get sharps key' #{}))
+        flats'        (when-not sharp? (get flats key' #{}))
         measure-notes (->> measure
                            calc-note-times
                            (map #(assoc % :key key' :mode mode :sharp? sharp?)))
@@ -312,7 +313,6 @@
                                   (not sharp?)
                                   (assoc :flats accidentals))))
                       {:notes [] :sharps sharps' :flats flats'} measure-notes)]
-    (println notes)
     (str/join " " (:notes notes))))
 
 (defn chromo->measures [chromo]

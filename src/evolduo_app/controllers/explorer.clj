@@ -15,6 +15,6 @@
                                  :tempo       tempo}
                     chord-names (music/gen-chord-names settings)]
                 (music/->abc-track settings
-                  {:genes (music/chromatic-chromosome 65 chord-names) #_(music/random-track {:key  key :measures (count chord-names)
+                  {:genes (music/chromatic-chromosome 77 chord-names :asc? false) #_(music/random-track {:key  key :measures (count chord-names)
                                                :mode mode})})))]
     (r/render-html explorer-views/explorer req {:abc abc})))
