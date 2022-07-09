@@ -328,100 +328,6 @@
          65 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2
         ])
 
-(defn calc-note-length [c note-idx]
-  (assert (not= -2 (c note-idx)) (str "note a note at idx " note-idx " on " c))
-  (inc (count (take-while #(= % -2) (drop (inc note-idx) c)))))
-
-(defn split-note [c note-idx]
-  (assert (not= -2 (c note-idx)) (str "note a note at idx " note-idx " on " c))
-  (let [l (calc-note-length c note-idx)]
-    (assoc c (+ (/ l 2)) (c note-idx))))
-
-(defn next-note-idx [c note-idx]
-  (assert (not= -2 (c note-idx)) (str "note a note at idx " note-idx " on " c))
-  (+ note-idx (inc (count (take-while #(= % -2) (drop (inc note-idx) c))))))
-
-(comment
-  (next-note-idx c1 0))
-
-(defn merge-note [c note-idx]
-  (assert (not= -2 (c note-idx)) (str "note a note at idx " note-idx " on " c))
-  (let [l1 (calc-note-length c note-idx)
-        idx2 (next-note-idx c note-idx)
-        l2 (calc-note-length c idx2)]
-    (when (= l1 l2)
-      (assoc c idx2 -2))))
-
-(defn note? [n]
-  (when (and
-          (not= n -1)
-          (not= n -2))
-    n))
-
-(defn chromo->measure-notes [c]
-  (map (fn [m] (filter note? m)) (partition measure-sixteens c)))
-
-(comment
-  (chromo->measure-notes c1))
-
-(comment
-  (take 16 c1)
-  (take 16 (-> c1
-             (split-note 0)
-             (split-note 0))))
-
-(comment
-  (take 16 (-> c1
-             (split-note 0)
-             (split-note 0)
-             (split-note 0)
-             (split-note 0)
-             (merge-note 0)
-             (merge-note 0)
-             (merge-note 0)
-             (merge-note 0)
-             )))
-
-
-(comment
-  (take 16 (-> c1
-             (split-note 0)
-             (split-note 0)
-             (split-note 0)
-             (split-note 0))))
-
-(comment
-  (calc-note-length c1 1))
-
-(comment
-  (chromo->abc c1))
-
-(comment
-  (clojure.string/join " | " (map measure->abc (chromo->measures c))))
-
-(comment
-  (chromo->measures c)
-  (calc-note-times (second (chromo->measures c))))
-
-(comment
-  (->> c
-    (reduce
-      (fn [acc x]
-        (if (= x -2)
-          (conj acc (last acc))
-          (conj acc x)))
-      []
-      )
-    (partition-by identity)
-    #_(map (fn [g]
-           {:note  (first g)
-            :total (count g)}))
-    #_(map (fn [{:keys [note total]}]
-           (str (abc-note-map note) (abc-note-dur total))))
-    ;; measures
-    #_(clojure.string/join " ")
-    ))
-
 (defn ->abc [{:keys [id key genes] :as data}]
   (let [abc-genes (chromo->abc genes)]
     (str
@@ -527,6 +433,12 @@
 (defn progression->degrees [mode progression]
   (map degrees (str/split progression #"-")))
 
+(defn progression-measure-count [progression]
+  (count (str/split progression #"-")))
+
+(comment
+  (progression-measure-count "I-IV-V-I"))
+
 (comment
   (progression->degrees :major "I-IV-V-I"))
 
@@ -536,18 +448,21 @@
                                  :chord chord :degree %}) dgs)]
     (str/join " | " chords)))
 
-(defn gen-chord-progression-notes [{:keys [key mode duration progression chord]}]
+(defn gen-chord-progression-notes [{:keys [key mode duration progression chord repetitions]}]
   (let [dgs (progression->degrees mode progression)
         chords (map #(gen-chord-notes {:key key :mode mode :duration duration
                                        :chord chord :degree %}) dgs)]
-    chords))
+    (apply concat (repeat repetitions chords))))
 
 (comment
   (gen-chord-progression-notes {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I"}))
 
-(defn gen-chord-names [{:keys [key mode duration progression chord] :as settings}]
+(defn gen-chord-names [{:keys [key mode duration progression chord repetitions] :as settings}]
   (let [dgs (progression->degrees mode progression)]
-    (map #(gen-chord-2 (merge settings {:degree %})) dgs)))
+    (->> dgs
+      (map #(gen-chord-2 (merge settings {:degree %})))
+      (repeat repetitions)
+      (apply concat))))
 
 (comment
   (gen-chord-names {:key "C" :mode "major" :progression all-degrees-progression :chord "R + 3 + 3 + 3"}))

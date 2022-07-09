@@ -64,16 +64,18 @@ select e.*
         (doall
           (map #(sql/insert! tx-opts :chromosomes
                   (let [{:keys [key mode progression chord tempo]} evolution
-                        genes (music/random-track {:key key :measures 4 :mode mode})
+                        progression-measures (music/progression-measure-count progression)
+                        measures (* (:repetitions evolution) progression-measures)
+                        genes (music/random-track {:key key :measures measures :mode mode})
                         chromosome {:genes genes}
                         abc   (music/->abc-track {:key   key :mode mode :progression progression
-                                                  :chord chord :tempo tempo}
+                                                  :chord chord :tempo tempo :repetitions (:repetitions evolution)}
                                 chromosome)
                         fitness (fitness/fitness evolution chromosome)]
                     (assoc % :iteration_id (:id iter-insert)
                              :genes (vec genes)             ;; TODO check
                              :fitness fitness
-                             :abc abc))) (repeat 2 sample-chromo)))))))
+                             :abc abc))) (repeat (:population_size evolution) sample-chromo)))))))
 
 (defn find-last-iteration-num-for-evolution [db evolution-id]
   (let [q-sqlmap {:select [[:e/id :evolution_id]
@@ -129,7 +131,7 @@ select e.*
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
-    (sql/find-by-keys db :chromosomes {:id 1})))
+    (sql/find-by-keys db :chromosomes {:iteration_id 1})))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]

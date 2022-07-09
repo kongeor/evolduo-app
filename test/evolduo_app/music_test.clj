@@ -44,7 +44,7 @@
     (is (= (chromo->abc test-chromo-2 ["A"] "Bb" "major") "\\\"A\\\" _D2 =D2 D2 _D2"))))
 
 (deftest get-chord-progression-notes-test
-  (let [chords (gen-chord-progression-notes {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I"})]
+  (let [chords (gen-chord-progression-notes {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I" :repetitions 1})]
     (is (= [[60 64 67]
             [65 69 72]
             [67 71 74]

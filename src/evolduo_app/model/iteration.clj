@@ -33,7 +33,7 @@
     (sql/query db (h/format q-sqlmap))))
 
 (defn find-iterations-chromosomes [db iteration-id]
-  (let [q-sqlmap {:select [[:c/id :id] [:c/genes :genes]]
+  (let [q-sqlmap {:select [[:c/id :id] [:c/genes :genes] [:c/fitness :fitness]]
                   :from   [[:iterations :i]]
                   :join   [[:chromosomes :c] [:= :c.iteration_id :i.id]]
                   :where
@@ -45,8 +45,8 @@
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
     #_(find-by-id db 1)
-    (find-iterations-to-evolve db)
-    #_(find-iterations-chromosomes db 1)))
+    #_(find-iterations-to-evolve db)
+    (find-iterations-chromosomes db 1)))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)
