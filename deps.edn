@@ -2,7 +2,6 @@
  :deps
  {ring/ring-core                   {:mvn/version "1.9.5"},
   ring/ring-jetty-adapter          {:mvn/version "1.9.5"}
-  selmer/selmer                    {:mvn/version "1.12.50"}
   seancorfield/next.jdbc           {:mvn/version "1.2.659"}
   org.postgresql/postgresql        {:mvn/version "42.3.6"}
   com.mchange/c3p0                 {:mvn/version "0.9.5.5"}
@@ -20,7 +19,8 @@
   com.github.seancorfield/honeysql {:mvn/version "2.2.891"}
   jarohen/chime                    {:mvn/version "0.3.3"}
   org.slf4j/slf4j-simple           {:mvn/version "1.7.36"}
-  org.clojure/data.json            {:mvn/version "2.4.0"}}
+  org.clojure/data.json            {:mvn/version "2.4.0"}
+  com.github.kongeor/chickn        {:mvn/version "0.1.87"}}
  :aliases
  {:dev    {:extra-paths ["dev"]
            :extra-deps  {integrant/repl {:mvn/version "0.3.2"}}}

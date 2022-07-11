@@ -358,16 +358,6 @@
         scale-notes (mode->scale mode)]
     (take (* 16 measures) (mapcat (fn [iv] [(+ root-note iv) -2 -2 -2]) (cycle scale-notes)))))
 
-(defn random-track [{:keys [key measures mode]}]
-  (let [root-note (key->int-note key)
-        scale-notes (mode->scale mode)
-        ;; one day this will be much more intelligent
-        scale-notes* (apply concat (repeat 10 scale-notes))]
-    (take (* 16 measures) (mapcat (fn [iv] [(+ root-note iv) -2 -2 -2]) (shuffle scale-notes*)))))
-
-(comment
-  (random-track {:key "C" :measures 4 :mode "major"}))
-
 (comment
   (let [key "C"]
     (->abc {:id "foo" :key key :genes (gen-track {:key key :measures 4 :mode "minor"})})))
@@ -457,12 +447,25 @@
 (comment
   (gen-chord-progression-notes {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I"}))
 
-(defn gen-chord-names [{:keys [key mode duration progression chord repetitions] :as settings}]
+(defn gen-chord-names [{:keys [mode progression repetitions] :as settings}]
   (let [dgs (progression->degrees mode progression)]
     (->> dgs
       (map #(gen-chord-2 (merge settings {:degree %})))
       (repeat repetitions)
       (apply concat))))
+
+(defn random-track [{:keys [key mode] :as settings}]
+  (let [measures     (count (gen-chord-names settings))
+        root-note (key->int-note key)
+        scale-notes (mode->scale mode)
+        ;; one day this will be much more intelligent
+        scale-notes* (apply concat (repeat 10 scale-notes))]
+    (take (* 16 measures) (mapcat (fn [iv] [(+ root-note iv) -2 -2 -2]) (shuffle scale-notes*)))))
+
+(comment
+  #_(count (gen-chord-names {:key "C" :progression all-degrees-progression :mode "major" :repetitions 2}))
+  (random-track {:key "C" :progression all-degrees-progression :mode "major" :repetitions 2}))
+
 
 (comment
   (gen-chord-names {:key "C" :mode "major" :progression all-degrees-progression :chord "R + 3 + 3 + 3"}))

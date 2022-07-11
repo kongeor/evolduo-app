@@ -6,7 +6,12 @@
             [evolduo-app.music.fitness :as fitness]
             [clojure.tools.logging :as log]
             [next.jdbc.sql :as sql]
-            [next.jdbc.result-set :as rs])
+            [next.jdbc.result-set :as rs]
+            [chickn.core :as chickn]
+            [chickn.math :as cmath]
+            [chickn.util :as util]
+            [chickn.operators :as chops]
+            [evolduo-app.music.operators :as mops])
   (:import (java.time Instant)))
 
 (defn find-by-id
@@ -57,15 +62,72 @@
     (fitness/fitness iter' (first (find-iterations-chromosomes db 1)))
     ))
 
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    #_(em/find-evolution-by-id db 32)
+    #_(em/find-iteration-chromosomes db 32 2)
+    (map :genes (take 2 (find-iterations-chromosomes db 60)))
+    #_(map #(count (:genes %)) (find-iterations-chromosomes db 60))))
+
+(defmethod chops/->operator ::music-mutation [{:keys [::chops/rate ::chops/random-func] :as cfg}]
+  (fn [_ pop n]
+    (mapv
+      (fn [{:keys [genes] :as c}]
+        (if (> rate (random-func))
+          (assoc c :genes (mops/alter-random-note-pitch genes))
+          c)) pop)))
+
+(defn- chickn-evolve [evolution chromosomes]
+  (let [fitness-fn  (fn [chromo]
+                      (fitness/fitness evolution chromo))
+        cfg         #:chickn.core{:chromo-gen #(music/random-track evolution)
+                                  :pop-size    (count chromosomes)
+                                  :terminated? (constantly false)
+                                  :monitor     util/noop
+                                  :reporter    util/noop
+                                  :fitness     fitness-fn
+                                  :comparator  chickn/higher-is-better
+                                  :selectors   [#:chickn.selectors{:type :chickn.selectors/best
+                                                                   :elit true
+                                                                   :rate 0.1
+                                                                   :random-func rand}
+                                                #:chickn.selectors{:type        :chickn.selectors/roulette
+                                                                   :rate        0.3
+                                                                   :random-func rand}]
+                                  :operators   [#:chickn.operators{:type         :chickn.operators/cut-crossover
+                                                                   :rate         0.3
+                                                                   :pointcuts    1
+                                                                   :rand-nth     rand-nth
+                                                                   :random-point rand-nth
+                                                                   :random-func  rand}
+                                                #:chickn.operators{:type        ::music-mutation
+                                                                   :rate        (float (/ (:mutation_rate evolution) 100.))
+                                                                   :random-func rand}]}
+        ]
+    (:pop (:genotype (chickn/evolve cfg {:pop chromosomes :iteration 0} 1)))))
+
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)
+        evolution (em/find-evolution-by-id db 32)
+        chromosomes (find-iterations-chromosomes db 60)]
+    (chickn-evolve evolution chromosomes)
+    #_(map #(count (:genes %)) (find-iterations-chromosomes db 60))))
+
+(comment
+  (music/random-track {:key "C" :measures 4 :mode "major" :repetitions 1})
+  #_(mapv (fn [g] {:genes g :fitness -42 :age 0}) (repeat 10 music/c1)))
+
 ;; TODO duplicated, improve
 (defn evolve-iteration [db settings id]
   (jdbc/with-transaction [tx db]
     (let [tx-opts (jdbc/with-options tx {:builder-fn rs/as-unqualified-lower-maps})]
       (let [version       (:version settings)
             old-iteration (em/find-iteration-by-id tx-opts id)
+            iter-chromos  (find-iterations-chromosomes db id)
             evolution     (em/find-evolution-by-id tx-opts (:evolution_id old-iteration))
             now           (Instant/now)
             evolve-after  (em/calc-evolve-after now (:evolve_after evolution))
+            new-chromos   (chickn-evolve evolution iter-chromos)
             iter-insert   (sql/insert! tx-opts :iterations {:evolve_after evolve-after
                                                        :num          (inc (:num old-iteration))
                                                        :last         true
@@ -76,16 +138,12 @@
         (doall
           (map #(sql/insert! tx-opts :chromosomes
                   (let [{:keys [key mode progression chord tempo]} evolution
-                        genes (music/random-track {:key key :measures 4 :mode mode})
-                        chromosome {:genes genes}
                         abc   (music/->abc-track {:key   key :mode mode :progression progression
-                                                  :chord chord :tempo tempo}
-                                chromosome)
-                        fitness (fitness/fitness evolution chromosome)]
-                    (assoc % :iteration_id (:id iter-insert)
-                             :genes (vec genes)             ;; TODO fix
-                             :fitness fitness
-                             :abc abc))) (repeat 2 em/sample-chromo)))))))
+                                                  :chord chord :tempo tempo :repetitions (:repetitions evolution)}
+                                %)]
+                    (assoc (select-keys % [:genes :fitness])
+                      :iteration_id (:id iter-insert)
+                      :abc abc))) new-chromos))))))
 
 (defn evolve-all-iterations [db settings]
   (let [iterations (find-iterations-to-evolve db)]

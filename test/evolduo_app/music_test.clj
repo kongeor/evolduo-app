@@ -49,3 +49,14 @@
             [65 69 72]
             [67 71 74]
             [60 64 67]] chords))))
+
+(deftest calc-note-times-test
+  (testing "note times"
+    (is (= [{:duration 16
+             :note     60}
+            {:duration 16
+             :note     62}
+            {:duration 16
+             :note     64}
+            {:duration 16
+             :note     65}] (calc-note-times test-chromo)))))

@@ -64,14 +64,12 @@ select e.*
         (doall
           (map #(sql/insert! tx-opts :chromosomes
                   (let [{:keys [key mode progression chord tempo]} evolution
-                        progression-measures (music/progression-measure-count progression)
-                        measures (* (:repetitions evolution) progression-measures)
-                        genes (music/random-track {:key key :measures measures :mode mode})
+                        genes (music/random-track evolution)
                         chromosome {:genes genes}
                         abc   (music/->abc-track {:key   key :mode mode :progression progression
                                                   :chord chord :tempo tempo :repetitions (:repetitions evolution)}
                                 chromosome)
-                        fitness (fitness/fitness evolution chromosome)]
+                        fitness (fitness/fitness evolution genes)]
                     (assoc % :iteration_id (:id iter-insert)
                              :genes (vec genes)             ;; TODO check
                              :fitness fitness

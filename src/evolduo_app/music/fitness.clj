@@ -8,7 +8,7 @@
 (comment
   (oct-note 71))
 
-(defn analyze [settings {:keys [genes] :as chromo}]
+(defn analyze [settings genes]
   (let [measure-notes (map muse/calc-note-times (muse/chromo->measures genes))
         chord-progression (muse/gen-chord-progression-notes settings)
         measures (muse/chromo->measures genes)]
@@ -26,10 +26,10 @@
     ))
 
 (comment
-  (analyze {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I"} {:genes muse/c1}))
+  (analyze {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I" :repetitions 1} muse/c1))
 
-(defn fitness [settings chromo]
-  (let [a (analyze settings chromo)]
+(defn fitness [settings genes]
+  (let [a (analyze settings genes)]
     (reduce (fn [acc {:keys [duration type oct-chord oct-note]}]
               (if (and (= type :note)
                     (not (oct-chord oct-note)))
@@ -37,4 +37,4 @@
                 acc)) 0 a)))
 
 (comment
-  (fitness {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I"} {:genes muse/c1}))
+  (fitness {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I" :repetitions 1} muse/c1))

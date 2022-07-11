@@ -67,8 +67,8 @@
   (clojure.string/join " | " (map measure->abc (chromo->measures c))))
 
 (comment
-  (chromo->measures c)
-  (calc-note-times (second (chromo->measures c))))
+  #_(chromo->measures c)
+  (muse/calc-note-times (second (muse/chromo->measures muse/c))))
 
 (defn find-note-idxs [c]
   (loop [i 0
