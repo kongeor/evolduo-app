@@ -242,14 +242,27 @@
 (comment
   (update-in [{:note 60 :count 1}] [0 :count] inc))
 
-(defn calc-note-times [measure]
+(defn calc-note-times- [measure]
   (reduce (fn [acc n]
             (if (= n -2)
               (update-in acc [(dec (count acc)) :duration] inc)
               (conj acc {:note n :duration 1})
               ))
-    []
+    {:notes [] :index 0}
     measure))
+
+(defn calc-note-times [measure]
+  (loop [i 0
+         notes []]
+    (if (>= i (count measure))
+      notes
+      (recur
+        (inc i)
+        (let [note (nth measure i)]
+          (if (= -2 note)
+            (update-in notes [(dec (count notes)) :duration] inc)
+            (conj notes {:note note :duration 1 :index i})
+            ))))))
 
 (defn note->abc-sharps [{:keys [note duration key]} sharp-notes]
   (let [oct-note (mod note 12)
@@ -317,6 +330,9 @@
 
 (defn chromo->measures [chromo]
   (partition measure-sixteens chromo))
+
+(defn chromo->measures-count [chromo]
+  (count (chromo->measures chromo)))
 
 (defn chromo->abc [chromo chord-names key mode]
   (let [measures (chromo->measures chromo)]

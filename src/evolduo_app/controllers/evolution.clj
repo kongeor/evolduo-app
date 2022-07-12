@@ -16,18 +16,18 @@
   ([req evolution errors]
    (let [evolution (or evolution
                      {:public             true
-                      :min_ratings        2
+                      :min_ratings        1
                       :initial_iterations 10
-                      :total_iterations   20
+                      :total_iterations   10
                       :population_size    10
-                      :crossover_rate     30
-                      :mutation_rate      5
+                      :crossover_rate     50
+                      :mutation_rate      50
                       :key                "C"
                       :mode               "major"
                       :progression        "I-IV-V-I"
                       :repetitions        1
                       :chord              "R + 3 + 3"
-                      :tempo              70})]
+                      :tempo              100})]
      (r/render-html evolution-views/evolution-form req {:evolution evolution
                                                         :errors errors}))))
 

@@ -11,7 +11,8 @@
             [chickn.math :as cmath]
             [chickn.util :as util]
             [chickn.operators :as chops]
-            [evolduo-app.music.operators :as mops])
+            [evolduo-app.music.operators :as mops]
+            [evolduo-app.music :as muse])
   (:import (java.time Instant)))
 
 (defn find-by-id
@@ -72,10 +73,16 @@
 (defmethod chops/->operator ::music-mutation [{:keys [::chops/rate ::chops/random-func] :as cfg}]
   (fn [_ pop n]
     (mapv
-      (fn [{:keys [genes] :as c}]
-        (if (> rate (random-func))
-          (assoc c :genes (mops/alter-random-note-pitch genes))
-          c)) pop)))
+      (fn [c]
+        (let [measures (music/chromo->measures-count (:genes c))]
+          (reduce (fn [{:keys [genes] :as c} i]
+                    (if (> rate (random-func))
+                      (let [r (rand-int 3)]
+                        (condp = r
+                          0 (assoc c :genes (mops/alter-random-note-pitch genes))
+                          1 (assoc c :genes (mops/merge-random-note genes))
+                          2 (assoc c :genes (mops/split-random-note genes))))
+                      c)) c (range measures)))) pop)))
 
 (defn- chickn-evolve [evolution chromosomes]
   (let [fitness-fn  (fn [chromo]

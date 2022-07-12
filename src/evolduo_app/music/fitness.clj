@@ -38,3 +38,12 @@
 
 (comment
   (fitness {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I" :repetitions 1} muse/c1))
+
+
+(defn valid? [genes]
+  (let [measures (muse/chromo->measures genes)]
+    (->> measures
+      (map first)
+      (filter #(= -2 %))
+      seq
+      not)))

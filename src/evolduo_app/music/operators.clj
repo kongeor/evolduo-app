@@ -12,7 +12,10 @@
 
 (defn next-note-idx [c note-idx]
   (assert (not= -2 (c note-idx)) (str "note a note at idx " note-idx " on " c))
-  (+ note-idx (inc (count (take-while #(= % -2) (drop (inc note-idx) c))))))
+  (let [idx (+ note-idx (inc (count (take-while #(= % -2) (drop (inc note-idx) c)))))]
+    (if (>= idx (count c))
+      nil
+      idx)))
 
 (comment
   (next-note-idx c1 0))
@@ -20,10 +23,13 @@
 (defn merge-note [c note-idx]
   (assert (not= -2 (c note-idx)) (str "note a note at idx " note-idx " on " c))
   (let [l1 (calc-note-length c note-idx)
-        idx2 (next-note-idx c note-idx)
-        l2 (calc-note-length c idx2)]
-    (when (= l1 l2)
-      (assoc c idx2 -2))))
+        idx2 (next-note-idx c note-idx)]
+    (if idx2
+      (let [l2 (calc-note-length c idx2)]
+        (if (= l1 l2)
+          (assoc c idx2 -2)
+          c))
+      c)))
 
 (defn note? [n]
   (when (and
@@ -89,3 +95,31 @@
         1 -1
         2 1
         3 2))))
+
+(defn split-random-note [c]
+  (let [times (muse/calc-note-times c)
+        note (->> times
+               (filter #(note? (:note %)))
+               (filter #(>= (:duration %) 4))
+               shuffle
+               first)]
+    (if note
+      (split-note c (:index note))
+      c)))
+
+(comment
+  (split-random-note muse/c1))
+
+(defn merge-random-note [c]
+  (let [times (muse/calc-note-times c)
+        note (->> times
+               (filter #(note? (:note %)))
+               (filter #(<= (:duration %) 4))
+               shuffle
+               first)]
+    (if note
+      (merge-note c (:index note))
+      c)))
+
+(comment
+  (split-random-note muse/c1))

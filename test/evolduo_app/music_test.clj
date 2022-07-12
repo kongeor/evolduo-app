@@ -53,10 +53,14 @@
 (deftest calc-note-times-test
   (testing "note times"
     (is (= [{:duration 16
-             :note     60}
+             :note     60
+             :index    0}
             {:duration 16
-             :note     62}
+             :note     62
+             :index    16}
             {:duration 16
-             :note     64}
+             :note     64
+             :index    32}
             {:duration 16
-             :note     65}] (calc-note-times test-chromo)))))
+             :note     65
+             :index    48}] (calc-note-times test-chromo)))))
