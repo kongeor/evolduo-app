@@ -148,3 +148,10 @@
          [:td [:progress.progress {:value (:num e) :max (:total_iterations e)} perc-str]]
          [:td (:key e)]
          [:td (:progression e)]]))]])                           ;; TODO add a date
+
+(defn evolution-type-select [type]
+  [:select {:name "type"}
+   (for [k ["my" "invited" "public"]]
+     [:option (merge {:value k}
+                (when (= k type)
+                  {:selected true})) k])])

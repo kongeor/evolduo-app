@@ -15,7 +15,7 @@
      [:div#navbarBasicExample.navbar-menu
       [:div.navbar-start
        [:a.navbar-item {:href "/evolution/form"} "New Evolution"]
-       [:a.navbar-item {:href "/evolution/search"} "Search"]
+       [:a.navbar-item {:href "/evolution/search?type=public"} "Search"]
        [:a.navbar-item {:href "/explorer"} "Explorer"]]
       [:div.navbar-end
        [:div.navbar-item

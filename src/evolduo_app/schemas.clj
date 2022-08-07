@@ -83,7 +83,7 @@
    [:map {:closed true}
     [:email [:re {:error/message "invalid email"} email-regex]]
     [:password [:re {:error/message "Invalid password"} password-regex]]
-    [:password_confirmation [:string {:min 1}]]
+    [:password_confirmation [:string]]
     [:captcha [:string {:min 1}]]]
    [:fn {:error/message "passwords must match"
          :error/path [:password_confirmation]}
@@ -115,7 +115,7 @@
     [:announcements {:default false} boolean?]]])
 
 (comment
-  (decode-and-validate Subscription {:announcements "true"
+  (decode-and-validate Subscription {:announcements "bananes"
                                      :notifications false}))
 
 (comment

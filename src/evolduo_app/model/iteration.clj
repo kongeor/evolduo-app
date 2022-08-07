@@ -86,9 +86,9 @@
 
 (defn- chickn-evolve [evolution chromosomes]
   (let [fitness-fn  (fn [chromo]
-                      (fitness/fitness evolution chromo))
+                      (fitness/fitness evolution (fitness/maybe-fix evolution chromo)))
         cfg         #:chickn.core{:chromo-gen #(music/random-track evolution)
-                                  :pop-size    (count chromosomes)
+                                  :pop-size    (:population_size evolution)
                                   :terminated? (constantly false)
                                   :monitor     util/noop
                                   :reporter    util/noop
@@ -99,10 +99,10 @@
                                                                    :rate 0.1
                                                                    :random-func rand}
                                                 #:chickn.selectors{:type        :chickn.selectors/roulette
-                                                                   :rate        0.3
+                                                                   :rate        0.9
                                                                    :random-func rand}]
                                   :operators   [#:chickn.operators{:type         :chickn.operators/cut-crossover
-                                                                   :rate         0.3
+                                                                   :rate         (float (/ (:crossover_rate evolution) 100.))
                                                                    :pointcuts    1
                                                                    :rand-nth     rand-nth
                                                                    :random-point rand-nth
@@ -116,8 +116,10 @@
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)
         evolution (em/find-evolution-by-id db 32)
-        chromosomes (find-iterations-chromosomes db 60)]
-    (chickn-evolve evolution chromosomes)
+        chromosomes (find-iterations-chromosomes db 60)
+        ;; debug stuff
+        c' (update-in chromosomes [0 :genes] assoc 0 -2)]
+    (chickn-evolve evolution c')
     #_(map #(count (:genes %)) (find-iterations-chromosomes db 60))))
 
 (comment
@@ -135,6 +137,8 @@
             now           (Instant/now)
             evolve-after  (em/calc-evolve-after now (:evolve_after evolution))
             new-chromos   (chickn-evolve evolution iter-chromos)
+            maybe-fix-fn  (partial fitness/maybe-fix evolution)
+            new-chromos'  (mapv #(update % :genes maybe-fix-fn) new-chromos)
             iter-insert   (sql/insert! tx-opts :iterations {:evolve_after evolve-after
                                                        :num          (inc (:num old-iteration))
                                                        :last         true
@@ -150,7 +154,7 @@
                                 %)]
                     (assoc (select-keys % [:genes :fitness])
                       :iteration_id (:id iter-insert)
-                      :abc abc))) new-chromos))))))
+                      :abc abc))) new-chromos'))))))
 
 (defn evolve-all-iterations [db settings]
   (let [iterations (find-iterations-to-evolve db)]

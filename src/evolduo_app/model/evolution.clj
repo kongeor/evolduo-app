@@ -73,7 +73,8 @@ select e.*
                     (assoc % :iteration_id (:id iter-insert)
                              :genes (vec genes)             ;; TODO check
                              :fitness fitness
-                             :abc abc))) (repeat (:population_size evolution) sample-chromo)))))))
+                             :abc abc))) (repeat (:population_size evolution) sample-chromo)))
+        evol-insert))))
 
 (defn find-last-iteration-num-for-evolution [db evolution-id]
   (let [q-sqlmap {:select [[:e/id :evolution_id]
@@ -161,10 +162,21 @@ select e.*
 (defn find-user-active-evolutions [db user-id]
   (let [q-sqlmap {:select [[:e/id :evolution_id]
                            [:i/id :iteration_id]
+                           [:e.min_ratings]
+                           [:e.evolve_after]
+                           [:e.total_iterations]
+                           [:e.population_size]
+                           [:e.crossover_rate]
+                           [:e.mutation_rate]
                            [:e.key]
+                           [:e.mode]
                            [:e.progression]
+                           [:e.repetitions]
+                           [:e.chord]
+                           [:e.tempo]
                            [:i.num]
                            [:e.created_at]
+                           [:i.created_at :updated_at]
                            [:e.total_iterations]
                            [[:- :e.total_iterations :i.num] :iterations_to_go]]
                   :from   [[:evolutions :e]]
@@ -172,7 +184,8 @@ select e.*
                   :where  [:and
                            [:= :e/user-id user-id]
                            [:<= :i.num :e.total_iterations]
-                           [:= :i.last true]]}]
+                           [:= :i.last true]]
+                  :order-by [[:i.created_at :desc]]}]
     (sql/query db (h/format q-sqlmap))))
 
 (comment
@@ -184,10 +197,21 @@ select e.*
   [db user-id]
   (let [q-sqlmap {:select [[:e/id :evolution_id]
                            [:i/id :iteration_id]
+                           [:e.min_ratings]
+                           [:e.evolve_after]
+                           [:e.total_iterations]
+                           [:e.population_size]
+                           [:e.crossover_rate]
+                           [:e.mutation_rate]
                            [:e.key]
+                           [:e.mode]
                            [:e.progression]
+                           [:e.repetitions]
+                           [:e.chord]
+                           [:e.tempo]
                            [:i.num]
                            [:e.created_at]
+                           [:i.created_at :updated_at]
                            [:e.total_iterations]
                            [[:- :e.total_iterations :i.num] :iterations_to_go]]
                   :from   [[:evolutions :e]]
@@ -199,7 +223,8 @@ select e.*
                            [:= :i.last true]
                            [:= :u.deleted false]
                            (when user-id
-                             [:!= :e/user-id user-id])]}]
+                             [:!= :e/user-id user-id])]
+                  :order-by [[:i.created_at :desc]]}]
     (sql/query db (h/format q-sqlmap))))
 
 (comment
@@ -211,10 +236,21 @@ select e.*
   [db user-id]
   (let [q-sqlmap {:select [[:e/id :evolution_id]
                            [:i/id :iteration_id]
+                           [:e.min_ratings]
+                           [:e.evolve_after]
+                           [:e.total_iterations]
+                           [:e.population_size]
+                           [:e.crossover_rate]
+                           [:e.mutation_rate]
                            [:e.key]
+                           [:e.mode]
                            [:e.progression]
+                           [:e.repetitions]
+                           [:e.chord]
+                           [:e.tempo]
                            [:i.num]
                            [:e.created_at]
+                           [:i.created_at :updated_at]
                            [:e.total_iterations]
                            [[:- :e.total_iterations :i.num] :iterations_to_go]]
                   :from   [[:evolutions :e]]
@@ -226,7 +262,8 @@ select e.*
                            [:<= :i.num :e.total_iterations]
                            #_[:= :e.public 0]
                            [:= :i.last true]
-                           [:= :u.id user-id]]}]
+                           [:= :u.id user-id]]
+                  :order-by [[:i.created_at :desc]]}]
     #_(println "**" (h/format q-sqlmap))
     (sql/query db (h/format q-sqlmap))))
 

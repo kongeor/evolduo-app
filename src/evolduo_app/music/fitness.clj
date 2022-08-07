@@ -47,3 +47,16 @@
       (filter #(= -2 %))
       seq
       not)))
+
+(defn maybe-fix
+  "Simplistic fix for invalid chromosomes. Just add the root pitch for
+   measures that start with a prolongation (-2)."
+  [{:keys [key]} genes]
+  (if (valid? genes)
+    genes
+    (let [note (muse/key->int-note key)
+          measures (muse/chromo->measures genes)]
+      (vec (apply concat
+             (map #(if (= (first %) -2)
+                     (assoc (vec %) 0 note)
+                     %) measures))))))

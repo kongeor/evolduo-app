@@ -22,7 +22,7 @@
       [:div.field
        [:label.label {:for "min_ratings"} "Min Ratings"]
        [:div.control
-        [:input.input {:type "number" :name "min_ratings" :value (:min_ratings evolution) :min "1"}]]]
+        [:input.input {:type "number" :name "min_ratings" :value (:min_ratings evolution) :min "0"}]]]
       [:div.field
        [:label.label {:for "evolve_after"} "Evolve After"]
        [:div.control
@@ -87,36 +87,59 @@
        [:input.button.is-link {:type "submit" :value "Create"}]]]]))
 
 (defn evolution-list [req evolutions]
-  (base-view
-    req
-    [:table.table
-     [:thead
-      [:tr
-       [:th "Id"]
-       [:th "Created At"]
-       [:th "Public"]
-       [:th "Min Ratings"]
-       [:th "initial Iterations"]
-       [:th "Crossover Rate"]
-       [:th "Mutation Rate"]
-       [:th "Key"]
-       [:th "Progression"]
-       [:th "Tempo"]
-       [:th "User"]]]
-     [:tbody
-      (for [e evolutions]
-        [:tr
-         [:td [:a {:href (str "/evolution/" (:id e))} (:id e)]]
-         [:td (:created_at e)]
-         [:td (:public e)]
-         [:td (:min_ratings e)]
-         [:td (:initial_iterations e)]
-         [:td (:crossover_rate e)]
-         [:td (:mutation_rate e)]
-         [:td (:key e)]
-         [:td (:progression e)]
-         [:td (:tempo e)]
-         [:td (:user_id e)]])]]))
+  (let [{:keys [type]} (-> req :params)]
+    (base-view
+      req
+      [:div
+       [:form {:action "/evolution/search" :method "GET"}
+        [:div.field.is-horizontal
+         [:div.field-label.is-normal
+          [:label.label {:for "type"} "Type"]]
+         [:div.field.mr-4
+          [:div.control
+           [:div.select
+            (comps/evolution-type-select type)]]]
+         [:div.control
+          [:input.button.is-link {:type "submit" :value "Search"}]]
+         ]]
+       [:table.table
+        [:thead
+         [:tr
+          [:th "Id"]
+          [:th "Created"]
+          [:th "Updated"]
+          [:th "Min Ratings"]
+          [:th "Evolve After"]
+          [:th "Total Iter."]
+          [:th "Pop Size"]
+          [:th "Crossover"]
+          [:th "Mutation"]
+          [:th "Key"]
+          [:th "Mode"]
+          [:th "Progression"]
+          [:th "Repetitions"]
+          [:th "Chord"]
+          [:th "Tempo"]
+          [:th "User"]]]
+        [:tbody
+         (for [e evolutions]
+           [:tr
+            [:td [:a {:href (str "/evolution/" (:evolution_id e))} (:evolution_id e)]]
+            [:td (:created_at e)]
+            [:td (:updated_at e)]
+            [:td (:min_ratings e)]
+            [:td (:evolve_after e)]
+            [:td (:total_iterations e)]
+            [:td (:population_size e)]
+            [:td (:crossover_rate e)]
+            [:td (:mutation_rate e)]
+            [:td (:key e)]
+            [:td (:mode e)]
+            [:td (:progression e)]
+            [:td (:repetitions e)]
+            [:td (:chord e)]
+            [:td (:tempo e)]
+            [:td (:user_id e)]])]]])))                      ;; TODO admin only
 
 (defn evolution-detail [req {:keys [user-id evolution chromosomes reaction-map pagination]}]
   (base-view

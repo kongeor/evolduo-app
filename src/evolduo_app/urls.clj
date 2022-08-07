@@ -15,6 +15,8 @@
 
 (defn url-for [action & {:as params}]
   (case action
+    :evolution-search (str (->url :evolution :search) "?" (codec/form-encode (:query params)))
+    :evolution-form (->url :evolution :form)
     :evolution-detail (->url :evolution (:evolution-id params))
     :explorer (str (->url :explorer) "?" (codec/form-encode (:query params)))
     :invitation-form (->url :evolution (:evolution-id params) :invitation :form)

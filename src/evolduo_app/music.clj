@@ -210,12 +210,13 @@
     (condp = t
       1/4 "/2"
       1/2 ""
-      ; 3/4 ""                                                ;; fix?
+      3/4 ""                                                ;; fix?
       1 "2"
-      ; 5/4 ""                                                ;; fix?
+      5/4 "2"                                                ;; fix?
       3/2 "3"
-      ; 7/4 ""                                                ;; fix?
+      7/4 "3"                                                ;; fix?
       2 "4"
+      3 "6"
       4 "8")))
 
 (def c [60 -2 -2 -2 -2 -2 -2 -2 60 -2 -2 -2 -2 -2 -2 -2
@@ -426,7 +427,7 @@
 
 (comment
   (gen-chord-notes {:key "C" :mode "major" :duration 8 :degree 0 :chord "R + 3 + 3 + 3"})
-  (gen-chord-2 {:key "C" :mode "major" :duration 8 :degree 0 :chord "R + 3 + 3 + 3"}))
+  (gen-chord-2 {:key "C" :mode "major" :duration 8 :degree 6 :chord "R + 3 + 3 + 3"}))
 
 (def degrees {"I" 0
               "II" 1

@@ -7,7 +7,8 @@
             [evolduo-app.response :as r]
             [evolduo-app.schemas :as schemas]
             [evolduo-app.views.evolution :as evolution-views]
-            [ring.util.response :as resp]))
+            [ring.util.response :as resp]
+            [evolduo-app.urls :as u]))
 
 (defn edit
   "Display the add/edit form."
@@ -33,7 +34,13 @@
 
 (defn search
   [req]
-  (let [evolutions (model/get-evolutions (:db req))]
+  (let [type    (-> req :params :type)
+        db      (:db req)
+        user-id (request/user-id req)
+        evolutions (condp = type
+                     "public"  (model/find-active-public-evolutions db user-id)
+                     "invited" (model/find-invited-to-evolutions db user-id)
+                     "my"      (model/find-user-active-evolutions db user-id))]
     (r/render-html evolution-views/evolution-list req evolutions)))
 
 (defn save
@@ -56,6 +63,10 @@
         sanitized-data (schemas/decode-and-validate schemas/Evolution data)]
     (log/info "sanitized" sanitized-data)
     (cond
+      (nil? user-id)
+      (r/redirect (u/url-for :evolution-form)
+        :flash {:type :danger :message "You need to be logged in"})
+
       (:error sanitized-data)
       (edit (assoc req :flash {:type :danger :message "oops"}) data (:error sanitized-data))
 
@@ -64,10 +75,10 @@
                         {:user_id    user-id
                          :rules {:foo true
                                  :bar true}})]
-        (model/save-evolution (:db req) (:settings req) evolution)
-        (assoc
-          (resp/redirect "/evolution/search")
-          :flash {:type :info :message "Great success!"})))))
+        (let [{:keys [id]} (model/save-evolution (:db req) (:settings req) evolution)]
+          (assoc
+            (resp/redirect (u/url-for :evolution-detail {:evolution-id id}))
+            :flash {:type :info :message "Great success!"}))))))
 
 (defn detail [req]
   (let [db (:db req)
