@@ -3,7 +3,9 @@
            (java.awt Font RenderingHints Color)
            (javax.imageio ImageIO)
            (java.io ByteArrayOutputStream)
-           (java.util Base64)))
+           (java.util Base64)
+           (net.logicsquad.nanocaptcha.image ImageCaptcha$Builder)
+           (net.logicsquad.nanocaptcha.content ContentProducer)))
 
 (defn- text-to-bytes [text]
   (let [text   (str text " ")                               ;; hack but quick way around
@@ -41,5 +43,28 @@
         ]
     (.toByteArray baos)))
 
+(defn bytes->base64 [byte-array]
+  (String. (.encode (Base64/getEncoder) byte-array)))
+
 (defn text-to-base64 [text]
   (String. (.encode (Base64/getEncoder) (text-to-bytes text))))
+
+
+(defn captcha-text->base64 [content]
+  (let [img (-> (ImageCaptcha$Builder. 200 50)
+              (.addContent
+                (reify ContentProducer
+                  (getContent [this]
+                    content)))
+              (.build)
+              (.getImage))
+        baos   (ByteArrayOutputStream.)
+        _      (ImageIO/write img "png" baos)
+        byte-array (.toByteArray baos)]
+    (bytes->base64 byte-array)))
+
+(comment
+  (captcha-text->base64 "foo"))
+
+(defn captcha-audio->base64 [content]
+  )

@@ -7,7 +7,7 @@
     [:nav.navbar.mb-4 {:role "navigation" :aria-label "main navigation"}
      [:div.navbar-brand
       [:a.navbar-item {:href "/"}
-       [:img {:src "/img/logo.png" :width "112" :height "28"}]]
+       #_[:img {:src "/img/logo.png" :width "112" :height "28"}]]
       [:a.navbar-burger {:role "button" :aria-label "menu" :aria-expanded "false" :data-target "navbarBasicExample"}
        [:span {:aria-hidden "true"}]
        [:span {:aria-hidden "true"}]

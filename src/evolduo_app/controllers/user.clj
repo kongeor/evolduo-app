@@ -1,26 +1,31 @@
 (ns evolduo-app.controllers.user
   (:require [clojure.tools.logging :as log]
-            [evolduo-app.middleware :as middleware]
             [evolduo-app.model.user :as user]
+            [evolduo-app.rand :as er]
             [evolduo-app.request :as req]
             [evolduo-app.response :as r]
             [evolduo-app.schemas :as s]
             [evolduo-app.views.user :as user-views]
             [ring.util.response :as response]))
 
+
 (defn signup-form
   [req]
-  (r/render-html user-views/signup-form req))
+  (let [captcha (er/random-num 6)]
+    (->
+      (r/render-html user-views/signup-form req {:captcha captcha})
+      (assoc-in [:session :captcha] captcha))))
 
 (defn signup [req]
   (let [db (:db req)
-        captcha-code (middleware/anti-forgery->captcha-code)
+        captcha-code (-> req :session :captcha)
         real-ip (req/get-x-forwarded-for-header req)
         params (-> req :params (select-keys [:email :password :password_confirmation :captcha]))
         sanitized-data (s/decode-and-validate s/Signup params)]
     (cond
       (:error sanitized-data)
-      (r/render-html user-views/signup-form req {:signup params
+      (r/render-html user-views/signup-form req {:captcha captcha-code
+                                                 :signup params
                                                  :errors (:error sanitized-data)})
 
       (not= captcha-code (-> sanitized-data :data :captcha))
@@ -29,11 +34,13 @@
         ;; TODO reset for invalid submissions
         ;; Fix
         (log/warn "Invalid signup attempt from" real-ip)
-        (r/render-html user-views/signup-form req {:signup params
+        (r/render-html user-views/signup-form req {:captcha captcha-code
+                                                   :signup params
                                                    :errors {:captcha ["not valid"]}}))
 
       (user/get-registered-user db (-> sanitized-data :data :email))
-      (r/render-html user-views/signup-form req {:signup params
+      (r/render-html user-views/signup-form req {:captcha captcha-code
+                                                 :signup params
                                                  :errors {:email ["this email is already in use"]}})
 
       ;; TODO check vip list
