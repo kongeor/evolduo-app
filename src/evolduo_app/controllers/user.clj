@@ -10,15 +10,15 @@
 
 
 (defn signup-form
-  [req]
+  [{:keys [session] :as req}]
   (let [captcha (er/random-num 6)]
     (->
       (r/render-html user-views/signup-form req {:captcha captcha})
-      (assoc-in [:session :captcha] captcha))))
+      (assoc :session (assoc session :captcha captcha)))))
 
 (defn signup [req]
   (let [db (:db req)
-        captcha-code (-> req :session :captcha)
+        captcha-code (or (-> req :session :captcha) "")
         real-ip (req/get-x-forwarded-for-header req)
         params (-> req :params (select-keys [:email :password :password_confirmation :captcha]))
         sanitized-data (s/decode-and-validate s/Signup params)]

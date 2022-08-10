@@ -7,7 +7,7 @@
     [:nav.navbar.mb-4 {:role "navigation" :aria-label "main navigation"}
      [:div.navbar-brand
       [:a.navbar-item {:href "/"}
-       #_[:img {:src "/img/logo.png" :width "112" :height "28"}]]
+      [:img {:src "/img/logo.png" :width "160" }]]
       [:a.navbar-burger {:role "button" :aria-label "menu" :aria-expanded "false" :data-target "navbarBasicExample"}
        [:span {:aria-hidden "true"}]
        [:span {:aria-hidden "true"}]
@@ -46,6 +46,7 @@
     [:link {:rel "stylesheet" :href "/css/abcjs-audio.css"}]
     [:link {:rel "stylesheet" :href "/css/bulma.min.css"}]
     [:link {:rel "stylesheet" :href "/css/cookie-consent.css"}]
+    [:link {:rel "stylesheet" :href "/css/main.css"}]
     ]
    [:body (when (and body-load-hook enable-abc?) {:onload body-load-hook})
     [:section.section

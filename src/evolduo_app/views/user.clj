@@ -34,27 +34,43 @@
       [:div.field
        [:label.label {:for "email"} "Email"]
        [:div.control
-        [:input.input {:id "email" :name "email" :type "email" :required "required" :autocomplete "off" :placeholder "user@example.com" :value (:email signup)}]]
+        [:input.input (merge
+                        {:id           "email" :name "email" :type "email" :required "required"
+                         :autocomplete "off" :placeholder "user@example.com" :value (:email signup)}
+                        (when (:email errors)
+                          {:class "is-danger"}))]]
        (when-let [e (:email errors)]
          [:p.help.is-danger (first e)])]
       [:div.field
        [:label.label {:for "password"} "Password"]
        [:div.control
-        [:input.input {:id "password" :name "password" :type "password" :required "required" :autocomplete "off" :placeholder ""}]]
+        [:input.input (merge
+                        {:id           "password" :name "password" :type "password" :required "required"
+                              :autocomplete "off" :placeholder ""}
+                        (when (:password errors)
+                          {:class "is-danger"}))]]
        (when-let [e (:password errors)]
          [:p.help.is-danger (first e)])
        [:p.help.is-info "Password should have at minimum eight characters, at least one uppercase letter, one lowercase letter and one number"]]
       [:div.field
        [:label.label {:for "password-confirmation"} "Password Confirmation"]
        [:div.control
-        [:input.input {:id "password-confirmation" :name "password_confirmation" :type "password" :required "required" :autocomplete "off" :placeholder ""}]]
+        [:input.input (merge
+                        {:id           "password-confirmation" :name "password_confirmation" :type "password" :required "required"
+                         :autocomplete "off" :placeholder ""}
+                        (when (:password_confirmation errors)
+                          {:class "is-danger"}))]]
        (when-let [e (:password_confirmation errors)]
          [:p.help.is-danger (first e)])]
       [:div.field
        [:label.label {:for "captcha"} "Captcha"]
        [:img {:src (str "data:image/png;base64, " (image/captcha-text->base64 captcha))}]
        [:div.control
-        [:input.input {:id "captcha" :name "captcha" :type "input" :required "required" :autocomplete "off" :placeholder "" :value (:captcha signup)}]]
+        [:input.input (merge
+                        {:id           "captcha" :name "captcha" :type "input" :required "required"
+                         :autocomplete "off" :placeholder "" :value (:captcha signup)}
+                        (when (:captcha errors)
+                          {:class "is-danger"}))]]
        (when-let [e (:captcha errors)]
          [:p.help.is-danger (first e)])
        [:p.help.is-info.mb-2 "You are not a robot, are you? Please enter the number you see above. Use the audio player below to hear the captcha value"]
@@ -75,6 +91,7 @@
         [:label.label "Email"]
         [:div.control
          [:input.input {:name "email" :type "email" :disabled true :autocomplete "off" :value (:email user)}]]]
+       ;; TODO show verified flag
        [:div.mb-5
         [:h3.title.is-5.mb-4 "Subscription"]
         [:form {:action "/user/subscription" :method "post"}

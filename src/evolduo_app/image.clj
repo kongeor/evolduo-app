@@ -56,6 +56,8 @@
                 (reify ContentProducer
                   (getContent [this]
                     content)))
+              (.addNoise)
+              (.addFilter)
               (.build)
               (.getImage))
         baos   (ByteArrayOutputStream.)

@@ -8,7 +8,6 @@
             [evolduo-app.controllers.invitation :as invitation-ctl]
             [evolduo-app.controllers.reaction :as reaction-ctl]
             [evolduo-app.controllers.user :as user-ctl]
-            [evolduo-app.controllers.captcha :as captcha-ctl]
             [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
             [sentry-clj.core :as sentry]
             [sentry-clj.ring :as sentry-ring]))
@@ -52,13 +51,12 @@
   (GET "/evolution/:evolution-id{[0-9]+}/iteration/:iteration-num{[0-9]+}" [] evolution-ctl/iteration-detail)
   (GET "/explorer" [] explorer-ctl/explorer)
   (POST "/reaction" [] reaction-ctl/save)
-  (GET "/audio-captcha" [] captcha-ctl/audio-captcha)
   (route/not-found "404"))
 
 (defn app [db settings]
   (-> routes
     (wrap-db db)
     (wrap-defaults site-defaults)
-    #_wrap-exception                                          ;; TODO why?!
-    #_(wrap-settings settings)
-    #_sentry-ring/wrap-sentry-tracing))
+    wrap-exception                                          ;; TODO why?!
+    (wrap-settings settings)                                ;; TODO secure cookie
+    sentry-ring/wrap-sentry-tracing))

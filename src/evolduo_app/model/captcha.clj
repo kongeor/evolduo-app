@@ -6,6 +6,8 @@
            (javax.sound.sampled AudioSystem AudioFileFormat$Type)
            (java.util Base64)))
 
+(def voices ["alex" "bruce" "fred" "ralph" "kathy" "vicki" "victoria"])
+
 (defn create-audio-captcha [content]
   (-> (AudioCaptcha$Builder.)
     (.addContent
@@ -20,7 +22,8 @@
                 ; files (.get voices idx)
                 ; n (rand-int (count files))
                 ; filename (.get files n)
-                filename      (str "/sounds/en/numbers/" c "-fred.wav")
+                voice         (rand-nth voices)
+                filename      (str "/sounds/en/numbers/" c "-" voice ".wav")
                 bis (BufferedInputStream. (.getResourceAsStream Sample filename))
                 s (Sample. bis)]
             s))))
