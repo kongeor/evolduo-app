@@ -1,5 +1,40 @@
 # TODO
 
+## Check deps
+
+```clj
+clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -m antq.core
+```
+
+## Release checklist
+
+- [ ] Secure cookie
+- [ ] Raw fitness
+- [ ] Fix chickn
+- [ ] Terms, License, Dev blog
+- [ ] About page
+- [ ] Contact page
+- [ ] Known issues (mobile view, emails, fixed C)
+- [ ] List limits
+- [ ] Update deps
+- [ ] Help Texts
+- [ ] Evolution details page
+- [ ] Player fixes
+- [ ] W3C check
+- [ ] Zaproxy check
+- [ ] Wizard/Presets
+- [ ] Optimise fitness
+- [ ] Roadmap
+- [ ] Humanize dates
+- [ ] Sponsors
+- [ ] Readme
+- [ ] Note split
+
+## Post-release checklist
+
+- [ ] Captcha PR
+
+
 ## The road to alpha
 
 - [ ] Explorer chord construction

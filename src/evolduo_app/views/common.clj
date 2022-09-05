@@ -65,7 +65,7 @@
     (when enable-abc?
       [:div
        [:script {:type "text/javascript"
-                 :src  "https://cdn.jsdelivr.net/npm/abcjs@6.0.2/dist/abcjs-basic-min.js"}]
+                 :src  "/js/abcjs-basic-min.js"}]
        [:script {:type "text/javascript"
                  :src  "/js/abc-player.js"}]])
     [:div

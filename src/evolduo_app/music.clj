@@ -48,14 +48,63 @@
 (comment
   (mode-degree "locrian"))
 
-(defn transpose-key [key mode]
+(defn transpose-key' [key mode]
   (let [d (mode-degree mode)
         ki (.indexOf music-keys key)
         df (apply + (take d ionian-intervals))
         idx (mod (- (+ ki 24) df) 12)]
     (nth music-keys idx)))
 
+;; based on https://github.com/paulrosen/abcjs/blob/main/src/const/relative-major.js
+
+(def relative-majors {
+                      "C"  ["CMaj", "Amin", "Am", "GMix", "DDor", "EPhr", "FLyd", "BLoc"],
+                      "Db" ["DbMaj", "Bbmin", "Bbm", "AbMix", "EbDor", "FPhr", "GbLyd", "CLoc"],
+                      "D"  ["DMaj", "Bmin", "Bm", "AMix", "EDor", "F#Phr", "GLyd", "C#Loc"],
+                      "Eb" ["EbMaj", "Cmin", "Cm", "BbMix", "FDor", "GPhr", "AbLyd", "DLoc"],
+                      "E"  ["EMaj", "C#min", "C#m", "BMix", "F#Dor", "G#Phr", "ALyd", "D#Loc"],
+                      "F"  ["FMaj", "Dmin", "Dm", "CMix", "GDor", "APhr", "BbLyd", "ELoc"],
+                      "Gb" ["GbMaj", "Ebmin", "Ebm", "DbMix", "AbDor", "BbPhr", "CbLyd", "FLoc"],
+                      "G"  ["GMaj", "Emin", "Em", "DMix", "ADor", "BPhr", "CLyd", "F#Loc"],
+                      "Ab" ["AbMaj", "Fmin", "Fm", "EbMix", "BbDor", "CPhr", "DbLyd", "GLoc"],
+                      "A"  ["AMaj", "F#min", "F#m", "EMix", "BDor", "C#Phr", "DLyd", "G#Loc"],
+                      "Bb" ["BbMaj", "Gmin", "Gm", "FMix", "CDor", "DPhr", "EbLyd", "ALoc"],
+                      "B"  ["BMaj", "G#min", "G#m", "F#Mix", "C#Dor", "D#Phr", "ELyd", "A#Loc"],
+                      ;;    Enharmonic keys
+                      "C#" ["C#Maj", "A#min", "A#m", "G#Mix", "D#Dor", "E#Phr", "F#Lyd", "B#Loc"],
+                      "F#" ["F#Maj", "D#min", "D#m", "C#Mix", "G#Dor", "A#Phr", "BLyd", "E#Loc"],
+                      "Cb" ["CbMaj", "Abmin", "Abm", "GbMix", "DbDor", "EbPhr", "FbLyd", "BbLoc"],
+                      })
+
+(def relative-major-map
+  (reduce-kv (fn [m k v]
+               (reduce (fn [a n]
+                         (assoc a n k)) m v)
+               ) {} relative-majors))
+
+;; I'm too lazy to rewrite this so will just write some code to convert it
+
+(def mode-name-mapping
+  {"minor" "m"
+   "major" "Maj"
+   "mixolydian" "Mix"
+   "dorian" "Dor"
+   "phrygian" "Phr"
+   "lydian" "Lyd"
+   "locrian" "Loc"
+   })
+
+(defn transpose-key [key mode]
+  (let [mapped-mode (get mode-name-mapping mode)]
+    (assert mapped-mode (str "unknown mode for " key " " mode))
+    (if-let [relative-major (get relative-major-map (str key mapped-mode))]
+      relative-major
+      (let [[k' _] key]
+        (get relative-major-map (str k' mapped-mode) key)))))
+
 (comment
+  (get relative-major-map "ELoc")
+  (transpose-key "Eb" "locrian")
   (transpose-key "F#" "mixolydian"))
 
 ;; progressions
