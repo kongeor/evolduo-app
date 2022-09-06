@@ -54,7 +54,11 @@
        [:label.label {:for "key"} "Key"]
        [:div.control
         [:div.select
-         (comps/keys-select (:key evolution))]]
+         (comps/keys-select-restricted (:key evolution))]]
+       [:p.help.is-info [:span
+                         "Key selection is disabled for now. Read more about this limitation "
+                         [:a {:href "#"} "here"]
+                         "."]]
        (when-let [key-errors (:key errors)]
          [:p.help.is-danger (first key-errors)])]
       [:div.field

@@ -159,7 +159,7 @@ select e.*
     (sql/query db (h/format q-sqlmap))))
 
 
-(defn find-user-active-evolutions [db user-id]
+(defn find-user-active-evolutions [db user-id & {:keys [limit] :or {limit 10}}]
   (let [q-sqlmap {:select [[:e/id :evolution_id]
                            [:i/id :iteration_id]
                            [:e.min_ratings]
@@ -185,7 +185,8 @@ select e.*
                            [:= :e/user-id user-id]
                            [:<= :i.num :e.total_iterations]
                            [:= :i.last true]]
-                  :order-by [[:i.created_at :desc]]}]
+                  :order-by [[:i.created_at :desc]]
+                  :limit  limit}]
     (sql/query db (h/format q-sqlmap))))
 
 (comment
@@ -194,7 +195,7 @@ select e.*
 
 (defn find-active-public-evolutions
   "user-id is optional, is provided evolutions belonging to the user will be excluded"
-  [db user-id]
+  [db user-id & {:keys [limit] :or {limit 10}}]
   (let [q-sqlmap {:select [[:e/id :evolution_id]
                            [:i/id :iteration_id]
                            [:e.min_ratings]
@@ -224,7 +225,8 @@ select e.*
                            [:= :u.deleted false]
                            (when user-id
                              [:!= :e/user-id user-id])]
-                  :order-by [[:i.created_at :desc]]}]
+                  :order-by [[:i.created_at :desc]]
+                  :limit   10}]
     (sql/query db (h/format q-sqlmap))))
 
 (comment
@@ -233,7 +235,7 @@ select e.*
 
 (defn find-invited-to-evolutions
   "user-id is optional, is provided evolutions belonging to the user will be excluded"
-  [db user-id]
+  [db user-id & {:keys [limit] :or {limit 10}}]
   (let [q-sqlmap {:select [[:e/id :evolution_id]
                            [:i/id :iteration_id]
                            [:e.min_ratings]
@@ -263,8 +265,8 @@ select e.*
                            #_[:= :e.public 0]
                            [:= :i.last true]
                            [:= :u.id user-id]]
-                  :order-by [[:i.created_at :desc]]}]
-    #_(println "**" (h/format q-sqlmap))
+                  :order-by [[:i.created_at :desc]]
+                  :limit   10}]
     (sql/query db (h/format q-sqlmap))))
 
 (comment

@@ -6,33 +6,44 @@
 clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -m antq.core
 ```
 
+## Release checklist ongoing
+
+- [ ] Chickn tweaks
+- [ ] Terms, License, Dev blog
+
 ## Release checklist
 
-- [ ] Secure cookie
+- [X] Secure cookie
 - [ ] Raw fitness
-- [ ] Fix chickn
-- [ ] Terms, License, Dev blog
+- [X] Fix chickn
 - [ ] About page
 - [ ] Contact page
 - [ ] Known issues (mobile view, emails, fixed C)
-- [ ] List limits
+- [X] List limits
 - [ ] Update deps
 - [ ] Help Texts
 - [ ] Evolution details page
 - [ ] Player fixes
-- [ ] W3C check
-- [ ] Zaproxy check
 - [ ] Wizard/Presets
 - [ ] Optimise fitness
 - [ ] Roadmap
-- [ ] Humanize dates
+- [X] Humanize dates
 - [ ] Sponsors
 - [ ] Readme
 - [ ] Note split
+- [ ] You need to be logged in to create an evolution
+- [ ] Remove initial iterations
+- [ ] Debugging info (hardcoded)
 
 ## Post-release checklist
 
 - [ ] Captcha PR
+- [ ] W3C check
+- [ ] Zaproxy check
+ 
+## Post-stats checklist
+
+- [ ] User settings (instrument, debugging info)
 
 
 ## The road to alpha
@@ -72,3 +83,8 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - [ ] Pop sizes
 - [ ] Rating policies
 
+## Support
+
+- Use the app
+- Ringtones
+- Sponsors

@@ -20,7 +20,7 @@
    [:crossover_rate int?]
    [:mutation_rate int?]
    [:mode (vec (cons :enum music/mode-names))]
-   [:key (vec (cons :enum music/music-keys))]
+   [:key (vec (cons :enum music/music-keys-restricted))]
    [:progression (vec (cons :enum music/progressions))]
    [:repetitions [:int {:min 1 :max 4}]]
    [:chord (vec (cons :enum music/chord-intervals-keys))]

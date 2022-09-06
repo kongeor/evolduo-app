@@ -2,6 +2,7 @@
   (:require [evolduo-app.music :as music]
             [evolduo-app.schemas :as s]
             [ring.middleware.anti-forgery :as anti-forgery]
+            [clojure.contrib.humanize :as h]
             [evolduo-app.urls :as urls]))
 
 (defn select [name selected options]
@@ -24,6 +25,13 @@
      [:option (merge {:value k}
                 (when (= k key)
                   {:selected true})) k])])
+
+(defn keys-select-restricted [key]
+  [:select {:name "key"}
+   (for [k music/music-keys-restricted]
+     [:option (merge {:value k}
+                     (when (= k key)
+                       {:selected true})) k])])
 
 (defn mode-select [mode]
   [:select {:name "mode"}
@@ -132,10 +140,14 @@
    [:thead
     [:tr
      [:th "Id"]
-     [:th "Created At"]
+     [:th "Created"]
+     [:th "Updated"]
      [:th "Progress"]
      [:th "Key"]
+     [:th "Mode"]
      [:th "Progression"]
+     [:th "Reps."]
+     [:th "Chord"]
      ]]
    [:tbody
     (for [e evolutions]
@@ -144,10 +156,15 @@
             perc-str (str perc "%")]
         [:tr
          [:td [:a {:href (str "/evolution/" id)} id]]
-         [:td (:created_at e)]
+         [:td {:title (:created_at e)} (h/datetime (:created_at e))]
+         [:td {:title (:updated_at e)} (h/datetime (:updated_at e))]
          [:td [:progress.progress {:value (:num e) :max (:total_iterations e)} perc-str]]
          [:td (:key e)]
-         [:td (:progression e)]]))]])                           ;; TODO add a date
+         [:td (:mode e)]
+         [:td (:progression e)]
+         [:td (:repetitions e)]
+         [:td (:chord e)]
+         ]))]])                           ;; TODO add a date
 
 (defn evolution-type-select [type]
   [:select {:name "type"}

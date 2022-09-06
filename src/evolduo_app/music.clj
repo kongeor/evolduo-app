@@ -5,6 +5,7 @@
 (def measure-sixteens 16)
 
 (def music-keys ["C" "Db" "D" "Eb" "E" "F" "F#" "G" "Ab" "A" "Bb" "B"])
+(def music-keys-restricted ["C"])
 
 (def notes      ["C" "C#" "D" "D#" "E" "F" "F#" "G" "G#" "A" "A#" "B"])
 (def notes-flat ["C" "Db" "D" "Eb" "E" "F" "Gb" "G" "Ab" "A" "Bb" "B"])

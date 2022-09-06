@@ -11,6 +11,7 @@
             [chickn.math :as cmath]
             [chickn.util :as util]
             [chickn.operators :as chops]
+            [chickn.math :as cmath]
             [evolduo-app.music.operators :as mops]
             [evolduo-app.music :as muse])
   (:import (java.time Instant)))
@@ -70,8 +71,10 @@
     (map :genes (take 2 (find-iterations-chromosomes db 60)))
     #_(map #(count (:genes %)) (find-iterations-chromosomes db 60))))
 
+;; TODO put to separate ns
+
 (defmethod chops/->operator ::music-mutation [{:keys [::chops/rate ::chops/random-func] :as cfg}]
-  (fn [_ pop n]
+  (fn [_ pop]
     (mapv
       (fn [c]
         (let [measures (music/chromo->measures-count (:genes c))]
@@ -87,29 +90,27 @@
 (defn- chickn-evolve [evolution chromosomes]
   (let [fitness-fn  (fn [chromo]
                       (fitness/fitness evolution (fitness/maybe-fix evolution chromo)))
-        cfg         #:chickn.core{:chromo-gen #(music/random-track evolution)
+        cfg         #:chickn.core{:chromo-gen  #(music/random-track evolution)
                                   :pop-size    (:population_size evolution)
-                                  :terminated? (constantly false)
+                                  :terminated? util/noop
                                   :monitor     util/noop
                                   :reporter    util/noop
                                   :fitness     fitness-fn
                                   :comparator  chickn/higher-is-better
-                                  :selectors   [#:chickn.selectors{:type :chickn.selectors/best
-                                                                   :elit true
-                                                                   :rate 0.1
-                                                                   :random-func rand}
-                                                #:chickn.selectors{:type        :chickn.selectors/roulette
-                                                                   :rate        0.9
-                                                                   :random-func rand}]
-                                  :operators   [#:chickn.operators{:type         :chickn.operators/cut-crossover
-                                                                   :rate         (float (/ (:crossover_rate evolution) 100.))
-                                                                   :pointcuts    1
-                                                                   :rand-nth     rand-nth
-                                                                   :random-point rand-nth
-                                                                   :random-func  rand}
-                                                #:chickn.operators{:type        ::music-mutation
-                                                                   :rate        (float (/ (:mutation_rate evolution) 100.))
-                                                                   :random-func rand}]}
+                                  :selector    #:chickn.selectors{:type        :chickn.selectors/roulette
+                                                                  :rate        0.3
+                                                                  :random-func rand}
+                                  :crossover   #:chickn.operators{:type         :chickn.operators/cut-crossover
+                                                                  :rate         (float (/ (:crossover_rate evolution) 100.))
+                                                                  :pointcuts    1
+                                                                  :rand-nth     rand-nth
+                                                                  :random-point cmath/rnd-index
+                                                                  :random-func  rand}
+                                  :mutation    #:chickn.operators{:type        ::music-mutation
+                                                                  :rate        (float (/ (:mutation_rate evolution) 100.))
+                                                                  :random-func rand}
+                                  :reinsertion #:chickn.reinsertion{:type :chickn.reinsertion/elitist
+                                                                    :rate 0.1}}
         ]
     (:pop (:genotype (chickn/evolve cfg {:pop chromosomes :iteration 0} 1)))))
 

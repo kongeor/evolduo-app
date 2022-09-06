@@ -56,7 +56,8 @@
 (defn app [db settings]
   (-> routes
     (wrap-db db)
-    (wrap-defaults site-defaults)
+    (wrap-defaults (-> site-defaults
+                       (assoc-in [:session :cookie-attrs :secure] (= (:environment settings) "prod"))))
     wrap-exception                                          ;; TODO why?!
-    (wrap-settings settings)                                ;; TODO secure cookie
+    (wrap-settings settings)
     sentry-ring/wrap-sentry-tracing))
