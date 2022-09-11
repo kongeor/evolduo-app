@@ -1,0 +1,5 @@
+;; resources/migrations/004-add-all-the-indexes.edn
+{:up   ["ALTER TABLE chromosomes ADD COLUMN raw_fitness INT;"
+        "UPDATE chromosomes SET raw_fitness=fitness;"
+        "ALTER TABLE chromosomes ALTER COLUMN raw_fitness SET NOT NULL;"]
+ :down ["ALTER TABLE chromosomes DROP COLUMN raw_fitness;"]}
