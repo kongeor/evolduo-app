@@ -1,5 +1,6 @@
 (ns evolduo-app.model.iteration
   (:require [evolduo-app.model.evolution :as em]
+            [evolduo-app.model.rating :as rating-model]
             [honey.sql :as h]
             [next.jdbc :as jdbc]
             [evolduo-app.music :as music]
@@ -53,7 +54,11 @@
   (let [db (:database.sql/connection integrant.repl.state/system)]
     #_(find-by-id db 1)
     #_(find-iterations-to-evolve db)
-    (find-iterations-chromosomes db 1)))
+    (find-iterations-chromosomes db 199)))
+
+;; TODO chromosome ns ?
+(defn update-fitness [db id fitness]
+  (sql/update! db :chromosomes {:fitness fitness} {:id id}))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)
@@ -135,16 +140,26 @@
             old-iteration (em/find-iteration-by-id tx-opts id)
             iter-chromos  (find-iterations-chromosomes db id)
             evolution     (em/find-evolution-by-id tx-opts (:evolution_id old-iteration))
+            ratings       (rating-model/find-iteration-ratings db (:evolution_id old-iteration) (:num old-iteration))
+            ;; there is no way to know upfront the adjusted fitness, users need to submit their ratings first
+            ;; this is why this update happens at this stage. This is far from ideal, but should be all right
+            ;; for now. There will be no easy way to debug user ratings unless this information is present in the db
+            iter-chromos' (mapv #(assoc % :raw_fitness (:fitness %)
+                                          :fitness (+ (:fitness %) (* 0.2
+                                                                      (get ratings (:id %) 0)
+                                                                      (abs (:fitness %))))) iter-chromos)
+            _             (doseq [c iter-chromos']
+                            (update-fitness db (:id c) (:fitness c)))
             now           (Instant/now)
             evolve-after  (em/calc-evolve-after now (:evolve_after evolution))
-            new-chromos   (chickn-evolve evolution iter-chromos)
+            new-chromos   (chickn-evolve evolution iter-chromos')
             maybe-fix-fn  (partial fitness/maybe-fix evolution)
             new-chromos'  (mapv #(update % :genes maybe-fix-fn) new-chromos)
             iter-insert   (sql/insert! tx-opts :iterations {:evolve_after evolve-after
-                                                       :num          (inc (:num old-iteration))
-                                                       :last         true
-                                                       :version      version
-                                                       :evolution_id (:id evolution)})]
+                                                            :num          (inc (:num old-iteration))
+                                                            :last         true
+                                                            :version      version
+                                                            :evolution_id (:id evolution)})]
         ;; TODO meh
         (sql/update! tx-opts :iterations (assoc old-iteration :last false) {:id (:id old-iteration)})
         (doall
@@ -155,6 +170,7 @@
                                 %)]
                     (assoc (select-keys % [:genes :fitness])
                       :iteration_id (:id iter-insert)
+                      :raw_fitness (:fitness %)
                       :abc abc))) new-chromos'))))))
 
 (defn evolve-all-iterations [db settings]

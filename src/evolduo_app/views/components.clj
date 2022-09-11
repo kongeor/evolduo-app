@@ -55,7 +55,7 @@
                   {:selected true})) c])])
 
 ;;
-(defn abc-track [{:keys [chromosome_id fitness abc]} & {:keys [evolution-id user-id reaction hide-reaction?]}]
+(defn abc-track [{:keys [chromosome_id fitness raw_fitness abc]} & {:keys [evolution-id user-id reaction hide-reaction?]}]
   (let [id chromosome_id
         abc-id (str "abc_" id)
         abc-activate (str "activate-audio-" id)
@@ -72,12 +72,14 @@
      [:div.abc-track {:style "display: none"} id]
      [:h3.title.is-size-4 (str "#" id)]
      (when fitness
-       [:p (str "Fitness: " fitness)])
+       [:div
+        [:p (str "Fitness: " fitness)]
+        [:p (str "Raw Fitness: " raw_fitness)]])
      [:div {:id abc-id}]
      [:div.mb-4 {:id audio-id}]
      [:div.buttons
-      [:button.button.is-primary {:class abc-activate} "Play"]
-      [:button.button.is-light {:class abc-stop} "Stop"]
+      #_[:button.button.is-primary {:class abc-activate} "Play"]
+      #_[:button.button.is-light {:class abc-stop} "Stop"]
       [:button.button.is-light {:class download-midi-id} "Get Midi"]
       [:button.button.is-light {:class download-wav-id} "Get Wav"]
       [:div {:id abc-start-measure-id}]
@@ -91,7 +93,7 @@
          [:input {:type "hidden" :name "redirect_url" :value (urls/url-for :evolution-detail {:evolution-id evolution-id})}]
          [:input {:type "hidden" :name "value" :value "1"}]
          [:input.button.is-link.mr-2 (merge
-                                       {:type "submit" :value "Nice!"}
+                                       {:type "submit" :value "I like this \uD83D\uDC4D"}
                                        (when (or reaction (not user-id))
                                          {:disabled true})
                                        (when reaction
@@ -104,8 +106,8 @@
          [:input {:type "hidden" :name "chromosome_id" :value id}]
          [:input {:type "hidden" :name "redirect_url" :value (urls/url-for :evolution-detail {:evolution-id evolution-id})}]
          [:input {:type "hidden" :name "value" :value "-1"}]
-         [:input.button.is-warning (merge
-                                     {:type "submit" :value "Meh!"}
+         [:input.button.is-danger (merge
+                                     {:type "submit" :value "I don't like this \uD83D\uDC4E"}
                                      (when (or reaction (not user-id))
                                        {:disabled true})
                                      (when reaction

@@ -145,14 +145,28 @@
             [:td (:tempo e)]
             [:td (:user_id e)]])]]])))                      ;; TODO admin only
 
-(defn evolution-detail [req {:keys [user-id evolution chromosomes reaction-map pagination]}]
+(defn evolution-detail [req {:keys [user-id evolution chromosomes reaction-map pagination
+                                    iteration-ratings iteration-num]}]
   (base-view
     req
     [:div
      [:h2.is-size-3.mb-4 (str "Evolution #" (:id evolution))]
+     [:h3.is-size-4 "Evolution details"]
+     [:div
+      [:p (str "Ratings: " (count iteration-ratings) "/" (:min_ratings evolution))]
+      [:p (str "Iteration: " iteration-num "/" (:total_iterations evolution))]
+      [:hr]
+      ]
+     [:h3.is-size-4 "Iteration details"]
+     [:div
+      [:p (str "Ratings: " (count iteration-ratings) "/" (:min_ratings evolution))]
+      [:p (str "Iteration: " iteration-num "/" (:total_iterations evolution))]
+      [:hr]
+      ]
      (when (= user-id (:user_id evolution))
        [:div.mb-4
         [:a.button.is-primary {:href (u/url-for :invitation-form {:evolution-id (:id evolution)})} "Invite"]])
+     [:h3.is-size-4.mb-4 "Chromosomes"]
      [:div
       (for [c chromosomes]
         (let [reaction (-> c :chromosome_id reaction-map)]

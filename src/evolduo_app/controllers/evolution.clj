@@ -100,11 +100,14 @@
             iteration  (iteration-model/find-by-num db iteration-num)
             last-iteration-num (model/find-last-iteration-num-for-evolution db evolution-id)
             reactions (reaction-model/find-iteration-ratings-for-user db evolution-id iteration-num user-id)
-            reaction-map (update-vals (group-by :chromosome_id reactions) first)]
+            reaction-map (update-vals (group-by :chromosome_id reactions) first)
+            iteration-ratings (reaction-model/find-iteration-ratings db evolution-id iteration-num)]
         (r/render-html evolution-views/evolution-detail req {:evolution evolution
                                                              :chromosomes chromosomes
                                                              :user-id user-id
                                                              :reaction-map reaction-map
+                                                             :iteration-ratings iteration-ratings
+                                                             :iteration-num iteration-num
                                                              :pagination {:current (:num iteration)
                                                                           :max last-iteration-num
                                                                           :link-fn #(str "/evolution/" evolution-id "/iteration/" %)}}))

@@ -73,6 +73,7 @@ select e.*
                     (assoc % :iteration_id (:id iter-insert)
                              :genes (vec genes)             ;; TODO check
                              :fitness fitness
+                             :raw_fitness fitness
                              :abc abc))) (repeat (:population_size evolution) sample-chromo)))
         evol-insert))))
 
@@ -145,7 +146,8 @@ select e.*
                            [:i/id :iteration_id]
                            [:c.id :chromosome_id]
                            [:c.abc :abc]
-                           [:c/fitness :fitness]]
+                           [:c/fitness :fitness]
+                           [:c/raw_fitness :raw_fitness]]
                   :from   [[:evolutions :e]]
                   :join   [[:iterations :i] [:= :i/evolution_id :e/id]
                            [:chromosomes :c] [:= :c/iteration_id :i/id]]

@@ -20,13 +20,13 @@ function load_abc(id) {
     var startAudioButton = document.querySelector(".activate-audio-" + id);
     var stopAudioButton = document.querySelector(".stop-audio-" + id);
 
-    var midi = ABCJS.synth.getMidiFile(visualObj, { chordsOff: false, midiOutputType: "link" });
+    var midi = ABCJS.synth.getMidiFile(visualObj, { chordsOff: false, midiOutputType: "link", fileName: id, downloadLabel: function() { return "Download MIDI for " + id } });
     var downloadMidiButton = document.querySelector(".download-midi-" + id);
     downloadMidiButton.innerHTML = midi;
 
     var downloadWavButton = document.querySelector(".download-wav-" + id);
     downloadWavButton.addEventListener("click", function() {
-        synthControl.download() // TODO bpm
+        synthControl.download() // TODO bug when name is passed?
     });
 //    var explanationDiv = document.querySelector(".suspend-explanation-" + id);
     startMeasure = document.querySelector("#start-measure-" + id);
@@ -35,6 +35,7 @@ function load_abc(id) {
     if (ABCJS.synth.supportsAudio()) {
         synthControl = new ABCJS.synth.SynthController();
         synthControl.load("#audio-" + id, cursorControl, {displayLoop: true, displayRestart: true, displayPlay: true, displayProgress: true, displayWarp: true});
+        synthControl.setTune(visualObj, true, {program: 4, chordsOff: false});
     } else {
         document.querySelector("#audio" + id).innerHTML = "<div class='audio-error'>Audio is not supported in this browser.</div>";
     }
@@ -43,69 +44,69 @@ function load_abc(id) {
     window["startMeasure-" + id] = startMeasure;
     window["endMeasure-" + id] = endMeasure;
 
-    startAudioButton.addEventListener("click", function() {
-        // startAudioButton.setAttribute("style", "display:none;");
-        // explanationDiv.setAttribute("style", "opacity: 0;");
-        if (ABCJS.synth.supportsAudio()) {
-            // stopAudioButton.setAttribute("style", "");
-
-            // An audio context is needed - this can be passed in for two reasons:
-            // 1) So that you can share this audio context with other elements on your page.
-            // 2) So that you can create it during a user interaction so that the browser doesn't block the sound.
-            // Setting this is optional - if you don't set an audioContext, then abcjs will create one.
-            window.AudioContext = window.AudioContext ||
-                window.webkitAudioContext ||
-                navigator.mozAudioContext ||
-                navigator.msAudioContext;
-            var audioContext = new window.AudioContext();
-            audioContext.resume().then(function () {
-                // In theory the AC shouldn't start suspended because it is being initialized in a click handler, but iOS seems to anyway.
-
-                synth.init({
-                    audioContext: audioContext,
-                    visualObj: visualObj,
-                    options: {
-                        chordsOff: true,
-                        program: 4
-                    }
-                }).then(function () {
-                    synthControl.setTune(visualObj, true, {program: 4, chordsOff: false}).then(function (response) {
-                        console.log("Audio successfully loaded.")
-//                            seekControls.classList.remove("disabled");
-//                            seekExplanation();
-                    }).catch(function (error) {
-                        console.warn("Audio problem:", error);
-                    });
-
-                    timingCallbacks = new ABCJS.TimingCallbacks(visualObj, {
-                        beatCallback: window["cursorControl-" + id].onBeat,
-                        eventCallback: window["cursorControl-" + id].onEvent
-                    });
-                    window["cursorControl-" + id].onStart();
-                    synth.prime().then(function () {
-                        var start = (startMeasure.value - 1) / NUM_MEASURES;
-                        synth.seek(start);
-                        timingCallbacks.setProgress(start);
-                        synth.start();
-                        timingCallbacks.start();
-                    });
-                }).catch(function (error) {
-                    console.log("Audio Failed", error);
-                });
-            });
-        } else {
-            var audioError = document.querySelector(".audio-error");
-            audioError.setAttribute("style", "");
-        }
-    });
-
-    stopAudioButton.addEventListener("click", function() {
-        startAudioButton.setAttribute("style", "");
-        // explanationDiv.setAttribute("style", "");
-        // stopAudioButton.setAttribute("style", "display:none;");
-        synth.stop();
-        timingCallbacks.stop();
-    });
+//    startAudioButton.addEventListener("click", function() {
+//        // startAudioButton.setAttribute("style", "display:none;");
+//        // explanationDiv.setAttribute("style", "opacity: 0;");
+//        if (ABCJS.synth.supportsAudio()) {
+//            // stopAudioButton.setAttribute("style", "");
+//
+//            // An audio context is needed - this can be passed in for two reasons:
+//            // 1) So that you can share this audio context with other elements on your page.
+//            // 2) So that you can create it during a user interaction so that the browser doesn't block the sound.
+//            // Setting this is optional - if you don't set an audioContext, then abcjs will create one.
+//            window.AudioContext = window.AudioContext ||
+//                window.webkitAudioContext ||
+//                navigator.mozAudioContext ||
+//                navigator.msAudioContext;
+//            var audioContext = new window.AudioContext();
+//            audioContext.resume().then(function () {
+//                // In theory the AC shouldn't start suspended because it is being initialized in a click handler, but iOS seems to anyway.
+//
+//                synth.init({
+//                    audioContext: audioContext,
+//                    visualObj: visualObj,
+//                    options: {
+//                        chordsOff: true,
+//                        program: 4
+//                    }
+//                }).then(function () {
+//                    synthControl.setTune(visualObj, true, {program: 4, chordsOff: false}).then(function (response) {
+//                        console.log("Audio successfully loaded.")
+////                            seekControls.classList.remove("disabled");
+////                            seekExplanation();
+//                    }).catch(function (error) {
+//                        console.warn("Audio problem:", error);
+//                    });
+//
+//                    timingCallbacks = new ABCJS.TimingCallbacks(visualObj, {
+//                        beatCallback: window["cursorControl-" + id].onBeat,
+//                        eventCallback: window["cursorControl-" + id].onEvent
+//                    });
+//                    window["cursorControl-" + id].onStart();
+//                    synth.prime().then(function () {
+//                        var start = (startMeasure.value - 1) / NUM_MEASURES;
+//                        synth.seek(start);
+//                        timingCallbacks.setProgress(start);
+//                        synth.start();
+//                        timingCallbacks.start();
+//                    });
+//                }).catch(function (error) {
+//                    console.log("Audio Failed", error);
+//                });
+//            });
+//        } else {
+//            var audioError = document.querySelector(".audio-error");
+//            audioError.setAttribute("style", "");
+//        }
+//    });
+//
+//    stopAudioButton.addEventListener("click", function() {
+//        startAudioButton.setAttribute("style", "");
+//        // explanationDiv.setAttribute("style", "");
+//        // stopAudioButton.setAttribute("style", "display:none;");
+//        synth.stop();
+//        timingCallbacks.stop();
+//    });
 }
 
 function abc_id(id, param) {

@@ -28,3 +28,22 @@
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (sql/find-by-keys db :ratings {:id 3})))
+
+(defn find-iteration-ratings
+  "Returns a map of chromosome_id -> rating (aggregate sum)"
+  [db evolution-id iteration-num]
+  (let [q-sqlmap {:select   [[[:sum :r/value] :rating]
+                             [:r/chromosome_id :chromosome_id]]
+                  :from     [[:ratings :r]]
+                  :join     [[:iterations :i] [:= :r/iteration_id :i/id]
+                             [:chromosomes :c] [:= :r/chromosome_id :c/id]]
+                  :where    [:and
+                             [:= :i/evolution_id evolution-id]
+                             [:= :i/num iteration-num]]
+                  :group-by [:r/chromosome_id]}]
+    (let [results (sql/query db (h/format q-sqlmap))]
+      (reduce #(assoc % (:chromosome_id %2) (:rating %2)) {} results))))
+
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    (find-iteration-ratings db 67 2)))

@@ -10,22 +10,22 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 
 - [ ] Chickn tweaks
 - [ ] Terms, License, Dev blog
+- [ ] Optimise fitness
 
 ## Release checklist
 
 - [X] Secure cookie
-- [ ] Raw fitness
+- [X] Raw fitness
 - [X] Fix chickn
 - [ ] About page
 - [ ] Contact page
 - [ ] Known issues (mobile view, emails, fixed C)
 - [X] List limits
-- [ ] Update deps
+- [ ] Update deps / abc.js
 - [ ] Help Texts
 - [ ] Evolution details page
-- [ ] Player fixes
+- [X] Player fixes
 - [ ] Wizard/Presets
-- [ ] Optimise fitness
 - [ ] Roadmap
 - [X] Humanize dates
 - [ ] Sponsors
@@ -34,12 +34,20 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - [ ] You need to be logged in to create an evolution
 - [ ] Remove initial iterations
 - [ ] Debugging info (hardcoded)
+- [ ] Review maybe-fix
+- [ ] Cookie persistence
+- [ ] Shuffle chromosome list
+- [ ] Favico
 
 ## Post-release checklist
 
 - [ ] Captcha PR
 - [ ] W3C check
 - [ ] Zaproxy check
+- [ ] Account likes
+- [ ] Progress indicator
+- [ ] SEO
+- [ ] Explorer track options (chromatic etc.)
  
 ## Post-stats checklist
 
