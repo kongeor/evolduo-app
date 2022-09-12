@@ -22,8 +22,8 @@
   (sql/get-by-id db :iterations id))
 
 (defn find-by-num
-  [db num]
-  (first (sql/find-by-keys db :iterations {:num num})))
+  [db evolution-id num]
+  (first (sql/find-by-keys db :iterations {:evolution_id evolution-id :num num})))
 
 (defn find-iterations-to-evolve [db]
   (let [q-sqlmap {:select [[:i/id :id] [:e/id :evolution_id] [:e/key :key] [:e/mode :mode]

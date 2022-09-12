@@ -3,7 +3,8 @@
             [evolduo-app.views.components :as comps]
             [ring.middleware.anti-forgery :as anti-forgery]
             [evolduo-app.urls :as u]
-            [evolduo-app.schemas :as s]))
+            [evolduo-app.schemas :as s]
+            [clojure.contrib.humanize :as h]))
 
 (defn evolution-form [req {:keys [evolution errors] :as content}]
   (base-view
@@ -146,36 +147,59 @@
             [:td (:user_id e)]])]]])))                      ;; TODO admin only
 
 (defn evolution-detail [req {:keys [user-id evolution chromosomes reaction-map pagination
-                                    iteration-ratings iteration-num]}]
-  (base-view
-    req
-    [:div
-     [:h2.is-size-3.mb-4 (str "Evolution #" (:id evolution))]
-     [:h3.is-size-4 "Evolution details"]
-     [:div
-      [:p (str "Ratings: " (count iteration-ratings) "/" (:min_ratings evolution))]
-      [:p (str "Iteration: " iteration-num "/" (:total_iterations evolution))]
-      [:hr]
-      ]
-     [:h3.is-size-4 "Iteration details"]
-     [:div
-      [:p (str "Ratings: " (count iteration-ratings) "/" (:min_ratings evolution))]
-      [:p (str "Iteration: " iteration-num "/" (:total_iterations evolution))]
-      [:hr]
-      ]
-     (when (= user-id (:user_id evolution))
-       [:div.mb-4
-        [:a.button.is-primary {:href (u/url-for :invitation-form {:evolution-id (:id evolution)})} "Invite"]])
-     [:h3.is-size-4.mb-4 "Chromosomes"]
-     [:div
-      (for [c chromosomes]
-        (let [reaction (-> c :chromosome_id reaction-map)]
-          (comps/abc-track c :evolution-id (:id evolution) :reaction reaction :user-id user-id)))]
-     [:div
-      (comps/pagination pagination)]]
-    :enable-abc? true
-    :body-load-hook "load()"
-    ))
+                                    iteration-ratings iteration]}]
+  (let [ratings-satisfied? (>= (count iteration-ratings) (:min_ratings evolution))
+        should-evolve?     (> (System/currentTimeMillis) (-> iteration :evolve_after (.getTime)))
+        finished?          (= (:num iteration) (:total_iterations evolution))
+        last?              (:last iteration)]
+    (base-view
+      req
+      [:div
+       [:h2.is-size-3.mb-4 (str "Evolution #" (:id evolution))]
+       [:h3.is-size-4.mb-4 "Evolution details"]
+       [:div
+        [:p (str "Key: " (:key evolution))]
+        [:hr]
+        ]
+       [:h3.is-size-4.mb-4 "Iteration details"]
+       [:div
+        [:p (str "Ratings: " (count iteration-ratings) "/" (:min_ratings evolution))]
+        [:p (str "Iteration: " (:num iteration) "/" (:total_iterations evolution))]
+        (if last?
+          [:p (str "Status: "
+                   (cond
+                     finished?
+                     "Finished"
+                     (and ratings-satisfied? should-evolve?)
+                     "Should evolve at any moment now"
+                     (and should-evolve?)
+                     "Not enough ratings to evolve to next iteration"
+                     :else
+                     (str "Will evolve " (h/datetime (:evolve_after iteration)) (when (not ratings-satisfied?)
+                                                                                  " (if will have enough ratings)"))
+                     ))]
+          [:p [:a {:href (str "/evolution/" (:id evolution))} "Jump to last iteration"]])
+        [:hr]
+        ]
+       (when (= user-id (:user_id evolution))
+         [:div
+          [:h3.is-size-4.mb-4 "Collaboration"]
+          ;; TODO details
+          ;; TODO!! disable rating past tracks
+          [:p.mb-4 "This is public evolution, people can see it and rate the chromosomes/tracks"]
+          [:div.mb-4
+           [:a.button.is-primary {:href (u/url-for :invitation-form {:evolution-id (:id evolution)})} "Invite"]]
+          [:hr]])
+       [:h3.is-size-4.mb-4 "Chromosomes"]
+       [:div
+        (for [c chromosomes]
+          (let [reaction (-> c :chromosome_id reaction-map)]
+            (comps/abc-track c :evolution-id (:id evolution) :reaction reaction :user-id user-id)))]
+       [:div
+        (comps/pagination pagination)]]
+      :enable-abc? true
+      :body-load-hook "load()"
+      )))
 
 (defn first-not-null [errors]
   (ffirst (filter some? errors)))

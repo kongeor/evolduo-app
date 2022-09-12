@@ -97,7 +97,7 @@
         db (:db req)]
     (if-let [evolution (model/find-evolution-by-id db evolution-id)]
       (let [chromosomes (model/find-iteration-chromosomes db evolution-id iteration-num)
-            iteration  (iteration-model/find-by-num db iteration-num)
+            iteration  (iteration-model/find-by-num db evolution-id iteration-num)
             last-iteration-num (model/find-last-iteration-num-for-evolution db evolution-id)
             reactions (reaction-model/find-iteration-ratings-for-user db evolution-id iteration-num user-id)
             reaction-map (update-vals (group-by :chromosome_id reactions) first)
@@ -107,7 +107,7 @@
                                                              :user-id user-id
                                                              :reaction-map reaction-map
                                                              :iteration-ratings iteration-ratings
-                                                             :iteration-num iteration-num
+                                                             :iteration iteration
                                                              :pagination {:current (:num iteration)
                                                                           :max last-iteration-num
                                                                           :link-fn #(str "/evolution/" evolution-id "/iteration/" %)}}))
