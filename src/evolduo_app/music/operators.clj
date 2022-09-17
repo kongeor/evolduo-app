@@ -8,7 +8,11 @@
 (defn split-note [c note-idx]
   (assert (not= -2 (c note-idx)) (str "note a note at idx " note-idx " on " c))
   (let [l (calc-note-length c note-idx)]
-    (assoc c (+ note-idx (/ l 2)) (c note-idx))))
+    (if (= l 1)
+      c
+      (let [p  (c note-idx)
+            p' (+ -2 (rand-int 5) p)]
+        (assoc c (+ note-idx (/ l 2)) p')))))
 
 (defn next-note-idx [c note-idx]
   (assert (not= -2 (c note-idx)) (str "note a note at idx " note-idx " on " c))

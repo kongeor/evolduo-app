@@ -83,14 +83,14 @@
     (mapv
       (fn [c]
         (let [measures (music/chromo->measures-count (:genes c))]
-          (reduce (fn [{:keys [genes] :as c} i]
+          (reduce (fn [{:keys [genes] :as c} _]
                     (if (> rate (random-func))
                       (let [r (rand-int 3)]
                         (condp = r
                           0 (assoc c :genes (mops/alter-random-note-pitch genes))
                           1 (assoc c :genes (mops/merge-random-note genes))
                           2 (assoc c :genes (mops/split-random-note genes))))
-                      c)) c (range measures)))) pop)))
+                      c)) c (range (* 4 measures))))) pop))) ;; why 4? increase the mutation chance to get more diverse results
 
 (defn- chickn-evolve [evolution chromosomes]
   (let [fitness-fn  (fn [chromo]

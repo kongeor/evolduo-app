@@ -13,13 +13,19 @@
   (is (= 16 (calc-note-length c1 48))))
 
 (deftest split-note-test
-  (is (= [60 -2 -2 -2 -2 -2 -2 -2 60 -2 -2 -2 -2 -2 -2 -2]
-        (take 16 (split-note c1 0))))
-  (is (= [60 -2 -2 -2 -2 -2 -2 -2 60 -2 -2 -2 60 -2 -2 -2]
-        (take 16
-          (-> c1
-            (split-note 0)
-            (split-note 8))))))
+  (testing "splitting adjacent notes should do nothing"
+    (with-redefs [rand-int (constantly 2)]
+      (is (= [60 60 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2]
+            (take 16 (split-note (assoc c1 1 60) 0))))))
+  (with-redefs [rand-int (constantly 2)]
+    (is (= [60 -2 -2 -2 -2 -2 -2 -2 60 -2 -2 -2 -2 -2 -2 -2]
+          (take 16 (split-note c1 0)))))
+  (with-redefs [rand-int (constantly 4)]
+    (is (= [60 -2 -2 -2 -2 -2 -2 -2 62 -2 -2 -2 64 -2 -2 -2]
+          (take 16
+            (-> c1
+              (split-note 0)
+              (split-note 8)))))))
 
 (deftest next-note-idx-test
   (is (= 16 (next-note-idx c1 0)))
@@ -45,7 +51,8 @@
             (alter-random-note-pitch c1))))))
 
 (deftest split-random-note-test
-  (with-redefs [shuffle identity]
+  (with-redefs [shuffle identity
+                rand-int (constantly 2)]
     (is (= [60 -2 -2 -2 -2 -2 -2 -2 60 -2 -2 -2 -2 -2 -2 -2]
           (take 16
             (split-random-note c1))))))

@@ -22,22 +22,32 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - [ ] Known issues (mobile view, emails, fixed C)
 - [X] List limits
 - [ ] Update deps / abc.js
-- [ ] Help Texts
-- [ ] Evolution details page
+- [ ] Help Texts refinements (+ invitation)
+- [ ] Evolution more details page
 - [X] Player fixes
-- [ ] Wizard/Presets
+- [X] Wizard/Presets
 - [ ] Roadmap
 - [X] Humanize dates
 - [ ] Sponsors
 - [ ] Readme
-- [ ] Note split
-- [ ] You need to be logged in to create an evolution
-- [ ] Remove initial iterations
+- [X] Note split
+- [X] You need to be logged in to create an evolution
+- [X] Remove initial iterations
 - [ ] Debugging info (hardcoded)
 - [ ] Review maybe-fix
 - [ ] Cookie persistence
 - [ ] Shuffle chromosome list
-- [ ] Favico
+- [X] Favico
+- [ ] Subresource integrity
+- [ ] Validate 0 crossover 0 mutation, improve selections
+- [ ] Bound checks, more notes etc.
+- [ ] Progress hover
+- [ ] Iteration navigation
+- [ ] Rating past tracks
+
+## Unclear
+
+- [ ] Explorer chromosome selection (for debugging chromatic asc/desc, blank for practice etc.)
 
 ## Post-release checklist
 
@@ -96,3 +106,7 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - Use the app
 - Ringtones
 - Sponsors
+
+## Thanks
+
+https://favicon.io/favicon-generator/

@@ -1,0 +1,4 @@
+{:up   ["ALTER TABLE evolutions ALTER COLUMN progression TYPE VARCHAR(500);"]
+ ;; not a good idea, is it?
+ ; :down ["ALTER TABLE evolutions ALTER COLUMN progression TYPE VARCHAR(20);"]
+ }

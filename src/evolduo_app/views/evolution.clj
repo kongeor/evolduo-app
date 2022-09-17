@@ -11,6 +11,8 @@
     req
     [:div
      [:h3.title.is-3 "New Evolution"]
+     (when-not (-> req :params :crossover_rate)
+       [:div.notification.is-warning [:span "Too many options? Try " [:a {:href "/evolution/presets"} "presets"] "."]])
      [:form {:method "post" :action "/evolution/save"}
       [:input {:type "hidden" :id "__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
       [:div.field
@@ -19,38 +21,45 @@
          [:input (merge {:type "checkbox" :name "public" :value "true"}
                    (when (:public evolution)
                      {:checked "checked"}))]
-         " Public"]]]
+         " Public"]]
+       [:p.help.is-info "If this evolution is public, users will be able to see it and rate the tracks."]]
       [:div.field
        [:label.label {:for "min_ratings"} "Min Ratings"]
        [:div.control
-        [:input.input {:type "number" :name "min_ratings" :value (:min_ratings evolution) :min "0"}]]]
+        [:input.input {:type "number" :name "min_ratings" :value (:min_ratings evolution) :min "0"}]]
+       [:p.help.is-info "How many ratings an iteration should have to be able to evolve to the next generation."]]
       [:div.field
        [:label.label {:for "evolve_after"} "Evolve After"]
        [:div.control
         [:div.select
          (comps/evolve-after-select (:evolve_after evolution))]]
+       [:p.help.is-info "After how much time should an iteration evolve the the next one. If you are collaborating with others consider giving users some time to listen and rate the tracks."]
        (when-let [key-errors (:evolve_after errors)]
          [:p.help.is-danger (first key-errors)])]
-      [:div.field
+      #_[:div.field
        [:label.label {:for "initial_iterations"} "Initial Iterations"]
        [:div.control
         [:input.input {:type "number" :name "initial_iterations" :value (:initial_iterations evolution) :min "0" :max "20"}]]]
       [:div.field
        [:label.label {:for "total_iterations"} "Total Iterations"]
        [:div.control
-        [:input.input {:type "number" :name "total_iterations" :value (:total_iterations evolution) :min "0" :max "100"}]]]
+        [:input.input {:type "number" :name "total_iterations" :value (:total_iterations evolution) :min "0" :max "100"}]]
+       [:p.help.is-info "The total number of iterations for this evolution."]]
       [:div.field
        [:label.label {:for "population_size"} "Population Size"]
        [:div.control
-        [:input.input {:type "number" :name "population_size" :value (:population_size evolution) :min "0" :max "100"}]]]
+        [:input.input {:type "number" :name "population_size" :value (:population_size evolution) :min "0" :max "100"}]]
+       [:p.help.is-info "The number of tracks each iteration will have."]]
       [:div.field
        [:label.label {:for "crossover_rate"} "Crossover Rate"]
        [:div.control
-        [:input.input {:type "number" :name "crossover_rate" :value (:crossover_rate evolution) :min "0" :max "100"}]]]
+        [:input.input {:type "number" :name "crossover_rate" :value (:crossover_rate evolution) :min "0" :max "100"}]]
+       [:p.help.is-info "The rate (percentage) of how many tracks will be recombined with other tracks on each iteration."]]
       [:div.field
        [:label.label {:for "mutation_rate"} "Mutation Rate"]
        [:div.control
-        [:input.input {:type "number" :name "mutation_rate" :value (:mutation_rate evolution) :min "0" :max "100"}]]]
+        [:input.input {:type "number" :name "mutation_rate" :value (:mutation_rate evolution) :min "0" :max "100"}]]
+       [:p.help.is-info "The rate (percentage) of how many notes will be modified on each track."]]
       [:div.field
        [:label.label {:for "key"} "Key"]
        [:div.control
@@ -78,12 +87,15 @@
        [:label.label {:for "repetitions"} "Repetitions"]
        [:div.control
         [:div.select
-         (comps/select "repetitions" (:progression evolution) s/repetition-options)]]]
+         (comps/select "repetitions" (:repetitions evolution) s/repetition-options)]]
+       [:p.help.is-info "How many times the chord progression should be repeated."]]
       [:div.field
        [:label.label {:for "chord"} "Chord Intervals"]
        [:div.control
         [:div.select
-         (comps/chord-select (:chord evolution))]]]
+         (comps/chord-select (:chord evolution))]]
+       [:p.help.is-info "R = just the root note, R + 5 + R = 5th chord, R + 3 + 3 = triad chord e.g. C, Cm etc.,
+       R + 3 + 3 + 3 = quadrant chord e.g. CMaj7"]]
       [:div.field
        [:label.label {:for "tempo"} "Tempo"]
        [:div.control
@@ -159,11 +171,13 @@
        [:h3.is-size-4.mb-4 "Evolution details"]
        [:div
         [:p (str "Key: " (:key evolution))]
+        [:p (str "Crossover Rate: " (:crossover_rate evolution) "%")]
+        [:p (str "Mutation Rate: " (:mutation_rate evolution) "%")]
         [:hr]
         ]
        [:h3.is-size-4.mb-4 "Iteration details"]
        [:div
-        [:p (str "Ratings: " (count iteration-ratings) "/" (:min_ratings evolution))]
+        [:p (str "Ratings (Provided/Required): " (count iteration-ratings) "/" (:min_ratings evolution))]
         [:p (str "Iteration: " (:num iteration) "/" (:total_iterations evolution))]
         (if last?
           [:p (str "Status: "
@@ -186,11 +200,18 @@
           [:h3.is-size-4.mb-4 "Collaboration"]
           ;; TODO details
           ;; TODO!! disable rating past tracks
-          [:p.mb-4 "This is public evolution, people can see it and rate the chromosomes/tracks"]
+          [:p.mb-4
+           (if (:public evolution)
+             (str
+               "This is a public evolution, everyone can see it and rate the tracks. "
+               "You can still invite users so they can see those evolutions in their collaboration list.")
+             (str
+               "This is a private evolution, only you and people you invite can see it and rate the tracks. "
+               "Use the invitation button below to invite users to collaborate on this evolution."))]
           [:div.mb-4
            [:a.button.is-primary {:href (u/url-for :invitation-form {:evolution-id (:id evolution)})} "Invite"]]
           [:hr]])
-       [:h3.is-size-4.mb-4 "Chromosomes"]
+       [:h3.is-size-4.mb-4 "Tracks"]
        [:div
         (for [c chromosomes]
           (let [reaction (-> c :chromosome_id reaction-map)]
@@ -221,3 +242,41 @@
       [:div.control
        [:input.button.is-link {:type "submit" :value "Invite"}]]]]
     :notification notification))
+
+(defn- presets-form [preset]
+  [:form {:method "post" :action "/evolution/presets"}
+   [:input {:type "hidden" :id "__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
+   [:input {:type "hidden" :name "preset" :value preset}]
+   [:div.control
+    [:input.button.is-link {:type "submit" :value "Select"}]]])
+
+(defn presets [req {}]
+  (base-view
+    req
+    [:div
+     [:h3.title.is-3 "Presets"]
+     [:p.mb-4 "Presets have a predefined set of options that attempt to match common musical styles."]
+     [:p.mb-4 "Each selection will prepopulate some of the existing options and you can still adjust them
+      before creating a new evolution."]
+     [:div.columns
+      [:div.column
+       [:h4.title.is-4 "Minimal"]
+       [:p.mb-4 "Minimal chord progressions, root or 5th chords, common musical modes, with conservative genetic parameters."]
+       (presets-form "minimal")
+       ]
+      [:div.column
+       [:h4.title.is-4 "Standard"]
+       [:p.mb-4 "Common chord progressions, triad chords, common musical modes, with standard genetic parameters."]
+       (presets-form "standard")
+       ]
+      [:div.column
+       [:h4.title.is-4 "Progressive"]
+       [:p.mb-4 "Less common chord progressions, quadrant chords, less common musical modes, with more aggressive genetic parameters."]
+       (presets-form "progressive")
+       ]
+      [:div.column
+       [:h4.title.is-4 "Experimental"]
+       [:p.mb-4 "Less common chord progressions, quadrant chords, uncommon musical modes, with very aggressive genetic parameters."]
+       (presets-form "experimental")
+        ]
+      ]]))

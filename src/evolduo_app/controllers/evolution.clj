@@ -3,45 +3,36 @@
             [evolduo-app.model.evolution :as model]
             [evolduo-app.model.rating :as reaction-model]
             [evolduo-app.model.iteration :as iteration-model]
-            [evolduo-app.request :as request]
-            [evolduo-app.response :as r]
+            [evolduo-app.request :as req]
+            [evolduo-app.response :as res]
             [evolduo-app.schemas :as schemas]
             [evolduo-app.views.evolution :as evolution-views]
             [ring.util.response :as resp]
-            [evolduo-app.urls :as u]))
+            [evolduo-app.urls :as u]
+            [ring.util.codec :as codec]))
 
 (defn edit
   "Display the add/edit form."
   ([req]
-   (edit req nil nil))
-  ([req evolution errors]
-   (let [evolution (or evolution
-                     {:public             true
-                      :min_ratings        1
-                      :initial_iterations 10
-                      :total_iterations   10
-                      :population_size    10
-                      :crossover_rate     50
-                      :mutation_rate      50
-                      :key                "C"
-                      :mode               "major"
-                      :progression        "I-IV-V-I"
-                      :repetitions        1
-                      :chord              "R + 3 + 3"
-                      :tempo              130})]
-     (r/render-html evolution-views/evolution-form req {:evolution evolution
-                                                        :errors errors}))))
+   (if (req/user-id req)
+     (let [evolution (merge
+                       model/default-evolution-params
+                       (:params req))
+           {:keys [data error]} (schemas/decode-and-validate schemas/Evolution evolution)]
+       (res/render-html evolution-views/evolution-form req {:evolution data
+                                                            :errors    error}))
+     (res/redirect "/user/login" :flash {:type :danger :message "You need to be logged to create an evolution"}))))
 
 (defn search
   [req]
   (let [type    (-> req :params :type)
         db      (:db req)
-        user-id (request/user-id req)
+        user-id (req/user-id req)
         evolutions (condp = type
                      "public"  (model/find-active-public-evolutions db user-id :limit 100)
                      "invited" (model/find-invited-to-evolutions db user-id :limit 100)
                      "my"      (model/find-user-active-evolutions db user-id :limit 100))] ;; TODO pagination
-    (r/render-html evolution-views/evolution-list req evolutions)))
+    (res/render-html evolution-views/evolution-list req evolutions)))
 
 (defn save
   [req]
@@ -49,7 +40,7 @@
         data (-> req :params (select-keys [:public
                                            :min_ratings
                                            :evolve_after
-                                           :initial_iterations
+                                           ; :initial_iterations
                                            :total_iterations
                                            :population_size
                                            :crossover_rate
@@ -60,15 +51,17 @@
                                            :repetitions
                                            :chord
                                            :tempo]))
-        sanitized-data (schemas/decode-and-validate schemas/Evolution data)]
+        data' (assoc data :initial_iterations 0)            ;; temp patch
+        sanitized-data (schemas/decode-and-validate schemas/Evolution data')]
     (log/info "sanitized" sanitized-data)
     (cond
       (nil? user-id)
-      (r/redirect (u/url-for :evolution-form)
-        :flash {:type :danger :message "You need to be logged in"})
+      (res/redirect (u/url-for :evolution-form)
+                    :flash {:type :danger :message "You need to be logged in"})
 
       (:error sanitized-data)
-      (edit (assoc req :flash {:type :danger :message "oops"}) data (:error sanitized-data))
+      (res/render-html evolution-views/evolution-form req {:evolution data'
+                                                           :errors    (:error sanitized-data)})
 
       :else
       (let [evolution (merge (:data sanitized-data)
@@ -93,7 +86,7 @@
   [req]
   (let [evolution-id (parse-long (-> req :params :evolution-id))
         iteration-num (parse-long (-> req :params :iteration-num))
-        user-id (request/user-id req)
+        user-id (req/user-id req)
         db (:db req)]
     (if-let [evolution (model/find-evolution-by-id db evolution-id)]
       (let [chromosomes (model/find-iteration-chromosomes db evolution-id iteration-num)
@@ -102,13 +95,22 @@
             reactions (reaction-model/find-iteration-ratings-for-user db evolution-id iteration-num user-id)
             reaction-map (update-vals (group-by :chromosome_id reactions) first)
             iteration-ratings (reaction-model/find-iteration-ratings db evolution-id iteration-num)]
-        (r/render-html evolution-views/evolution-detail req {:evolution evolution
-                                                             :chromosomes chromosomes
-                                                             :user-id user-id
-                                                             :reaction-map reaction-map
+        (res/render-html evolution-views/evolution-detail req {:evolution       evolution
+                                                             :chromosomes       chromosomes
+                                                             :user-id           user-id
+                                                             :reaction-map      reaction-map
                                                              :iteration-ratings iteration-ratings
-                                                             :iteration iteration
-                                                             :pagination {:current (:num iteration)
+                                                             :iteration         iteration
+                                                             :pagination        {:current (:num iteration)
                                                                           :max last-iteration-num
                                                                           :link-fn #(str "/evolution/" evolution-id "/iteration/" %)}}))
-      (r/render-404))))
+      (res/render-404))))
+
+(defn get-presets [req]
+  ;; TODO user needs to be logged-in
+  (res/render-html evolution-views/presets req {}))
+
+(defn post-presets [req]
+  (let [preset (-> req :params :preset)
+        params (model/preset->params preset)]
+    (res/redirect (str "/evolution/form?" (codec/form-encode params)))))

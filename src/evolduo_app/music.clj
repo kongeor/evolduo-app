@@ -112,11 +112,17 @@
 
 (def all-degrees-progression "I-II-III-IV-V-VI-VII-I")
 
-(def progressions ["I-IV-V-I"
+(def progressions ["I-I-I-I"
+                   "I-IV-V-I"
                    "I-II-VI-I"
                    "I-IV-I-IV"
                    "I-I-VII-I"
-                   all-degrees-progression
+                   "II-V-I-I"
+
+                   "VI-II-V-I"                              ;;  Circle
+                   "I-V-VI-III-IV-I-IV-V"                   ;; Pachelbel's Canon
+                   "I-I-I-I-IV-IV-I-I-V-V-I-I"
+                   ;; all-degrees-progression
                    ])
 
 (def chord-intervals [["R" [0]]
@@ -266,8 +272,11 @@
       3/2 "3"
       7/4 "3"                                                ;; fix?
       2 "4"
+      5/2 ""                                                ;; fix?
       3 "6"
-      4 "8")))
+      4 "8"
+      ""                                                    ;; 7/2 etc. TODO cleanup
+      )))
 
 (def c [60 -2 -2 -2 -2 -2 -2 -2 60 -2 -2 -2 -2 -2 -2 -2
         62 64 67 -2 -1 -2 -2 -2 67 -2 69 -2 -2 -2 -2 -2
@@ -487,8 +496,12 @@
               "VI" 5
               "VII" 6})
 
-(defn progression->degrees [mode progression]
+(defn progression->degrees [progression]
   (map degrees (str/split progression #"-")))
+
+(comment
+  (progression->degrees "I-I-I-I-IV-IV-I-I-V-V-I-I")
+  )
 
 (defn progression-measure-count [progression]
   (count (str/split progression #"-")))
@@ -497,16 +510,16 @@
   (progression-measure-count "I-IV-V-I"))
 
 (comment
-  (progression->degrees :major "I-IV-V-I"))
+  (progression->degrees "I-IV-V-I"))
 
 (defn gen-chord-progression [{:keys [key mode duration progression chord]}]
-  (let [dgs (progression->degrees mode progression)
+  (let [dgs (progression->degrees progression)
         chords (map #(gen-chord {:key key :mode mode :duration duration
                                  :chord chord :degree %}) dgs)]
     (str/join " | " chords)))
 
 (defn gen-chord-progression-notes [{:keys [key mode duration progression chord repetitions]}]
-  (let [dgs (progression->degrees mode progression)
+  (let [dgs (progression->degrees progression)
         chords (map #(gen-chord-notes {:key key :mode mode :duration duration
                                        :chord chord :degree %}) dgs)]
     (apply concat (repeat repetitions chords))))
@@ -515,7 +528,7 @@
   (gen-chord-progression-notes {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I"}))
 
 (defn gen-chord-names [{:keys [mode progression repetitions] :as settings}]
-  (let [dgs (progression->degrees mode progression)]
+  (let [dgs (progression->degrees progression)]
     (->> dgs
       (map #(gen-chord-2 (merge settings {:degree %})))
       (repeat repetitions)
@@ -526,7 +539,7 @@
         root-note (key->int-note key)
         scale-notes (mode->scale mode)
         ;; one day this will be much more intelligent
-        scale-notes* (apply concat (repeat 10 scale-notes))]
+        scale-notes* (apply concat (repeat 1000 scale-notes))]
     (take (* 16 measures) (mapcat (fn [iv] [(+ root-note iv) -2 -2 -2]) (shuffle scale-notes*)))))
 
 (comment

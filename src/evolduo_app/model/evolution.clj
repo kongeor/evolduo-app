@@ -274,3 +274,63 @@ select e.*
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (find-invited-to-evolutions db 2)))
+
+(defn- rnd-standard-progression []
+  (rand-nth
+    [{:progression "I-V-VI-III-IV-I-IV-V"
+      :repetitions 2}
+     {:progression "I-I-I-I-IV-IV-I-I-V-V-I-I"
+      :repetitions 2}
+     {:progression "VI-II-V-I"
+      :repetitions 4}
+     {:progression "I-IV-V-I"
+      :repetitions 4}
+     ]))
+
+(def default-evolution-params {:public             true
+                               :min_ratings        1
+                               :evolve_after       "5-min"
+                               :initial_iterations 0
+                               :total_iterations   20
+                               :population_size    20
+                               :crossover_rate     50
+                               :mutation_rate      50
+                               :key                "C"
+                               :mode               "major"
+                               :progression        "I-IV-V-I"
+                               :repetitions        2
+                               :chord              "R + 3 + 3"
+                               :tempo              130})
+
+(defn preset->params [preset]
+  (condp = preset
+    "minimal"
+    {:crossover_rate 30
+     :mutation_rate  10
+     :total_iterations   20
+     :progression    (rand-nth ["I-I-I-I" "I-IV-I-IV"])
+     :mode           (rand-nth ["major" "dorian" "mixolydian" "minor"])
+     :chord          (rand-nth ["R" "R + 5 + R"])
+     :tempo          100}
+    "progressive"
+    {:crossover_rate 30
+     :mutation_rate 30
+     :total_iterations   20
+     :repetitions 4
+     :progression    (rand-nth ["II-V-I-I" "I-I-VII-I"])
+     :mode (rand-nth ["dorian" "mixolydian" "lydian"])
+     :chord "R + 3 + 3 + 3"
+     :tempo 130}
+    "experimental"
+    {:crossover_rate 10
+     :mutation_rate 90
+     :total_iterations   20
+     :repetitions 4
+     :progression    (rand-nth ["II-V-I-I" "I-I-VII-I"])
+     :mode (rand-nth ["phrygian" "lydian" "locrian"])
+     :chord "R + 3 + 3 + 3"
+     :tempo 130}
+    (merge
+      default-evolution-params
+      (rnd-standard-progression)
+      {:mode (rand-nth ["major" "mixolydian" "minor"])})))

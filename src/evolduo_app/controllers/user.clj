@@ -83,7 +83,7 @@
                                                                  :message "Invalid email or password"}})))))
 
 (defn logout-user [req]
-  (r/logout))
+  (r/logout {:message "You have successfully been logged out"}))
 
 (defn verify-user [req]
   (let [db (:db req)

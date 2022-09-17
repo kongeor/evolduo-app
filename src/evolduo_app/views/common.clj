@@ -14,7 +14,11 @@
        [:span {:aria-hidden "true"}]]]
      [:div#navbarBasicExample.navbar-menu
       [:div.navbar-start
-       [:a.navbar-item {:href "/evolution/form"} "New Evolution"]
+       [:div.navbar-item.has-dropdown.is-hoverable
+        [:a.navbar-link "Evolution"]
+        [:div.navbar-dropdown
+         [:a.navbar-item {:href "/evolution/form"} "New"]
+         [:a.navbar-item {:href "/evolution/presets"} "Presets"]]]
        [:a.navbar-item {:href "/evolution/search?type=public"} "Search"]
        [:a.navbar-item {:href "/explorer"} "Explorer"]]
       [:div.navbar-end
@@ -28,7 +32,7 @@
            [:div
             [:form.mb-0 {:action "/user/logout" :method "post"}
              [:input {:type "hidden" :id "__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
-             [:button.button.is-light {:type "submit"} "Log out"]]]
+             [:button.button.is-light {:type "submit"} "Logout"]]]
            [:a.button.is-light {:href "/user/login"} "Login"])]]]]]))
 
 (defn- notification-div [data]
@@ -47,6 +51,7 @@
     [:link {:rel "stylesheet" :href "/css/bulma.min.css"}]
     [:link {:rel "stylesheet" :href "/css/cookie-consent.css"}]
     [:link {:rel "stylesheet" :href "/css/main.css"}]
+    [:link {:rel "icon" :type "image/x-icon" :href "/img/favicon.ico"}]
     ]
    [:body (when (and body-load-hook enable-abc?) {:onload body-load-hook})
     [:section.section
