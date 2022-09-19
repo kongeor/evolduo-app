@@ -19,4 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+
+  // enable bulma-slider.min.js
+
+  bulmaSlider.attach();
+
 });

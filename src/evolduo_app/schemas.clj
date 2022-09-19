@@ -10,39 +10,45 @@
 (def repetition-options [1 2 3 4])
 
 (def Evolution
-  [:map {:closed true}
-   [:public {:default false} boolean?]
-   [:min_ratings int?]
-   [:evolve_after (vec (cons :enum evolve-after-options))]
-   [:initial_iterations int?]
-   [:total_iterations int?]
-   [:population_size int?]
-   [:crossover_rate int?]
-   [:mutation_rate int?]
-   [:mode (vec (cons :enum music/mode-names))]
-   [:key (vec (cons :enum music/music-keys-restricted))]
-   [:progression (vec (cons :enum music/progressions))]
-   [:repetitions [:int {:min 1 :max 4}]]
-   [:chord (vec (cons :enum music/chord-intervals-keys))]
-   [:tempo int?]])
+  [:and
+   [:map {:closed true}
+    [:public {:default false} boolean?]
+    [:min_ratings [:int {:min 0 :max 20}]]
+    [:evolve_after (vec (cons :enum evolve-after-options))]
+    [:initial_iterations int?]
+    [:total_iterations [:int {:min 10 :max 50}]]
+    [:population_size [:int {:min 10 :max 40}]]
+    [:crossover_rate [:int {:min 1 :max 100}]]
+    [:mutation_rate [:int {:min 1 :max 100}]]
+    [:mode (vec (cons :enum music/mode-names))]
+    [:key (vec (cons :enum music/music-keys-restricted))]
+    [:progression (vec (cons :enum music/progressions))]
+    [:repetitions [:int {:min 1 :max 4}]]
+    [:chord (vec (cons :enum music/chord-intervals-keys))]
+    [:tempo [:int {:min 40 :max 220}]]]
+   [:fn {:error/message "invalid total number of iterations"
+         :error/path [:total_iterations]}
+    (fn [{:keys [total_iterations]}]
+      (= (mod total_iterations 10) 0))]
+   [:fn {:error/message "invalid total population size"
+         :error/path [:population_size]}
+    (fn [{:keys [population_size]}]
+      (= (mod population_size 10) 0))]])
 
 (def example-evolution {:public             true
                         :min_ratings        "5"
                         :evolve_after       "5-min"
                         :initial_iterations 10
-                        :total_iterations   20
-                        :population_size    10
+                        :total_iterations   "20"
+                        :population_size    "11"
                         :crossover_rate     30
                         :mutation_rate      5
                         :mode               "major"
-                        :key                "D"
+                        :key                "C"
                         :chord              "R + 3 + 3"
                         :progression        "I-IV-V-I"
                         :repetitions        "1"
                         :tempo              60})
-
-(comment
-  (me/humanize (m/explain Evolution example-evolution)))
 
 (comment
   (me/humanize

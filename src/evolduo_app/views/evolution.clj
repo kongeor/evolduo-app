@@ -26,7 +26,13 @@
       [:div.field
        [:label.label {:for "min_ratings"} "Min Ratings"]
        [:div.control
-        [:input.input {:type "number" :name "min_ratings" :value (:min_ratings evolution) :min "0"}]]
+        [:input.slider.has-output.is-info.is-fullwidth {:id    "min-ratings-with-value"
+                                                        :type  "range"
+                                                        :name  "min_ratings"
+                                                        :value (:min_ratings evolution)
+                                                        :step  "1"
+                                                        :min   "0" :max "20"}]
+        [:output {:for "min-ratings-with-value"} (:min_ratings evolution)]]
        [:p.help.is-info "How many ratings an iteration should have to be able to evolve to the next generation."]]
       [:div.field
        [:label.label {:for "evolve_after"} "Evolve After"]
@@ -43,22 +49,46 @@
       [:div.field
        [:label.label {:for "total_iterations"} "Total Iterations"]
        [:div.control
-        [:input.input {:type "number" :name "total_iterations" :value (:total_iterations evolution) :min "0" :max "100"}]]
+        [:input.slider.has-output.is-info.is-fullwidth {:id "total-iterations-with-value"
+                                                        :type "range"
+                                                        :name "total_iterations"
+                                                        :value (:total_iterations evolution)
+                                                        :step "10"
+                                                        :min "10" :max "50"}]
+        [:output {:for "total-iterations-with-value"} (:total_iterations evolution)]]
        [:p.help.is-info "The total number of iterations for this evolution."]]
       [:div.field
        [:label.label {:for "population_size"} "Population Size"]
        [:div.control
-        [:input.input {:type "number" :name "population_size" :value (:population_size evolution) :min "0" :max "100"}]]
+        [:input.slider.has-output.is-info.is-fullwidth {:id "population-size-with-value"
+                                                        :type "range"
+                                                        :name "population_size"
+                                                        :value (:population_size evolution)
+                                                        :step "10"
+                                                        :min "10" :max "40"}]
+        [:output {:for "population-size-with-value"} (:population_size evolution)]]
        [:p.help.is-info "The number of tracks each iteration will have."]]
       [:div.field
        [:label.label {:for "crossover_rate"} "Crossover Rate"]
        [:div.control
-        [:input.input {:type "number" :name "crossover_rate" :value (:crossover_rate evolution) :min "0" :max "100"}]]
+        [:input.slider.has-output.is-info.is-fullwidth {:id    "crossover-rate-with-value"
+                                                        :type  "range"
+                                                        :name  "crossover_rate"
+                                                        :value (:crossover_rate evolution)
+                                                        :step  "1"
+                                                        :min   "1" :max "100"}]
+        [:output {:for "crossover-rate-with-value"} (:crossover_rate evolution)]]
        [:p.help.is-info "The rate (percentage) of how many tracks will be recombined with other tracks on each iteration."]]
       [:div.field
        [:label.label {:for "mutation_rate"} "Mutation Rate"]
        [:div.control
-        [:input.input {:type "number" :name "mutation_rate" :value (:mutation_rate evolution) :min "0" :max "100"}]]
+        [:input.slider.has-output.is-info.is-fullwidth {:id    "mutation-rate-with-value"
+                                                        :type  "range"
+                                                        :name  "mutation_rate"
+                                                        :value (:mutation_rate evolution)
+                                                        :step  "1"
+                                                        :min   "1" :max "100"}]
+        [:output {:for "mutation-rate-with-value"} (:mutation_rate evolution)]]
        [:p.help.is-info "The rate (percentage) of how many notes will be modified on each track."]]
       [:div.field
        [:label.label {:for "key"} "Key"]
@@ -86,7 +116,14 @@
       [:div.field
        [:label.label {:for "repetitions"} "Repetitions"]
        [:div.control
-        [:div.select
+        [:input.slider.has-output.is-info.is-fullwidth {:id "repetitions-with-value"
+                                                        :type "range"
+                                                        :name "repetitions"
+                                                        :value (:repetitions evolution)
+                                                        :step "1"
+                                                        :min "1" :max "4"}]
+        [:output {:for "repetitions-with-value"} (:repetitions evolution)]
+        #_[:div.select
          (comps/select "repetitions" (:repetitions evolution) s/repetition-options)]]
        [:p.help.is-info "How many times the chord progression should be repeated."]]
       [:div.field
@@ -99,7 +136,13 @@
       [:div.field
        [:label.label {:for "tempo"} "Tempo"]
        [:div.control
-        [:input.input {:type "number" :name "tempo" :value (:tempo evolution) :min "40" :max "240"}]]]
+        [:input.slider.has-output.is-info.is-fullwidth {:id    "tempo-with-value"
+                                                        :type  "range"
+                                                        :name  "tempo"
+                                                        :value (:tempo evolution)
+                                                        :step  "10"
+                                                        :min   "40" :max "220"}]
+        [:output {:for "tempo-with-value"} (:tempo evolution)]]]
       [:div.control
        [:input.button.is-link {:type "submit" :value "Create"}]]]]))
 
