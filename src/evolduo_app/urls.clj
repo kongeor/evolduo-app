@@ -2,6 +2,11 @@
   (:require [clojure.string :as str]
             [ring.util.codec :as codec]))
 
+(defn asset
+  "Browser cache busting"
+  [path version]
+  (str path "?v=" version))
+
 (defn token-str [t]
   (cond
     (keyword? t)
