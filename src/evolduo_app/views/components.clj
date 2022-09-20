@@ -55,7 +55,8 @@
                   {:selected true})) c])])
 
 ;;
-(defn abc-track [{:keys [chromosome_id fitness raw_fitness abc]} & {:keys [evolution-id user-id reaction hide-reaction?]}]
+(defn abc-track [{:keys [chromosome_id fitness raw_fitness abc]} & {:keys [evolution-id user-id reaction hide-reaction?
+                                                                           is-admin?]}]
   (let [id chromosome_id
         abc-id (str "abc_" id)
         abc-activate (str "activate-audio-" id)
@@ -71,17 +72,30 @@
       (str "var " abc-id " = \"" abc "\";")]
      [:div.abc-track {:style "display: none"} id]
      [:h3.title.is-size-4 (str "#" id)]
-     (when fitness
+     (when (and fitness is-admin?)
        [:div
         [:p (str "Fitness: " fitness)]
         [:p (str "Raw Fitness: " raw_fitness)]])
      [:div {:id abc-id}]
      [:div.mb-4 {:id audio-id}]
      [:div.buttons
+      #_[:div.dropdown {:id (str "dropdown-" id)}
+       [:div.dropdown-trigger
+        [:button.button {:aria-haspopup "true" :aria-controls "dropdown-menu"}
+         [:span {:data-target (str "dropdown-" id)} "Download "]
+         #_[:span.icon.is-small
+          [:svg {:xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 384 512"} [:path {:d "M192 384c-8.188 0-16.38-3.125-22.62-9.375l-160-160c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L192 306.8l137.4-137.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-160 160C208.4 380.9 200.2 384 192 384z"}]]]
+         #_[:span.icon.is-small
+          [:i.fas.fa-angle-down {:aria-hidden "true"}]]]]
+       [:div#dropdown-menu.dropdown-menu {:role "menu"}
+        [:div.dropdown-content
+         [:a.dropdown-item {:class download-midi-id} "MIDI"]
+         [:a.dropdown-item {:class download-wav-id} "WAV"]]]]]
+     [:div.buttons
       #_[:button.button.is-primary {:class abc-activate} "Play"]
       #_[:button.button.is-light {:class abc-stop} "Stop"]
-      [:button.button.is-light {:class download-midi-id} "Get Midi"]
-      [:button.button.is-light {:class download-wav-id} "Get Wav"]
+      [:button.button.is-light {:class download-midi-id} "Download MIDI"]
+      [:button.button.is-light {:class download-wav-id} "Download WAV"]
       [:div {:id abc-start-measure-id}]
       [:div {:id abc-end-measure-id}]]
      (when-not hide-reaction?
@@ -160,7 +174,7 @@
          [:td [:a {:href (str "/evolution/" id)} id]]
          [:td {:title (:created_at e)} (h/datetime (:created_at e))]
          [:td {:title (:updated_at e)} (h/datetime (:updated_at e))]
-         [:td [:progress.progress {:value (:num e) :max (:total_iterations e)} perc-str]]
+         [:td [:progress.progress {:title (str (:num e) "/" (:total_iterations e)) :value (:num e) :max (:total_iterations e)} perc-str]]
          [:td (:key e)]
          [:td (:mode e)]
          [:td (:progression e)]

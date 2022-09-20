@@ -17,7 +17,6 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - [X] Secure cookie
 - [X] Raw fitness
 - [X] Fix chickn
-- [ ] About page
 - [ ] Contact page
 - [ ] Known issues (mobile view, emails, fixed C)
 - [X] List limits
@@ -33,17 +32,27 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - [X] Note split
 - [X] You need to be logged in to create an evolution
 - [X] Remove initial iterations
-- [ ] Debugging info (hardcoded)
+- [X] Debugging info (hardcoded)
 - [ ] Review maybe-fix
 - [ ] Cookie persistence
-- [ ] Shuffle chromosome list
+- [X] Shuffle chromosome list
 - [X] Favico
-- [ ] Subresource integrity
-- [ ] Validate 0 crossover 0 mutation, improve selections
+- [X] Subresource integrity
+- [X] Validate 0 crossover 0 mutation, improve selections
 - [ ] Bound checks, more notes etc.
-- [ ] Progress hover
+- [X] Progress hover
 - [ ] Iteration navigation
 - [ ] Rating past tracks
+- [ ] Explanations on each page
+- [ ] Enable download buttons after listening the track
+- [ ] Terms downloading staff from GH
+
+
+## Stylistic
+
+- [ ] Hide no pagination
+- [ ] Download dropdown + same row (on the right)
+- [ ] Evolution help text
 
 ## Unclear
 

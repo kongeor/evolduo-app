@@ -179,6 +179,18 @@
 
 (def abc-note-map
   {-1 "z"
+   36 "C,,"
+   37 "^C,,"
+   38 "D,,"
+   39 "^D,,"
+   40 "E,,"
+   41 "F,,"
+   42 "^F,,"
+   43 "G,,"
+   44 "^G,,"
+   45 "A,,"
+   46 "^A,,"
+   47 "B,,"
    48 "C,"
    49 "^C,"
    50 "D,"
@@ -215,12 +227,36 @@
    81 "a"
    82 "^a"
    83 "b"
+   84 "c'"
+   85 "^c'"
+   86 "d'"
+   87 "^d'"
+   88 "e'"
+   89 "f'"
+   90 "^f'"
+   91 "g'"
+   92 "^g'"
+   93 "a'"
+   94 "^a'"
+   95 "b'"
    })
 
 (def note-abc-map (set/map-invert abc-note-map))
 
 (def abc-note-map-flats
   {-1 "z"
+   36 "C,,"
+   37 "_D,,"
+   38 "D,,"
+   39 "_E,,"
+   40 "E,,"
+   41 "F,,"
+   42 "_G,,"
+   43 "G,,"
+   44 "_A,,"
+   45 "A,,"
+   46 "_B,,"
+   47 "B,,"
    48 "C,"
    49 "_D,"
    50 "D,"
@@ -257,6 +293,18 @@
    81 "a"
    82 "_b"
    83 "b"
+   84 "c'"
+   85 "_d'"
+   86 "d'"
+   87 "_e'"
+   88 "e'"
+   89 "f'"
+   90 "_g'"
+   91 "g'"
+   92 "_a'"
+   93 "a'"
+   94 "_b'"
+   95 "b'"
    })
 
 (def note-abc-map-flats (set/map-invert abc-note-map-flats))
@@ -285,10 +333,14 @@
         ])
 
 (defn chromatic-chromosome [root chords & {:keys [asc?] :or {asc? true}}]
-  (take (* (count chords) measure-sixteens)
-    (->> (iterate (if asc? inc dec) root)
-      (map #(cons % [-2 -2 -2]))
-      (apply concat))))
+  (let [chord-count (count chords)
+        root' (if (> chord-count 4)
+                (+ root (if asc? -24 12))
+                root)]
+    (take (* chord-count measure-sixteens)
+          (->> (iterate (if asc? inc dec) root')
+               (map #(cons % [-2 -2 -2]))
+               (apply concat)))))
 
 (comment
   (reduce (fn [acc n]

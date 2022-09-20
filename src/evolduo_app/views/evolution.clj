@@ -211,33 +211,36 @@
       req
       [:div
        [:h2.is-size-3.mb-4 (str "Evolution #" (:id evolution))]
-       [:h3.is-size-4.mb-4 "Evolution details"]
-       [:div
-        [:p (str "Key: " (:key evolution))]
-        [:p (str "Crossover Rate: " (:crossover_rate evolution) "%")]
-        [:p (str "Mutation Rate: " (:mutation_rate evolution) "%")]
-        [:hr]
+       [:div.columns
+        [:div.column
+         [:h3.is-size-4.mb-4 "Evolution details"]
+         [:div
+          [:p (str "Key: " (:key evolution))]
+          [:p (str "Crossover Rate: " (:crossover_rate evolution) "%")]
+          [:p (str "Mutation Rate: " (:mutation_rate evolution) "%")]
+          ]]
+        [:div.column
+         [:h3.is-size-4.mb-4 "Iteration details"]
+         [:div
+          [:p (str "Ratings (Provided/Required): " (count iteration-ratings) "/" (:min_ratings evolution))]
+          [:p (str "Iteration: " (:num iteration) "/" (:total_iterations evolution))]
+          (if last?
+            [:p (str "Status: "
+                     (cond
+                       finished?
+                       "Finished"
+                       (and ratings-satisfied? should-evolve?)
+                       "Should evolve at any moment now"
+                       (and should-evolve?)
+                       "Not enough ratings to evolve to next iteration"
+                       :else
+                       (str "Will evolve " (h/datetime (:evolve_after iteration)) (when (not ratings-satisfied?)
+                                                                                    " (if will have enough ratings)"))
+                       ))]
+            [:p [:a {:href (str "/evolution/" (:id evolution))} "Jump to last iteration"]])
+          ]]
         ]
-       [:h3.is-size-4.mb-4 "Iteration details"]
-       [:div
-        [:p (str "Ratings (Provided/Required): " (count iteration-ratings) "/" (:min_ratings evolution))]
-        [:p (str "Iteration: " (:num iteration) "/" (:total_iterations evolution))]
-        (if last?
-          [:p (str "Status: "
-                   (cond
-                     finished?
-                     "Finished"
-                     (and ratings-satisfied? should-evolve?)
-                     "Should evolve at any moment now"
-                     (and should-evolve?)
-                     "Not enough ratings to evolve to next iteration"
-                     :else
-                     (str "Will evolve " (h/datetime (:evolve_after iteration)) (when (not ratings-satisfied?)
-                                                                                  " (if will have enough ratings)"))
-                     ))]
-          [:p [:a {:href (str "/evolution/" (:id evolution))} "Jump to last iteration"]])
-        [:hr]
-        ]
+       [:hr]
        (when (= user-id (:user_id evolution))
          [:div
           [:h3.is-size-4.mb-4 "Collaboration"]
@@ -258,7 +261,8 @@
        [:div
         (for [c chromosomes]
           (let [reaction (-> c :chromosome_id reaction-map)]
-            (comps/abc-track c :evolution-id (:id evolution) :reaction reaction :user-id user-id)))]
+            (comps/abc-track c :evolution-id (:id evolution)
+              :reaction reaction :user-id user-id :is-admin? (:is-admin? req))))]
        [:div
         (comps/pagination pagination)]]
       :enable-abc? true
@@ -293,33 +297,46 @@
    [:div.control
     [:input.button.is-link {:type "submit" :value "Select"}]]])
 
+(defn- preset-card [title description preset]
+  (let [form-id (str preset "-form")]
+    [:form {:id form-id :method "post" :action "/evolution/presets"}
+     [:input {:type "hidden" :id "__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
+     [:input {:type "hidden" :name "preset" :value preset}]
+     [:div.card
+      [:div.card-content
+       [:div.title title]
+       [:div.content description]]
+      [:footer.card-footer
+       [:a.card-footer-item.has-text-centered.preset-link
+        {:href "#" :onclick (str "document.getElementById('" form-id "').submit()")} "Select"]]]]))
+
 (defn presets [req {}]
   (base-view
     req
     [:div
      [:h3.title.is-3 "Presets"]
      [:p.mb-4 "Presets have a predefined set of options that attempt to match common musical styles."]
-     [:p.mb-4 "Each selection will prepopulate some of the existing options and you can still adjust them
+     [:p.mb-6 "Each selection will prepopulate some of the existing options and you can still adjust them
       before creating a new evolution."]
      [:div.columns
       [:div.column
-       [:h4.title.is-4 "Minimal"]
-       [:p.mb-4 "Minimal chord progressions, root or 5th chords, common musical modes, with conservative genetic parameters."]
-       (presets-form "minimal")
-       ]
+       (preset-card
+         "Minimal"
+         "Minimal chord progressions, root or 5th chords, common musical modes, with conservative genetic parameters."
+         "minimal")]
       [:div.column
-       [:h4.title.is-4 "Standard"]
-       [:p.mb-4 "Common chord progressions, triad chords, common musical modes, with standard genetic parameters."]
-       (presets-form "standard")
-       ]
+       (preset-card
+         "Standard"
+         "Common chord progressions, triad chords, common musical modes, with relatively balanced genetic parameters."
+         "standard")]
       [:div.column
-       [:h4.title.is-4 "Progressive"]
-       [:p.mb-4 "Less common chord progressions, quadrant chords, less common musical modes, with more aggressive genetic parameters."]
-       (presets-form "progressive")
-       ]
+       (preset-card
+         "Progressive"
+         "Less common chord progressions, quadrant chords, less common musical modes, with more aggressive genetic parameters."
+         "progressive")]
       [:div.column
-       [:h4.title.is-4 "Experimental"]
-       [:p.mb-4 "Less common chord progressions, quadrant chords, uncommon musical modes, with very aggressive genetic parameters."]
-       (presets-form "experimental")
-        ]
+       (preset-card
+         "Experimental"
+         "Less common chord progressions, quadrant chords, uncommon musical modes, with very aggressive genetic parameters."
+         "experimental")]
       ]]))

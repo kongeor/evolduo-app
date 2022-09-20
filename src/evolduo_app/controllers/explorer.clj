@@ -16,6 +16,6 @@
                                  :repetitions 1}
                     chord-names (music/gen-chord-names settings)]
                 (music/->abc-track settings
-                  {:genes (music/chromatic-chromosome 72 chord-names :asc? false) #_(music/random-track {:key  key :measures (count chord-names)
+                  {:genes (music/chromatic-chromosome 72 chord-names :asc? true) #_(music/random-track {:key  key :measures (count chord-names)
                                                :mode mode})})))]
     (r/render-html explorer-views/explorer req {:abc abc})))

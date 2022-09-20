@@ -8,13 +8,23 @@
             [evolduo-app.controllers.invitation :as invitation-ctl]
             [evolduo-app.controllers.reaction :as reaction-ctl]
             [evolduo-app.controllers.user :as user-ctl]
+            [evolduo-app.request :as req]
             [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
             [sentry-clj.core :as sentry]
             [sentry-clj.ring :as sentry-ring]))
 
+(defn maybe-parse-long [x]
+  (if (string? x)
+    (parse-long x)
+    x))
+
 (defn wrap-settings [handler settings]
   (fn [req]
-    (handler (assoc req :settings settings))))
+    (let [user-id (req/user-id req)]
+      (handler (assoc req :settings settings
+                          :is-admin? (some-> settings :admin-id
+                                       maybe-parse-long
+                                       (= user-id)))))))
 
 (defn wrap-db [handler db]
   (fn [req]
@@ -58,8 +68,8 @@
 (defn app [db settings]
   (-> routes
     (wrap-db db)
+    (wrap-settings settings)
     (wrap-defaults (-> site-defaults
                        (assoc-in [:session :cookie-attrs :secure] (= (:environment settings) "prod"))))
     wrap-exception                                          ;; TODO why?!
-    (wrap-settings settings)
     sentry-ring/wrap-sentry-tracing))

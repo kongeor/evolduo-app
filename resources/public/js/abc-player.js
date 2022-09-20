@@ -20,13 +20,13 @@ function load_abc(id) {
     var startAudioButton = document.querySelector(".activate-audio-" + id);
     var stopAudioButton = document.querySelector(".stop-audio-" + id);
 
-    var midi = ABCJS.synth.getMidiFile(visualObj, { chordsOff: false, midiOutputType: "link", fileName: id, downloadLabel: function() { return "Download MIDI for " + id } });
+    var midi = ABCJS.synth.getMidiFile(visualObj, { chordsOff: false, midiOutputType: "link", fileName: id, downloadLabel: function() { return "Download MIDI" } });
     var downloadMidiButton = document.querySelector(".download-midi-" + id);
     downloadMidiButton.innerHTML = midi;
 
     var downloadWavButton = document.querySelector(".download-wav-" + id);
     downloadWavButton.addEventListener("click", function() {
-        synthControl.download() // TODO bug when name is passed?
+        synthControl.download(id + ".wav") // TODO bug when name is passed?
     });
 //    var explanationDiv = document.querySelector(".suspend-explanation-" + id);
     startMeasure = document.querySelector("#start-measure-" + id);

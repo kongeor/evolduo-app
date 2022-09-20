@@ -24,4 +24,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   bulmaSlider.attach();
 
+  // enable dropdowns
+
+//  const $dropdowns = Array.prototype.slice.call(document.querySelectorAll('.dropdown'), 0);
+//  $dropdowns.forEach (el => {
+//      el.addEventListener('click', (event) => {
+//
+//
+//        console.log(el.dataset)
+//
+//        const target = el.dataset.target;
+//
+//        const $target = document.getElementById(target);
+//
+//        console.log($target)
+//
+//        event.stopPropagation();
+//        $target.classList.toggle('is-active');
+//      });
+//  })
 });

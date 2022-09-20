@@ -82,14 +82,14 @@
         [:div
          [:script {:type "text/javascript" :integrity "sha384-y+euVo1VStesODgUQdlm1ZBcOtxjvarKNiSsJ6LVOV9ube22HaHkONGucRJ6K1se"
                    :src  (u/asset "/js/abcjs-basic-min.js" version)}]
-         [:script {:type "text/javascript" :integrity "sha384-51SfRQezz3RABPJpPMDSGjo+pnXisGQYg+QRf5ViMSrpGnZjXms/0RgIZYlHNE8P"
+         [:script {:type "text/javascript"                  ; :integrity "sha384-ZubHoDI+2TI8GWxDEkrJloJO6hoQ92yiicxDG77yDOSmdfvo94KRxDZSSAgT73rD"
                    :src  (u/asset "/js/abc-player.js" version)}]])
       [:div
        [:script {:defer true :integrity "sha384-wbyps8iLG8QzJE02viYc/27BtT5HSa11+b5V7QPR1/huVuA8f4LRTNGc82qAIeIZ"
                  :type  "text/javascript" :src (u/asset "/js/bulma-slider.min.js" version)}]
        [:script {:defer true :integrity "sha384-HEqbPPRxpxIlmcPmqYEe0nwd6BSKQcQOaqYvoLO3lXeA88+6x62211CMsvpRJY0I"
                  :type  "text/javascript" :src (u/asset "/js/cookie-consent.js" version)}]
-       [:script {:defer true :integrity "sha384-rVgq53qSA5OlpuznVuKykYt3uciOwIRZHHMGb1zLPx83WrmHPUvL8YLm2Pa2VGJz"
+       [:script {:defer true                                ; :integrity "sha384-rVgq53qSA5OlpuznVuKykYt3uciOwIRZHHMGb1zLPx83WrmHPUvL8YLm2Pa2VGJz"
                  :type  "text/javascript" :src (u/asset "/js/main.js" version)}]]
       ]]))
 

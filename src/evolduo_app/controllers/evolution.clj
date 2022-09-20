@@ -25,39 +25,39 @@
 
 (defn search
   [req]
-  (let [type    (-> req :params :type)
-        db      (:db req)
-        user-id (req/user-id req)
+  (let [type       (-> req :params :type)
+        db         (:db req)
+        user-id    (req/user-id req)
         evolutions (condp = type
-                     "public"  (model/find-active-public-evolutions db user-id :limit 100)
+                     "public" (model/find-active-public-evolutions db user-id :limit 100)
                      "invited" (model/find-invited-to-evolutions db user-id :limit 100)
-                     "my"      (model/find-user-active-evolutions db user-id :limit 100))] ;; TODO pagination
+                     "my" (model/find-user-active-evolutions db user-id :limit 100))] ;; TODO pagination
     (res/render-html evolution-views/evolution-list req evolutions)))
 
 (defn save
   [req]
-  (let [user-id (-> req :session :user/id)
-        data (-> req :params (select-keys [:public
-                                           :min_ratings
-                                           :evolve_after
-                                           ; :initial_iterations
-                                           :total_iterations
-                                           :population_size
-                                           :crossover_rate
-                                           :mutation_rate
-                                           :key
-                                           :mode
-                                           :progression
-                                           :repetitions
-                                           :chord
-                                           :tempo]))
-        data' (assoc data :initial_iterations 0)            ;; temp patch
+  (let [user-id        (-> req :session :user/id)
+        data           (-> req :params (select-keys [:public
+                                                     :min_ratings
+                                                     :evolve_after
+                                                     ; :initial_iterations
+                                                     :total_iterations
+                                                     :population_size
+                                                     :crossover_rate
+                                                     :mutation_rate
+                                                     :key
+                                                     :mode
+                                                     :progression
+                                                     :repetitions
+                                                     :chord
+                                                     :tempo]))
+        data'          (assoc data :initial_iterations 0)   ;; temp patch
         sanitized-data (schemas/decode-and-validate schemas/Evolution data')]
     (log/info "sanitized" sanitized-data)
     (cond
       (nil? user-id)
       (res/redirect (u/url-for :evolution-form)
-                    :flash {:type :danger :message "You need to be logged in"})
+        :flash {:type :danger :message "You need to be logged in"})
 
       (:error sanitized-data)
       (res/render-html evolution-views/evolution-form req {:evolution data'
@@ -65,17 +65,17 @@
 
       :else
       (let [evolution (merge (:data sanitized-data)
-                        {:user_id    user-id
-                         :rules {:foo true
-                                 :bar true}})]
+                        {:user_id user-id
+                         :rules   {:foo true
+                                   :bar true}})]
         (let [{:keys [id]} (model/save-evolution (:db req) (:settings req) evolution)]
           (assoc
             (resp/redirect (u/url-for :evolution-detail {:evolution-id id}))
             :flash {:type :info :message "Great success!"}))))))
 
 (defn detail [req]
-  (let [db (:db req)
-        evolution-id (parse-long (-> req :params :id))
+  (let [db                 (:db req)
+        evolution-id       (parse-long (-> req :params :id))
         last-iteration-num (model/find-last-iteration-num-for-evolution db evolution-id)]
     ;; TODO conditions, conditions
     ;; TODO create util for url concat
@@ -84,26 +84,29 @@
 ;; TODO move to iteration
 (defn iteration-detail
   [req]
-  (let [evolution-id (parse-long (-> req :params :evolution-id))
+  (let [evolution-id  (parse-long (-> req :params :evolution-id))
         iteration-num (parse-long (-> req :params :iteration-num))
-        user-id (req/user-id req)
-        db (:db req)]
+        user-id       (req/user-id req)
+        db            (:db req)]
     (if-let [evolution (model/find-evolution-by-id db evolution-id)]
-      (let [chromosomes (model/find-iteration-chromosomes db evolution-id iteration-num)
-            iteration  (iteration-model/find-by-num db evolution-id iteration-num)
+      (let [chromosomes        (model/find-iteration-chromosomes db evolution-id iteration-num)
+            chromosomes'       (if (:is-admin? req)
+                                 chromosomes
+                                 (shuffle chromosomes))
+            iteration          (iteration-model/find-by-num db evolution-id iteration-num)
             last-iteration-num (model/find-last-iteration-num-for-evolution db evolution-id)
-            reactions (reaction-model/find-iteration-ratings-for-user db evolution-id iteration-num user-id)
-            reaction-map (update-vals (group-by :chromosome_id reactions) first)
-            iteration-ratings (reaction-model/find-iteration-ratings db evolution-id iteration-num)]
-        (res/render-html evolution-views/evolution-detail req {:evolution       evolution
-                                                             :chromosomes       chromosomes
-                                                             :user-id           user-id
-                                                             :reaction-map      reaction-map
-                                                             :iteration-ratings iteration-ratings
-                                                             :iteration         iteration
-                                                             :pagination        {:current (:num iteration)
-                                                                          :max last-iteration-num
-                                                                          :link-fn #(str "/evolution/" evolution-id "/iteration/" %)}}))
+            reactions          (reaction-model/find-iteration-ratings-for-user db evolution-id iteration-num user-id)
+            reaction-map       (update-vals (group-by :chromosome_id reactions) first)
+            iteration-ratings  (reaction-model/find-iteration-ratings db evolution-id iteration-num)]
+        (res/render-html evolution-views/evolution-detail req {:evolution         evolution
+                                                               :chromosomes       chromosomes'
+                                                               :user-id           user-id
+                                                               :reaction-map      reaction-map
+                                                               :iteration-ratings iteration-ratings
+                                                               :iteration         iteration
+                                                               :pagination        {:current (:num iteration)
+                                                                                   :max     last-iteration-num
+                                                                                   :link-fn #(str "/evolution/" evolution-id "/iteration/" %)}}))
       (res/render-404))))
 
 (defn get-presets [req]
