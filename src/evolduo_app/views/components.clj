@@ -56,7 +56,7 @@
 
 ;;
 (defn abc-track [{:keys [chromosome_id fitness raw_fitness abc]} & {:keys [evolution-id user-id reaction hide-reaction?
-                                                                           is-admin?]}]
+                                                                           is-admin? rateable? not-rateable-msg]}]
   (let [id chromosome_id
         abc-id (str "abc_" id)
         abc-activate (str "activate-audio-" id)
@@ -108,12 +108,20 @@
          [:input {:type "hidden" :name "value" :value "1"}]
          [:input.button.is-link.mr-2 (merge
                                        {:type "submit" :value "I like this \uD83D\uDC4D"}
-                                       (when (or reaction (not user-id))
+                                       (when (or reaction (not user-id) (not rateable?))
                                          {:disabled true})
-                                       (when reaction
-                                         {:title "You have already rated this track"})
-                                       (when (not user-id)
-                                         {:title "You need to be logged in to rate this track"}))]]
+                                       (cond
+                                         (not user-id)
+                                         {:title "You need to be logged in to rate this track"}
+
+                                         (not rateable?)
+                                         {:title not-rateable-msg}
+
+                                         reaction
+                                         {:title "You have already rated this track"}
+
+                                         :else nil
+                                         ))]]
         [:form
          {:action "/reaction" :method "POST"}
          [:input {:type "hidden" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
@@ -122,12 +130,20 @@
          [:input {:type "hidden" :name "value" :value "-1"}]
          [:input.button.is-danger (merge
                                      {:type "submit" :value "I don't like this \uD83D\uDC4E"}
-                                     (when (or reaction (not user-id))
+                                     (when (or reaction (not user-id) (not rateable?))
                                        {:disabled true})
-                                     (when reaction
-                                       {:title "You have already rated this track"})
-                                     (when (not user-id)
-                                       {:title "You need to be logged in to rate this track"}))]]])
+                                     (cond
+                                         (not user-id)
+                                         {:title "You need to be logged in to rate this track"}
+
+                                         (not rateable?)
+                                         {:title not-rateable-msg}
+
+                                         reaction
+                                         {:title "You have already rated this track"}
+
+                                         :else nil
+                                         ))]]])
      [:hr.mb-4]]))
 
 (defn pagination [{:keys [current max link-fn]}]

@@ -34,7 +34,7 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - [X] Remove initial iterations
 - [X] Debugging info (hardcoded)
 - [ ] Review maybe-fix
-- [ ] Cookie persistence
+- [X] Cookie persistence
 - [X] Shuffle chromosome list
 - [X] Favico
 - [X] Subresource integrity
@@ -46,6 +46,8 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - [ ] Explanations on each page
 - [ ] Enable download buttons after listening the track
 - [ ] Terms downloading staff from GH
+- [ ] Limits/verified rating, evolutions (check role)
+- [ ] Validate rating
 
 
 ## Stylistic

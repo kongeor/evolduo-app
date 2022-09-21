@@ -202,7 +202,7 @@
             [:td (:user_id e)]])]]])))                      ;; TODO admin only
 
 (defn evolution-detail [req {:keys [user-id evolution chromosomes reaction-map pagination
-                                    iteration-ratings iteration]}]
+                                    iteration-ratings iteration rateable? not-rateable-msg]}]
   (let [ratings-satisfied? (>= (count iteration-ratings) (:min_ratings evolution))
         should-evolve?     (> (System/currentTimeMillis) (-> iteration :evolve_after (.getTime)))
         finished?          (= (:num iteration) (:total_iterations evolution))
@@ -262,7 +262,8 @@
         (for [c chromosomes]
           (let [reaction (-> c :chromosome_id reaction-map)]
             (comps/abc-track c :evolution-id (:id evolution)
-              :reaction reaction :user-id user-id :is-admin? (:is-admin? req))))]
+                             :reaction reaction :user-id user-id :is-admin? (:is-admin? req)
+                             :rateable? rateable? :not-rateable-msg not-rateable-msg)))]
        [:div
         (comps/pagination pagination)]]
       :enable-abc? true

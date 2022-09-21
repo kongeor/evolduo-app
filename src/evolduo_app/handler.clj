@@ -9,6 +9,7 @@
             [evolduo-app.controllers.reaction :as reaction-ctl]
             [evolduo-app.controllers.user :as user-ctl]
             [evolduo-app.request :as req]
+            [ring.middleware.session.cookie :as session-cookie]
             [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
             [sentry-clj.core :as sentry]
             [sentry-clj.ring :as sentry-ring]))
@@ -65,11 +66,18 @@
   (POST "/reaction" [] reaction-ctl/save)
   (route/not-found "404"))
 
+(comment
+  (clojure.string/join (map char (concat (range (int \0) (inc (int \9))) (range (int \a) (int \g)))))
+  (random/bytes 16)
+  #_(byte-array (mapv byte (seq "a 16-byte secret"))))
+
+
 (defn app [db settings]
   (-> routes
     (wrap-db db)
     (wrap-settings settings)
     (wrap-defaults (-> site-defaults
-                       (assoc-in [:session :cookie-attrs :secure] (= (:environment settings) "prod"))))
+                       (assoc-in [:session :cookie-attrs :secure] (= (:environment settings) "prod"))
+                       (assoc-in [:session :store] (session-cookie/cookie-store {:key (byte-array (mapv byte (:cookie-store-key settings)))}))))
     wrap-exception                                          ;; TODO why?!
     sentry-ring/wrap-sentry-tracing))

@@ -63,6 +63,8 @@
       (res/render-html evolution-views/evolution-form req {:evolution data'
                                                            :errors    (:error sanitized-data)})
 
+      ;; TODO limits/verified
+
       :else
       (let [evolution (merge (:data sanitized-data)
                         {:user_id user-id
@@ -97,13 +99,21 @@
             last-iteration-num (model/find-last-iteration-num-for-evolution db evolution-id)
             reactions          (reaction-model/find-iteration-ratings-for-user db evolution-id iteration-num user-id)
             reaction-map       (update-vals (group-by :chromosome_id reactions) first)
-            iteration-ratings  (reaction-model/find-iteration-ratings db evolution-id iteration-num)]
+            iteration-ratings  (reaction-model/find-iteration-ratings db evolution-id iteration-num)
+            rateable?          (and (= last-iteration-num (:num iteration))
+                                    (not= (:total_iterations evolution) (:num iteration)))
+            not-rateable-msg   (when (not rateable?)
+                                 (if (not= last-iteration-num (:num iteration))
+                                   "Only tracks from the most recent iteration can be rated"
+                                   "This evolution has been finished"))]
         (res/render-html evolution-views/evolution-detail req {:evolution         evolution
                                                                :chromosomes       chromosomes'
                                                                :user-id           user-id
                                                                :reaction-map      reaction-map
                                                                :iteration-ratings iteration-ratings
                                                                :iteration         iteration
+                                                               :rateable?         rateable?
+                                                               :not-rateable-msg  not-rateable-msg
                                                                :pagination        {:current (:num iteration)
                                                                                    :max     last-iteration-num
                                                                                    :link-fn #(str "/evolution/" evolution-id "/iteration/" %)}}))

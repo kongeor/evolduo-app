@@ -16,4 +16,5 @@
                :port 587
                :tls true}
  :admin-id 1
+ :cookie-store-key "0123456789abcdef"
  }
