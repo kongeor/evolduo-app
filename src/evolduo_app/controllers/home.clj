@@ -12,7 +12,7 @@
         view-f (partial response/render-html view/home req)]
     (cond-> data
       user-id
-      (assoc :user-evolutions (model/find-user-active-evolutions db user-id)
+      (assoc :user-evolutions (model/find-user-active-evolutions db user-id :limit 15)
              :invited-evolutions (model/find-invited-to-evolutions db user-id))
 
       true

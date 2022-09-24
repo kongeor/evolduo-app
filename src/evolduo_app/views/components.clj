@@ -94,12 +94,10 @@
      [:div.buttons
       #_[:button.button.is-primary {:class abc-activate} "Play"]
       #_[:button.button.is-light {:class abc-stop} "Stop"]
-      [:button.button.is-light {:class download-midi-id} "Download MIDI"]
-      [:button.button.is-light {:class download-wav-id} "Download WAV"]
-      [:div {:id abc-start-measure-id}]
-      [:div {:id abc-end-measure-id}]]
-     (when-not hide-reaction?
-       [:div.buttons
+      #_[:div {:id abc-start-measure-id}]
+      #_[:div {:id abc-end-measure-id}]]
+     [:div.buttons
+      (when-not hide-reaction?
         [:form
          {:action "/reaction" :method "POST"}
          [:input {:type "hidden" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
@@ -121,29 +119,33 @@
                                          {:title "You have already rated this track"}
 
                                          :else nil
-                                         ))]]
+                                         ))]])
+      (when-not hide-reaction?
         [:form
          {:action "/reaction" :method "POST"}
          [:input {:type "hidden" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
          [:input {:type "hidden" :name "chromosome_id" :value id}]
          [:input {:type "hidden" :name "redirect_url" :value (urls/url-for :evolution-detail {:evolution-id evolution-id})}]
          [:input {:type "hidden" :name "value" :value "-1"}]
-         [:input.button.is-danger (merge
-                                     {:type "submit" :value "I don't like this \uD83D\uDC4E"}
-                                     (when (or reaction (not user-id) (not rateable?))
-                                       {:disabled true})
-                                     (cond
-                                         (not user-id)
-                                         {:title "You need to be logged in to rate this track"}
+         [:input.button.is-danger.mr-4 (merge
+                                    {:type "submit" :value "I don't like this \uD83D\uDC4E"}
+                                    (when (or reaction (not user-id) (not rateable?))
+                                      {:disabled true})
+                                    (cond
+                                      (not user-id)
+                                      {:title "You need to be logged in to rate this track"}
 
-                                         (not rateable?)
-                                         {:title not-rateable-msg}
+                                      (not rateable?)
+                                      {:title not-rateable-msg}
 
-                                         reaction
-                                         {:title "You have already rated this track"}
+                                      reaction
+                                      {:title "You have already rated this track"}
 
-                                         :else nil
-                                         ))]]])
+                                      :else nil
+                                      ))]])
+      [:button.button.is-light {:class download-midi-id} "Download MIDI"]
+      [:button.button.is-light {:class download-wav-id} "Download WAV"]
+      ]
      [:hr.mb-4]]))
 
 (defn pagination [{:keys [current max link-fn]}]

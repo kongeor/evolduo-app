@@ -16,5 +16,5 @@
                :port 587
                :tls true}
  :admin-id 1
- :cookie-store-key "0123456789abcdef"
+ :redis-uri   "redis://127.0.0.1:6379/"
  }

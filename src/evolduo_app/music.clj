@@ -120,6 +120,8 @@
                    "II-V-I-I"
 
                    "VI-II-V-I"                              ;;  Circle
+                   "I-IV-II-V"                              ;; Montgomery-Ward bridge
+                   "V-III"                                  ;; Irregular
                    "I-V-VI-III-IV-I-IV-V"                   ;; Pachelbel's Canon
                    "I-I-I-I-IV-IV-I-I-V-V-I-I"
                    ;; all-degrees-progression

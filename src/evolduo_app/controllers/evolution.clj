@@ -125,5 +125,5 @@
 
 (defn post-presets [req]
   (let [preset (-> req :params :preset)
-        params (model/preset->params preset)]
+        params (model/preset->params (:is-admin? req) preset)]
     (res/redirect (str "/evolution/form?" (codec/form-encode params)))))

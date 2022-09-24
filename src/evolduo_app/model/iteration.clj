@@ -34,10 +34,12 @@
                   :where
                   [:and
                    [:> [:raw ["now()"]] :i.evolve_after]
-                   [:>= :i.ratings :e.min_ratings]          ;; TODO <= total_iterations! mark as finished?
+                   [:>= :i.ratings :e.min_ratings]
                    [:> :e.total_iterations :i.num]
                    [:= :i.last true]
-                   [:= :u.deleted false]]}]                        ;; TODO check
+                   [:= :u.deleted false]]
+                  :order-by [[:i.created_at :asc]]
+                  :limit  20}]
     (sql/query db (h/format q-sqlmap))))
 
 (defn find-iterations-chromosomes [db iteration-id]
@@ -102,9 +104,10 @@
                                   :reporter    util/noop
                                   :fitness     fitness-fn
                                   :comparator  chickn/higher-is-better
-                                  :selector    #:chickn.selectors{:type        :chickn.selectors/roulette
+                                  :selector    #:chickn.selectors{:type        :chickn.selectors/tournament
                                                                   :rate        0.3
-                                                                  :random-func rand}
+                                                                  :random-func rand
+                                                                  :tour-size   5}
                                   :crossover   #:chickn.operators{:type         :chickn.operators/cut-crossover
                                                                   :rate         (float (/ (:crossover_rate evolution) 100.))
                                                                   :pointcuts    1

@@ -1,3 +1,7 @@
 .help {
     font-size: 1rem;
 }
+
+.pagination-link {
+    margin-bottom: 0.5rem;
+}

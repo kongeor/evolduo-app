@@ -293,8 +293,8 @@ select e.*
                                :initial_iterations 0
                                :total_iterations   20
                                :population_size    20
-                               :crossover_rate     50
-                               :mutation_rate      50
+                               :crossover_rate     20
+                               :mutation_rate      30
                                :key                "C"
                                :mode               "major"
                                :progression        "I-IV-V-I"
@@ -302,35 +302,39 @@ select e.*
                                :chord              "R + 3 + 3"
                                :tempo              130})
 
-(defn preset->params [preset]
-  (condp = preset
-    "minimal"
-    {:crossover_rate 30
-     :mutation_rate  10
-     :total_iterations   20
-     :progression    (rand-nth ["I-I-I-I" "I-IV-I-IV"])
-     :mode           (rand-nth ["major" "dorian" "mixolydian" "minor"])
-     :chord          (rand-nth ["R" "R + 5 + R"])
-     :tempo          100}
-    "progressive"
-    {:crossover_rate 30
-     :mutation_rate 30
-     :total_iterations   20
-     :repetitions 4
-     :progression    (rand-nth ["II-V-I-I" "I-I-VII-I"])
-     :mode (rand-nth ["dorian" "mixolydian" "lydian"])
-     :chord "R + 3 + 3 + 3"
-     :tempo 130}
-    "experimental"
-    {:crossover_rate 10
-     :mutation_rate 90
-     :total_iterations   20
-     :repetitions 4
-     :progression    (rand-nth ["II-V-I-I" "I-I-VII-I"])
-     :mode (rand-nth ["phrygian" "lydian" "locrian"])
-     :chord "R + 3 + 3 + 3"
-     :tempo 130}
-    (merge
-      default-evolution-params
-      (rnd-standard-progression)
-      {:mode (rand-nth ["major" "mixolydian" "minor"])})))
+(defn preset->params [is-admin? preset]
+  (let [p
+        (condp = preset
+          "minimal"
+          {:crossover_rate   20
+           :mutation_rate    30
+           :total_iterations 20
+           :progression      (rand-nth ["I-I-I-I" "I-IV-I-IV"])
+           :mode             (rand-nth ["major" "dorian" "mixolydian" "minor"])
+           :chord            (rand-nth ["R" "R + 5 + R"])
+           :tempo            100}
+          "progressive"
+          {:crossover_rate   20
+           :mutation_rate    40
+           :total_iterations 20
+           :repetitions      4
+           :progression      (rand-nth ["II-V-I-I" "I-IV-II-V"])
+           :mode             (rand-nth ["dorian" "mixolydian" "lydian"])
+           :chord            "R + 3 + 3 + 3"
+           :tempo            130}
+          "experimental"
+          {:crossover_rate   10
+           :mutation_rate    90
+           :total_iterations 20
+           :repetitions      4
+           :progression      (rand-nth ["V-III" "I-I-VII-I"])
+           :mode             (rand-nth ["phrygian" "lydian" "locrian"])
+           :chord            "R + 3 + 3 + 3"
+           :tempo            130}
+          (merge
+            default-evolution-params
+            (rnd-standard-progression)
+            {:mode (rand-nth ["major" "mixolydian" "minor"])}))]
+    (cond-> p
+            is-admin?
+            (assoc :min_ratings 0 :evolve_after "1-min" :total_iterations 40))))

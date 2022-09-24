@@ -44,10 +44,14 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - [ ] Iteration navigation
 - [ ] Rating past tracks
 - [ ] Explanations on each page
-- [ ] Enable download buttons after listening the track
 - [ ] Terms downloading staff from GH
 - [ ] Limits/verified rating, evolutions (check role)
 - [ ] Validate rating
+- [ ] Register agree to terms
+- [ ] Rename pages
+- [ ] Samples
+- [ ] Tutorial
+- [ ] A
 
 
 ## Stylistic
@@ -69,6 +73,7 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - [ ] Progress indicator
 - [ ] SEO
 - [ ] Explorer track options (chromatic etc.)
+- [ ] Enable download buttons after listening the track
  
 ## Post-stats checklist
 

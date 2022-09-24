@@ -11,6 +11,7 @@
             [evolduo-app.request :as req]
             [ring.middleware.session.cookie :as session-cookie]
             [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
+            [taoensso.carmine.ring :refer [carmine-store]]
             [sentry-clj.core :as sentry]
             [sentry-clj.ring :as sentry-ring]))
 
@@ -78,6 +79,8 @@
     (wrap-settings settings)
     (wrap-defaults (-> site-defaults
                        (assoc-in [:session :cookie-attrs :secure] (= (:environment settings) "prod"))
-                       (assoc-in [:session :store] (session-cookie/cookie-store {:key (byte-array (mapv byte (:cookie-store-key settings)))}))))
+                       (assoc-in [:session :store] (carmine-store
+                                                     {:pool {} :spec {:uri (:redis-uri settings)}}
+                                                     {:key-prefix "evolduo:session"}))))
     wrap-exception                                          ;; TODO why?!
     sentry-ring/wrap-sentry-tracing))
