@@ -147,11 +147,14 @@
        [:input.button.is-link {:type "submit" :value "Create"}]]]]))
 
 (defn evolution-list [req evolutions]
-  (let [{:keys [type]} (-> req :params)]
+  (let [{:keys [type]} (-> req :params)
+        is-admin? (:is-admin? req)]
     (base-view
       req
       [:div
-       [:form {:action "/evolution/search" :method "GET"}
+       [:h3.title.is-3 "Library"]
+       [:p.mb-4 "Here you can find all the tracks you, your friends or others have created."]
+       [:form {:action "/evolution/library" :method "GET"}
         [:div.field.is-horizontal
          [:div.field-label.is-normal
           [:label.label {:for "type"} "Type"]]
@@ -180,13 +183,15 @@
           [:th "Repetitions"]
           [:th "Chord"]
           [:th "Tempo"]
-          [:th "User"]]]
+          (when is-admin?
+            [:th "User"])
+          ]]
         [:tbody
          (for [e evolutions]
            [:tr
             [:td [:a {:href (str "/evolution/" (:evolution_id e))} (:evolution_id e)]]
-            [:td (:created_at e)]
-            [:td (:updated_at e)]
+            [:td {:title (:created_at e)} (h/datetime (:created_at e))]
+            [:td {:title (:updated_at e)} (h/datetime (:updated_at e))]
             [:td (:min_ratings e)]
             [:td (:evolve_after e)]
             [:td (:total_iterations e)]
@@ -199,7 +204,10 @@
             [:td (:repetitions e)]
             [:td (:chord e)]
             [:td (:tempo e)]
-            [:td (:user_id e)]])]]])))                      ;; TODO admin only
+            (when is-admin?
+              [:td (:user_id e)])
+            ])]]]
+      :title "Library")))
 
 (defn evolution-detail [req {:keys [user-id evolution chromosomes reaction-map pagination
                                     iteration-ratings iteration rateable? not-rateable-msg]}]
@@ -317,7 +325,7 @@
     [:div
      [:h3.title.is-3 "Presets"]
      [:p.mb-4 "Presets have a predefined set of options that attempt to match common musical styles."]
-     [:p.mb-6 "Each selection will prepopulate some of the existing options and you can still adjust them
+     [:p.mb-6 "Each selection will prepopulate some of the existing options which you can still adjust
       before creating a new evolution."]
      [:div.columns
       [:div.column

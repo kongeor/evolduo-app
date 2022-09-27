@@ -52,6 +52,8 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - [ ] Samples
 - [ ] Tutorial
 - [ ] A
+- [ ] Unlock Keys
+- [ ] Static pages, Contact, Dev Blog, Support, links etc.
 
 
 ## Stylistic
@@ -74,6 +76,13 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - [ ] SEO
 - [ ] Explorer track options (chromatic etc.)
 - [ ] Enable download buttons after listening the track
+- [ ] Clear logs after 30 days
+- [ ] Invitation after finished?
+
+## Interesting features
+
+- [ ] Evolution graph
+- [ ] Audio/Time Lapse
  
 ## Post-stats checklist
 

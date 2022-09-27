@@ -3,13 +3,13 @@
             [compojure.core :refer [GET POST defroutes]]
             [compojure.route :as route]
             [evolduo-app.controllers.evolution :as evolution-ctl]
-            [evolduo-app.controllers.explorer :as explorer-ctl]
+            [evolduo-app.controllers.playground :as playground-ctl]
             [evolduo-app.controllers.home :as home-ctl]
             [evolduo-app.controllers.invitation :as invitation-ctl]
             [evolduo-app.controllers.reaction :as reaction-ctl]
             [evolduo-app.controllers.user :as user-ctl]
+            [evolduo-app.controllers.static :as static-ctl]
             [evolduo-app.request :as req]
-            [ring.middleware.session.cookie :as session-cookie]
             [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
             [taoensso.carmine.ring :refer [carmine-store]]
             [sentry-clj.core :as sentry]
@@ -58,13 +58,15 @@
   (POST "/evolution/save" [] evolution-ctl/save)
   (GET "/evolution/presets" [] evolution-ctl/get-presets)
   (POST "/evolution/presets" [] evolution-ctl/post-presets)
-  (GET "/evolution/search" [] evolution-ctl/search)
+  (GET "/evolution/library" [] evolution-ctl/search)
   (GET "/evolution/:id{[0-9]+}" [] evolution-ctl/detail)
   (GET "/evolution/:id{[0-9]+}/invitation/form" [] invitation-ctl/invitation-form)
   (POST "/evolution/:id{[0-9]+}/invitation/save" [] invitation-ctl/invitation-save)
   (GET "/evolution/:evolution-id{[0-9]+}/iteration/:iteration-num{[0-9]+}" [] evolution-ctl/iteration-detail)
-  (GET "/explorer" [] explorer-ctl/explorer)
+  (GET "/playground" [] playground-ctl/playground)
   (POST "/reaction" [] reaction-ctl/save)
+  (GET "/privacy-policy" [] static-ctl/privacy-policy)
+  (GET "/terms-of-service" [] static-ctl/terms-of-service)
   (route/not-found "404"))
 
 (comment

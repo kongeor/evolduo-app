@@ -23,7 +23,8 @@
   com.github.kongeor/chickn          {:git/sha "11894a28104b5be6f3b6989717d1a894976c8c3f"}
   com.github.trhura/clojure-humanize {:git/sha "2809b17e5fe8da282337734341462ff25bfe06eb"}
   net.logicsquad/nanocaptcha         {:mvn/version "1.2"}
-  com.taoensso/carmine               {:mvn/version "3.1.0"}}
+  com.taoensso/carmine               {:mvn/version "3.1.0"}
+  hickory/hickory                    {:mvn/version "0.7.1"}}
  :aliases
  {:dev    {:extra-paths ["dev"]
            :extra-deps  {integrant/repl {:mvn/version "0.3.2"}}}

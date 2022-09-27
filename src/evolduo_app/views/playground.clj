@@ -1,15 +1,18 @@
-(ns evolduo-app.views.explorer
+(ns evolduo-app.views.playground
   (:require [evolduo-app.views.common :refer [base-view]]
             [evolduo-app.views.components :as comps]
             [clojure.string :as str]))
 
-(defn explorer [req & {:keys [abc] :as track}]
+(defn playground [req & {:keys [abc title] :as track}]
   (let [{:keys [key mode progression chord tempo]} (-> req :params)
         tempo (if (str/blank? tempo) "110" tempo)]          ;; TODO sanitized params
     (base-view
       req
       [:div
-       [:form {:action "/explorer" :method "GET"}
+       [:h3.title.is-3 "Playground"]
+       [:p.mb-4 "Playground allows you to try different combinations of keys, modes, progressions and chord types
+                 without the result being persisted and evolved."]
+       [:form {:action "/playground" :method "GET"}
         [:div.field.is-horizontal
          [:div.field-label.is-normal
           [:label.label {:for "key"} "Key"]]
@@ -41,7 +44,7 @@
           [:div.control
            [:input.input {:type "number" :name "tempo" :value tempo :min "40" :max "240"}]]]
          [:div.control
-          [:input.button.is-link {:type "submit" :value "Create"}]]
+          [:input.button.is-link {:type "submit" :value "Try"}]]
          ]]
        (when (some? abc)
          [:div
@@ -51,4 +54,5 @@
       :enable-abc? (some? abc)
       ; :custom-script (str "var abc = \"" abc "\";")
       :body-load-hook "load()"                              ;; TODO fix
+      :title title
       )))

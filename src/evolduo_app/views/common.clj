@@ -18,12 +18,10 @@
      [:div#navbarBasicExample.navbar-menu
       [:div.navbar-start
        [:div.navbar-item.has-dropdown.is-hoverable
-        [:a.navbar-link "Evolution"]
-        [:div.navbar-dropdown
-         [:a.navbar-item {:href "/evolution/form"} "New"]
-         [:a.navbar-item {:href "/evolution/presets"} "Presets"]]]
-       [:a.navbar-item {:href "/evolution/search?type=public"} "Search"]
-       [:a.navbar-item {:href "/explorer"} "Explorer"]]
+        [:a.navbar-item {:href "/evolution/form"} "New Evolution"]
+        [:a.navbar-item {:href "/evolution/presets"} "Presets"]]
+       [:a.navbar-item {:href "/evolution/library?type=public"} "Library"]
+       [:a.navbar-item {:href "/playground"} "Playground"]]
       [:div.navbar-end
        [:div.navbar-item
         [:div.buttons
@@ -44,13 +42,13 @@
      (:message data)]))
 
 (defn base-view
-  [req content & {:keys [enable-abc? custom-script body-load-hook notification]}]
+  [req content & {:keys [enable-abc? custom-script body-load-hook notification title]}]
   (let [version (-> req :settings :version)]
     [:html
      [:head
       [:meta {:charset "utf-8"}]
       [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
-      [:title "Evolduo"]
+      [:title (str (when title (str title " | ")) "Evolduo")]
       [:link {:rel  "stylesheet"                            ; :integrity "sha384-yJXjG+KvhGtpcF/tiWkrkE8Nq5c9bk2vkMIgy31AEh7KfW3mIOm7B3waZ2ifOFjg"
               :href (u/asset "/css/abcjs-audio.css" version)}]
       [:link {:rel  "stylesheet"                            ; :integrity "sha384-HmYpsz2Aa9Gh3JlkCoh8kUJ2mUKJKTnkyC2Lzt8aLzpPOpnDe8KpFE2xNiBpMDou"
@@ -73,7 +71,15 @@
         content]]
       [:footer.footer
        [:div.content.has-text-centered
-        [:p [:a {:href "https://github.com/kongeor/evolduo-app"} "Source"]]
+        [:p
+         [:a {:href "https://github.com/kongeor/evolduo-app"} "Source"]
+         [:span " | "]
+         [:a {:href "/privacy-policy"} "Privacy Policy"]
+         [:span " | "]
+         [:a {:href "/terms-of-service"} "Terms of Service"]
+         [:span " | "]
+         [:a {:href "/contact"} "Contact"]
+         ]
         [:p (str (-> req :settings :version))]]]
       (when custom-script
         [:script {:type "text/javascript"}

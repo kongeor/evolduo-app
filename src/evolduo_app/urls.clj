@@ -20,13 +20,13 @@
 
 (defn url-for [action & {:as params}]
   (case action
-    :evolution-search (str (->url :evolution :search) "?" (codec/form-encode (:query params)))
+    :evolution-search (str (->url :evolution :library) "?" (codec/form-encode (:query params)))
     :evolution-form (->url :evolution :form)
     :evolution-detail (->url :evolution (:evolution-id params))
-    :explorer (str (->url :explorer) "?" (codec/form-encode (:query params)))
+    :playground (str (->url :playground) "?" (codec/form-encode (:query params)))
     :invitation-form (->url :evolution (:evolution-id params) :invitation :form)
     :invitation-save (->url :evolution (:evolution-id params) :invitation :save)))
 
 (comment
-  (url-for :explorer :query {:a 1})
+  (url-for :playground :query {:a 1})
   (url-for :evolution-invite :evolution-id 1))

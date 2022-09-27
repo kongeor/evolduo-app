@@ -29,8 +29,8 @@
         db         (:db req)
         user-id    (req/user-id req)
         evolutions (condp = type
-                     "public" (model/find-active-public-evolutions db user-id :limit 100)
-                     "invited" (model/find-invited-to-evolutions db user-id :limit 100)
+                     "public" (model/find-active-public-evolutions db nil :limit 100) ;; TODO meh
+                     "friends" (model/find-invited-to-evolutions db user-id :limit 100)
                      "my" (model/find-user-active-evolutions db user-id :limit 100))] ;; TODO pagination
     (res/render-html evolution-views/evolution-list req evolutions)))
 

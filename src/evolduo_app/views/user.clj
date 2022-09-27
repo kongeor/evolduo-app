@@ -76,9 +76,16 @@
        [:p.help.is-info.mb-2 "You are not a robot, are you? Please enter the number you see above. Use the audio player below to hear the captcha value"]
        [:audio {:controls "true" :src  (str "data:audio/wav;base64, " (captcha/captcha-audio->base64 captcha))} "Your browser does not support the"
         [:code "audio"] "element."]]
+      [:p.mb-4
+       "By signing up you agree to our "
+       [:a {:href "/privacy-policy"} "Privacy Policy"]
+       " and "
+       [:a {:href "/terms-of-service"} "Terms of Service"]
+       "."]
       [:div.field.is-grouped
        [:div.control
-        [:button.button.is-link {:type "submit"} "Sign up"]]]]]))
+        [:button.button.is-link {:type "submit"} "Sign up"]]]]]
+    :title "Sign up"))
 
 (defn account [req & {:keys [user errors]}]
   (let [{:keys [notifications announcements]} (:subscription user)]

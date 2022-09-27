@@ -8,23 +8,30 @@
   (base-view
     req
     [:div
+     [:p.mb-4 "Evolduo is platform for collaborative musical synthesis using evolutionary algorithms.
+               It is open source and free to use. You can read more about it " [:a {:href "#"} "here"] "."]
+     [:p.mb-4 "Not sure where to start?
+               Check the " [:a {:href "#"} "quick start video tutorial"] "."]
      (when (seq user-evolutions)
        [:div.mb-4
-        [:h2.is-size-4 "Your evolutions"]
+        [:h2.is-size-4.mb-4 "My evolutions"]
+        [:p.mb-4 "Evolutions created by you."]
         (comps/evolution-table user-evolutions)
         [:a {:href (u/url-for :evolution-search {:query {:type "my"}})} "more"]
         [:hr]])
 
      (when (seq invited-evolutions)
        [:div.mb-4
-        [:h2.is-size-4 "Invited evolutions"]
+        [:h2.is-size-4.mb-4 "Friends' evolutions"]
+        [:p.mb-4 "Evolutions you have been invited to."]
         (comps/evolution-table invited-evolutions)
-        [:a {:href (u/url-for :evolution-search {:query {:type "invited"}})} "more"]
+        [:a {:href (u/url-for :evolution-search {:query {:type "friends"}})} "more"]
         [:hr]])
 
      (when (seq public-evolutions)
        [:div.mb-4
-        [:h2.is-size-4 "Public evolutions"]
+        [:h2.is-size-4.mb-4 "Public evolutions"]
+        [:p.mb-4 "Evolutions created by others that are marked as public."]
         (comps/evolution-table public-evolutions)
         [:a {:href (u/url-for :evolution-search {:query {:type "public"}})} "more"]
         [:hr]])

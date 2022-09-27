@@ -202,7 +202,7 @@
 
 (defn evolution-type-select [type]
   [:select {:name "type"}
-   (for [k ["my" "invited" "public"]]
+   (for [k ["my" "friends" "public"]]
      [:option (merge {:value k}
                 (when (= k type)
                   {:selected true})) k])])
