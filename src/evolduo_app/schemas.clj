@@ -60,7 +60,7 @@
 (def Rating
   [:map {:closed true}
    [:chromosome_id int?]
-   [:value int?]])
+   [:value [:int {:min -2 :max 2}]]])
 
 
 (def email-regex #"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,63}$")

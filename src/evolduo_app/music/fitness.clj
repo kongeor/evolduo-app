@@ -1,5 +1,6 @@
 (ns evolduo-app.music.fitness
-  (:require [evolduo-app.music :as muse]))
+  (:require [evolduo-app.music :as muse]
+            [evolduo-app.music :as music]))
 
 (defn oct-note [note]
   (when (not= note -1)
@@ -62,13 +63,27 @@
        (apply +)))
 
 (comment
-  (analyze {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I" :repetitions 1} muse/c1)
+  (analyze {:key "D" :mode "major" :duration 8 :progression "I-IV-V-I" :repetitions 1} muse/c1)
   (calc-last-notes-score (analyze {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I" :repetitions 1} muse/c)))
+
+(defn calc-scale-score
+  "A small weight that should mostly affect minimal tracks that are not affected by chords"
+  [{:keys [key mode]} notes]
+  (let [scale-notes (set (music/gen-scale-oct-notes key mode))
+        oct-notes (map :oct-note notes)
+        total (count notes)
+        n (count (filter scale-notes oct-notes))]
+    [total n]
+    (- (* n 2) total)))
+
+(comment
+  (calc-scale-score {:key "C" :mode "major"} (analyze {:key "G" :mode "major" :duration 8 :progression "I-IV-V-I" :repetitions 1} muse/c1)))
 
 (defn fitness [settings genes]
   (let [a (analyze settings genes)]
     (+
       (calc-last-notes-score a)
+      (calc-scale-score settings a)
       (reduce (fn [acc {:keys [duration type oct-chord oct-note]}]
                 (if (and (= type :note)
                          (not (oct-chord oct-note)))

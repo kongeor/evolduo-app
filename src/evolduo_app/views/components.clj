@@ -54,9 +54,46 @@
                 (when (= c chord)
                   {:selected true})) c])])
 
+(defn note-type-select [note-type]
+  [:select {:name "notes"}
+   (for [t ["rests" "random" "asc" "desc"]]
+     [:option (merge {:value t}
+                (when (= t note-type)
+                  {:selected true})) t])])
+
+(defn rating-button [id text title value user-id rateable? not-rateable-msg reaction]
+  [:p.control
+   [:button.button.is-size-5
+    (merge
+      {:title title :onclick (str "document.getElementById('rating-value-" id "').value = " value " ; document.getElementById('rating-form-" id "').submit()")}
+      (when (or reaction (not user-id) (not rateable?))
+        {:disabled true})
+      (cond
+        (not user-id)
+        {:title "You need to be logged in to rate this track"}
+
+        (not rateable?)
+        {:title not-rateable-msg}
+
+        reaction
+        {:title "You have already rated this track"}
+
+        :else nil
+        ))
+    [:span text]]])
+
+(def rating-values
+  [{:text "\uD83E\uDD22" :title "Oh my god!" :value -2}
+   {:text "\uD83D\uDE41" :title "I don't like this" :value -1}
+   {:text "\uD83D\uDE10" :title "I neither like nor dislike this" :value 0}
+   {:text "\uD83D\uDE42" :title "I like this" :value 1}
+   {:text "\uD83D\uDE03" :title "I like this a lot!" :value 2}
+   ])
+
 ;;
 (defn abc-track [{:keys [chromosome_id fitness raw_fitness abc]} & {:keys [evolution-id user-id reaction hide-reaction?
-                                                                           is-admin? rateable? not-rateable-msg]}]
+                                                                           is-admin? rateable? not-rateable-msg
+                                                                           iteration-num]}]
   (let [id chromosome_id
         abc-id (str "abc_" id)
         abc-activate (str "activate-audio-" id)
@@ -78,96 +115,43 @@
         [:p (str "Raw Fitness: " raw_fitness)]])
      [:div {:id abc-id}]
      [:div.mb-4 {:id audio-id}]
-     [:div.buttons
-      #_[:div.dropdown {:id (str "dropdown-" id)}
-       [:div.dropdown-trigger
-        [:button.button {:aria-haspopup "true" :aria-controls "dropdown-menu"}
-         [:span {:data-target (str "dropdown-" id)} "Download "]
-         #_[:span.icon.is-small
-          [:svg {:xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 384 512"} [:path {:d "M192 384c-8.188 0-16.38-3.125-22.62-9.375l-160-160c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0L192 306.8l137.4-137.4c12.5-12.5 32.75-12.5 45.25 0s12.5 32.75 0 45.25l-160 160C208.4 380.9 200.2 384 192 384z"}]]]
-         #_[:span.icon.is-small
-          [:i.fas.fa-angle-down {:aria-hidden "true"}]]]]
-       [:div#dropdown-menu.dropdown-menu {:role "menu"}
-        [:div.dropdown-content
-         [:a.dropdown-item {:class download-midi-id} "MIDI"]
-         [:a.dropdown-item {:class download-wav-id} "WAV"]]]]]
-     [:div.buttons
-      #_[:button.button.is-primary {:class abc-activate} "Play"]
-      #_[:button.button.is-light {:class abc-stop} "Stop"]
-      #_[:div {:id abc-start-measure-id}]
-      #_[:div {:id abc-end-measure-id}]]
-     [:div.buttons
-      (when-not hide-reaction?
-        [:form
-         {:action "/reaction" :method "POST"}
-         [:input {:type "hidden" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
-         [:input {:type "hidden" :name "chromosome_id" :value id}]
-         [:input {:type "hidden" :name "redirect_url" :value (urls/url-for :evolution-detail {:evolution-id evolution-id})}]
-         [:input {:type "hidden" :name "value" :value "1"}]
-         [:input.button.is-link.mr-2 (merge
-                                       {:type "submit" :value "I like this \uD83D\uDC4D"}
-                                       (when (or reaction (not user-id) (not rateable?))
-                                         {:disabled true})
-                                       (cond
-                                         (not user-id)
-                                         {:title "You need to be logged in to rate this track"}
-
-                                         (not rateable?)
-                                         {:title not-rateable-msg}
-
-                                         reaction
-                                         {:title "You have already rated this track"}
-
-                                         :else nil
-                                         ))]])
-      (when-not hide-reaction?
-        [:form
-         {:action "/reaction" :method "POST"}
-         [:input {:type "hidden" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
-         [:input {:type "hidden" :name "chromosome_id" :value id}]
-         [:input {:type "hidden" :name "redirect_url" :value (urls/url-for :evolution-detail {:evolution-id evolution-id})}]
-         [:input {:type "hidden" :name "value" :value "-1"}]
-         [:input.button.is-danger.mr-4 (merge
-                                    {:type "submit" :value "I don't like this \uD83D\uDC4E"}
-                                    (when (or reaction (not user-id) (not rateable?))
-                                      {:disabled true})
-                                    (cond
-                                      (not user-id)
-                                      {:title "You need to be logged in to rate this track"}
-
-                                      (not rateable?)
-                                      {:title not-rateable-msg}
-
-                                      reaction
-                                      {:title "You have already rated this track"}
-
-                                      :else nil
-                                      ))]])
-      [:button.button.is-light {:class download-midi-id} "Download MIDI"]
-      [:button.button.is-light {:class download-wav-id} "Download WAV"]
-      ]
+     (when-not hide-reaction?
+       [:form
+        {:id (str "rating-form-" id) :action "/reaction" :method "POST"}
+        [:input {:type "hidden" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
+        [:input {:type "hidden" :name "chromosome_id" :value id}]
+        [:input {:type "hidden" :name "redirect_url" :value (urls/url-for :iteration-detail {:evolution-id  evolution-id
+                                                                                             :iteration-num iteration-num})}]
+        [:input {:type "hidden" :id (str "rating-value-" id) :name "value" :value "-10"}]
+        [:div.field.has-addons.mb-4
+         (for [{:keys [text title value]} rating-values]
+           (rating-button id text title value user-id rateable? not-rateable-msg reaction))]])
+     [:button.button.is-light {:class download-midi-id} "Download MIDI"]
+     [:button.button.is-light {:class download-wav-id} "Download WAV"]
      [:hr.mb-4]]))
 
 (defn pagination [{:keys [current max link-fn]}]
-  [:nav.pagination {:role "navigation" :aria-label "pagination"}
-   [:a.pagination-previous
-    (if (zero? current)
-      {:disabled true}
-      {:href (link-fn (dec current))}) "Previous"]
-   [:a.pagination-next
-    (if (= current max)
-      {:disabled true}
-      {:href (link-fn (inc current))}) "Next"]
-   [:ul.pagination-list
-    (for [i (range 0 (inc max))]
-      [:li
-       [:a.pagination-link
-        (merge
-          {:href (link-fn i)
-           :aria-label (str "Page " i)
-           :aria-current "page"}
-          (when (= i current)
-            {:class "is-current"})) (str i)]])]])
+  [:div
+   [:h3.is-size-4.mb-4 "Jump to iteration"]
+   [:nav.pagination {:role "navigation" :aria-label "pagination"}
+    [:a.pagination-previous
+     (if (zero? current)
+       {:disabled true}
+       {:href (link-fn (dec current))}) "Previous"]
+    [:a.pagination-next
+     (if (= current max)
+       {:disabled true}
+       {:href (link-fn (inc current))}) "Next"]
+    [:ul.pagination-list
+     (for [i (range 0 (inc max))]
+       [:li
+        [:a.pagination-link
+         (merge
+           {:href         (link-fn i)
+            :aria-label   (str "Page " i)
+            :aria-current "page"}
+           (when (= i current)
+             {:class "is-current"})) (str i)]])]]])
 
 (defn evolution-table [evolutions]
   [:table.table.is-fullwidth

@@ -4,7 +4,7 @@
             [evolduo-app.model.rating :as model]
             [evolduo-app.schemas :as schemas]
             [next.jdbc :as jdbc]
-            [ring.util.response :as resp]))
+            [evolduo-app.response :as res]))
 
 (defn save
   [req]
@@ -22,8 +22,7 @@
     ;; TODO is user verified?
     (cond
       (:error sanitized-data)
-      (assoc
-        (resp/redirect "/evolution/search")
+      (res/redirect redirect-url
         :flash {:type :danger :message "Ooops, this shouldn't have happened."})
 
       :else
@@ -34,6 +33,6 @@
           ;; TODO is this ok? as in atomic etc.
           (evolution-model/increase-iteration-ratings tx iteration_id)
           (model/insert-rating tx reaction))
-        (assoc
-          (resp/redirect redirect-url)
+        (res/redirect
+          redirect-url
           :flash {:type :info :message "Thanks! Your rating has been recorded"})))))

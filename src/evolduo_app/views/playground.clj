@@ -4,7 +4,7 @@
             [clojure.string :as str]))
 
 (defn playground [req & {:keys [abc title] :as track}]
-  (let [{:keys [key mode progression chord tempo]} (-> req :params)
+  (let [{:keys [key mode progression chord tempo notes]} (-> req :params)
         tempo (if (str/blank? tempo) "110" tempo)]          ;; TODO sanitized params
     (base-view
       req
@@ -38,6 +38,12 @@
           [:div.control
            [:div.select
             (comps/chord-select chord)]]]
+         [:div.field-label.is-normal
+          [:label.label {:for "notes"} "Notes"]]
+         [:div.field.mr-4
+          [:div.control
+           [:div.select
+            (comps/note-type-select notes)]]]
          [:div.field-label.is-normal
           [:label.label {:for "tempo"} "Tempo"]]
          [:div.field.mr-2

@@ -96,7 +96,7 @@
         [:div.select
          (comps/keys-select-restricted (:key evolution))]]
        [:p.help.is-info [:span
-                         "Key selection is disabled for now. Read more about this limitation "
+                         "Key selection is limited for now. Read more about this limitation "
                          [:a {:href "#"} "here"]
                          "."]]
        (when-let [key-errors (:key errors)]
@@ -224,6 +224,8 @@
          [:h3.is-size-4.mb-4 "Evolution details"]
          [:div
           [:p (str "Key: " (:key evolution))]
+          [:p (str "Mode: " (:mode evolution))]
+          [:p (str "Progression: " (:progression evolution))]
           [:p (str "Crossover Rate: " (:crossover_rate evolution) "%")]
           [:p (str "Mutation Rate: " (:mutation_rate evolution) "%")]
           ]]
@@ -270,8 +272,9 @@
         (for [c chromosomes]
           (let [reaction (-> c :chromosome_id reaction-map)]
             (comps/abc-track c :evolution-id (:id evolution)
-                             :reaction reaction :user-id user-id :is-admin? (:is-admin? req)
-                             :rateable? rateable? :not-rateable-msg not-rateable-msg)))]
+              :reaction reaction :user-id user-id :is-admin? (:is-admin? req)
+              :rateable? rateable? :not-rateable-msg not-rateable-msg
+              :iteration-num (:num iteration))))]
        [:div
         (comps/pagination pagination)]]
       :enable-abc? true

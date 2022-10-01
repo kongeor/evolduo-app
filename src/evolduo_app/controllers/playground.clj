@@ -6,7 +6,7 @@
 (defn playground
   [req]
   ;; TODO validate
-  (let [{:keys [key mode progression chord tempo]} (-> req :params)
+  (let [{:keys [key mode progression chord tempo notes]} (-> req :params)
         abc (when (and key progression)
               (let [settings    {:key         key
                                  :mode        mode
@@ -16,7 +16,19 @@
                                  :repetitions 1}
                     chord-names (music/gen-chord-names settings)]
                 (music/->abc-track settings
-                                   {:genes (music/chromatic-chromosome 72 chord-names :asc? true) #_(music/random-track {:key  key :measures (count chord-names)
-                                                                                                                         :mode mode})})))]
+                  {:genes
+                   (condp = notes
+
+                     "rests"
+                     (music/rest-chromosome settings)
+
+                     "asc"
+                     (music/chromatic-chromosome key chord-names :asc? true)
+
+                     "desc"
+                     (music/chromatic-chromosome key chord-names :asc? false)
+
+                     (music/random-track settings)
+                     )})))]
     (r/render-html view/playground req {:abc           abc
                                         :title "Playground"})))

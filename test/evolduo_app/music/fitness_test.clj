@@ -8,16 +8,17 @@
                   67 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2
                   60 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2 -2])
 
-(def test-settings {:key "C" :mode "major" :duration 8
+(def test-settings {:key         "C" :mode "major" :duration 8
                     :progression "I-IV-V-I" :chord "R + 3 + 3"
                     :repetitions 1})
 
 (deftest last-note-scores-test
   (is (= [80 0 40.0 80]
-         (mapv calc-last-note-score (analyze test-settings test-chromo)))))
+        (mapv calc-last-note-score (analyze test-settings test-chromo)))))
 
 (deftest fitness-test
-  (with-redefs [calc-last-notes-score (constantly 0)]
+  (with-redefs [calc-last-notes-score (constantly 0)
+                calc-scale-score      (constantly 0)]
     (testing "zero note miss"
       (is (= 0 (fitness test-settings test-chromo))))
     (testing "changing to a 3rd is fine"
@@ -28,7 +29,7 @@
       (is (= -16 (fitness test-settings (assoc test-chromo 0 71)))))
     (testing "unless we have a 7th chord"
       (is (= 0 (fitness (assoc test-settings :chord "R + 3 + 3 + 3")
-                        (assoc test-chromo 0 71)))))
+                 (assoc test-chromo 0 71)))))
     (testing "penalty is proportional to the note length"
       (is (= -8 (fitness test-settings (assoc test-chromo 0 71 8 60))))))
   )

@@ -330,7 +330,7 @@ select e.*
            :mutation_rate    90
            :total_iterations 20
            :repetitions      4
-           :progression      (rand-nth ["V-III" "I-I-VII-I"])
+           :progression      (rand-nth ["V-III-V-III" "I-I-VII-I"])
            :mode             (rand-nth ["phrygian" "lydian" "locrian"])
            :chord            "R + 3 + 3 + 3"
            :tempo            130}

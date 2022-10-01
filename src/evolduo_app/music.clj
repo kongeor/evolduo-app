@@ -5,7 +5,7 @@
 (def measure-sixteens 16)
 
 (def music-keys ["C" "Db" "D" "Eb" "E" "F" "F#" "G" "Ab" "A" "Bb" "B"])
-(def music-keys-restricted ["C"])
+(def music-keys-restricted ["C" "D"])
 
 (def notes      ["C" "C#" "D" "D#" "E" "F" "F#" "G" "G#" "A" "A#" "B"])
 (def notes-flat ["C" "Db" "D" "Eb" "E" "F" "Gb" "G" "Ab" "A" "Bb" "B"])
@@ -106,6 +106,7 @@
 (comment
   (get relative-major-map "ELoc")
   (transpose-key "Eb" "locrian")
+  (transpose-key "C" "locrian")
   (transpose-key "F#" "mixolydian"))
 
 ;; progressions
@@ -121,7 +122,7 @@
 
                    "VI-II-V-I"                              ;;  Circle
                    "I-IV-II-V"                              ;; Montgomery-Ward bridge
-                   "V-III"                                  ;; Irregular
+                   "V-III-V-III"                                  ;; Irregular
                    "I-V-VI-III-IV-I-IV-V"                   ;; Pachelbel's Canon
                    "I-I-I-I-IV-IV-I-I-V-V-I-I"
                    ;; all-degrees-progression
@@ -147,6 +148,7 @@
     4 false))
 
 (comment
+  (get mode-map "dorian")
   (minor-mode? (get mode-map "dorian")))
 
 (defn mode->scale [m]
@@ -334,16 +336,6 @@
         64 -2 -2 -2 64 -2 -2 -2 64 64 -1 -2 -2 -2 -2 -2
         ])
 
-(defn chromatic-chromosome [root chords & {:keys [asc?] :or {asc? true}}]
-  (let [chord-count (count chords)
-        root' (if (> chord-count 4)
-                (+ root (if asc? -24 12))
-                root)]
-    (take (* chord-count measure-sixteens)
-          (->> (iterate (if asc? inc dec) root')
-               (map #(cons % [-2 -2 -2]))
-               (apply concat)))))
-
 (comment
   (reduce (fn [acc n]
             (if (= n -2)
@@ -480,6 +472,18 @@
       (let [abc-note (if acc (str "_" n) (str n))]
         (note-abc-map-flats abc-note)))))
 
+(defn chromatic-chromosome [key chords & {:keys [asc?] :or {asc? true}}]
+  (let [root (key->int-note key)
+        chord-count (count chords)
+        root' (if (> chord-count 4)
+                (+ root (if asc? -24 24))
+                root)]
+    (take (* chord-count measure-sixteens)
+      (->> (iterate (if asc? inc dec) root')
+        (map #(cons % [-2 -2 -2]))
+        (apply concat)))))
+
+
 (comment
   (key->int-note "G"))
 
@@ -509,22 +513,22 @@
    #{0 3 6 11} "dim(Maj7)"
    })
 
-(defn chord->str [[root :as chord] key]
-  (let [notes (if (sharp? key) notes notes-flat)
+(defn chord->str [[root :as chord] key mode]
+  (let [notes (if (sharp? (transpose-key key mode)) notes notes-flat)
         r (get notes (mod root 12))
         chord-ivs (chord-intervals chord)
         chord-str (chords chord-ivs)]
     (str r chord-str)))
 
 (comment
-  (chord->str [60 63 67])
+  (chord->str [66 70 73 77] "C" "locrian")
   )
 
 (defn gen-chord [{:keys [key mode duration degree chord]}]
   (let [root-note (key->int-note key)
         scale-notes (intervals* (mode->scale mode))
         chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) (get chord-intervals-map chord [0 2 4]))
-        chord-str (chord->str chord-notes key)]
+        chord-str (chord->str chord-notes key mode)]
     (str "\\\"" chord-str "\\\" [ "  (str/join (map str (map abc-note-map chord-notes) (repeat duration))) "]")
     ))
 
@@ -534,9 +538,22 @@
         chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) (get chord-intervals-map chord [0 2 4]))]
     chord-notes))
 
+(defn gen-scale-oct-notes
+  "Scale octave notes e.g. for Gmajor => (0 2 4 6 7 9 11)"
+  [key mode]
+  (let [root-note   (key->int-note key)
+        scale-notes (mode->scale mode)]
+    (->> scale-notes
+      (map #(+ root-note %))
+      (map #(mod % 12))
+      sort)))
+
+(comment
+  (gen-scale-oct-notes "G" "dorian"))
+
 (defn gen-chord-2 [{:keys [key mode duration degree chord] :as params}] ;; yey and also, check duration
   (let [chord-notes (gen-chord-notes params)]
-    (chord->str chord-notes key)))
+    (chord->str chord-notes key mode)))
 
 (comment
   (gen-chord-notes {:key "C" :mode "major" :duration 8 :degree 0 :chord "R + 3 + 3 + 3"})
@@ -579,7 +596,7 @@
     (apply concat (repeat repetitions chords))))
 
 (comment
-  (gen-chord-progression-notes {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I"}))
+  (gen-chord-progression-notes {:key "G" :mode "major" :duration 8 :progression "I-IV-V-I" :repetitions 1}))
 
 (defn gen-chord-names [{:keys [mode progression repetitions] :as settings}]
   (let [dgs (progression->degrees progression)]
@@ -587,6 +604,15 @@
       (map #(gen-chord-2 (merge settings {:degree %})))
       (repeat repetitions)
       (apply concat))))
+
+;; TODO move to separate ns
+
+(defn rest-chromosome
+  "A very tired chromosome"
+  [settings]
+  (let [names (gen-chord-names settings)
+        n (count names)]
+    (mapcat (fn [_] (concat [-1] (repeat 15 -2))) (repeat n -1))))
 
 (defn random-track [{:keys [key mode] :as settings}]
   (let [measures     (count (gen-chord-names settings))
