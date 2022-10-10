@@ -12,7 +12,12 @@
 
 ## Samples
 
-- ![standard-19244.mp3](samples/standard-19244.mp3)
+<audio controls>
+  <source src="samples/standard-19244.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+
+- ![standard-19244.mp3]()
 - ![standard-blues-18975.mp3](samples/standard-blues-18975.mp3)
 - ![minimal-8896.mp3](samples/minimal-8896.mp3)
 
