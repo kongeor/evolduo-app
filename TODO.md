@@ -17,12 +17,12 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - [X] Secure cookie
 - [X] Raw fitness
 - [X] Fix chickn
-- [ ] Contact page
-- [ ] Known issues (mobile view, emails, fixed C)
+- [X] Contact page
+- [X] Known issues (mobile view, emails, fixed C)
 - [X] List limits
 - [ ] Update deps / abc.js
 - [ ] Help Texts refinements (+ invitation)
-- [ ] Evolution more details page
+- [X] Evolution more details page
 - [X] Player fixes
 - [X] Wizard/Presets
 - [ ] Roadmap
@@ -39,19 +39,20 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - [X] Favico
 - [X] Subresource integrity
 - [X] Validate 0 crossover 0 mutation, improve selections
-- [ ] Bound checks, more notes etc.
+- [X] Bound checks, more notes etc.
 - [X] Progress hover
 - [ ] Iteration navigation
 - [ ] Rating past tracks
-- [ ] Explanations on each page
+- [X] Explanations on each page
 - [ ] Terms downloading staff from GH
+- [ ] Terms use of Sentry
 - [ ] Limits/verified rating, evolutions (check role)
-- [ ] Validate rating
-- [ ] Register agree to terms
-- [ ] Rename pages
+- [X] Validate rating
+- [X] Register agree to terms
+- [X] Rename pages
 - [ ] Samples
 - [ ] Tutorial
-- [ ] A
+- [X] A
 - [ ] Unlock Keys
 - [ ] Static pages, Contact, Dev Blog, Support, links etc.
 

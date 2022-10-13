@@ -12,9 +12,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@5.0
+        uses: DeLaGuardo/setup-clojure@9.5
         with:
-          cli: 1.11.1.1113
+          cli: 1.11.1.1165
 
       - name: Run tests
         run: clojure -X:test

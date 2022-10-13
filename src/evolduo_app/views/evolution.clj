@@ -97,7 +97,7 @@
          (comps/keys-select-restricted (:key evolution))]]
        [:p.help.is-info [:span
                          "Key selection is limited for now. Read more about this limitation "
-                         [:a {:href "#"} "here"]
+                         [:a {:target "_blank" :href "https://github.com/kongeor/evolduo-app/blob/main/doc/known_issues.md#limited-key-selection"} "here"]
                          "."]]
        (when-let [key-errors (:key errors)]
          [:p.help.is-danger (first key-errors)])]

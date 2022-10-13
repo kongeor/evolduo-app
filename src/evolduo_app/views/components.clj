@@ -48,7 +48,7 @@
                   {:selected true})) p])])
 
 (defn chord-select [chord]
-  [:select {:name "chord"}
+  [:select {:name "chord" :id "chord-select"}
    (for [c music/chord-intervals-keys]
      [:option (merge {:value c}
                 (when (= c chord)

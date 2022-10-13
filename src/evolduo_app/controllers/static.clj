@@ -7,14 +7,22 @@
 (defn- doc-as-hiccup [doc]
   (hickory/as-hiccup (hickory/parse (slurp (io/resource doc)))))
 
+(defn render-static-page [req page]
+  (let [doc (doc-as-hiccup page)]
+    (r/render-html (fn [req] (base-view req doc)) req)))
+
 ;; TODO memoize for prod
+
+(defn samples [req]
+  (render-static-page req "doc/samples.html"))
+
+(defn contact [req]
+  (render-static-page req "doc/contact.html"))
 
 (defn privacy-policy
   [req]
-  (let [doc (doc-as-hiccup "doc/privacy-policy.html")]
-    (r/render-html (fn [req] (base-view req doc)) req)))
+  (render-static-page req "doc/privacy-policy.html"))
 
 (defn terms-of-service
   [req]
-  (let [doc (doc-as-hiccup "doc/terms-and-conditions.html")]
-    (r/render-html (fn [req] (base-view req doc)) req)))
+  (render-static-page req "doc/terms-and-conditions.html"))

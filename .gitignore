@@ -8,5 +8,4 @@
 target/
 .env
 
-
 resources/config.edn

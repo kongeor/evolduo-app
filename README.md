@@ -4,22 +4,17 @@
 
 ## What is it?
 
+Evolduo is platform for collaborative musical synthesis using evolutionary algorithms. It is open source and free to use.
+
 
 ## Is it good?
 
 [Yes.](https://news.ycombinator.com/item?id=3067434)
 
 
-## Samples
+## Audio samples
 
-<audio controls>
-  <source src="samples/standard-19244.mp3" type="audio/mpeg">
-  Your browser does not support the audio element.
-</audio>
-
-- ![standard-19244.mp3]()
-- ![standard-blues-18975.mp3](samples/standard-blues-18975.mp3)
-- ![minimal-8896.mp3](samples/minimal-8896.mp3)
+See [here](https://evolduo.cons.gr/samples).
 
 ## Issues
 
@@ -29,6 +24,8 @@
 
 
 ## Support
+
+If you like this project and want to support its development.
 
 ## Acknowledgements
 

@@ -65,6 +65,8 @@
   (GET "/evolution/:evolution-id{[0-9]+}/iteration/:iteration-num{[0-9]+}" [] evolution-ctl/iteration-detail)
   (GET "/playground" [] playground-ctl/playground)
   (POST "/reaction" [] reaction-ctl/save)
+  (GET "/samples" [] static-ctl/samples)
+  (GET "/contact" [] static-ctl/contact)
   (GET "/privacy-policy" [] static-ctl/privacy-policy)
   (GET "/terms-of-service" [] static-ctl/terms-of-service)
   (route/not-found "404"))

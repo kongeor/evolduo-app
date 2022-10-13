@@ -21,7 +21,9 @@
         [:a.navbar-item {:href "/evolution/form"} "New Evolution"]
         [:a.navbar-item {:href "/evolution/presets"} "Presets"]]
        [:a.navbar-item {:href "/evolution/library?type=public"} "Library"]
-       [:a.navbar-item {:href "/playground"} "Playground"]]
+       [:a.navbar-item {:href "/playground"} "Playground"]
+       [:a.navbar-item {:href "/samples"} "Samples"]
+       [:a.navbar-item {:href "/contact"} "Contact"]]
       [:div.navbar-end
        [:div.navbar-item
         [:div.buttons
@@ -77,6 +79,8 @@
          [:a {:href "/privacy-policy"} "Privacy Policy"]
          [:span " | "]
          [:a {:href "/terms-of-service"} "Terms of Service"]
+         [:span " | "]
+         [:a {:href "https://github.com/kongeor/evolduo-app#support"} "Support"]
          [:span " | "]
          [:a {:href "/contact"} "Contact"]
          ]
