@@ -1,10 +1,12 @@
 (ns evolduo-app.mailer
   (:require [postal.core :as postal]
+            [evolduo-app.mailjet :as mailjet]
             [evolduo-app.model.user :as user]
             [evolduo-app.model.mail :as mail]
             [hiccup.core :as html]
             [next.jdbc :as jdbc]
-            [next.jdbc.result-set :as rs]))
+            [next.jdbc.result-set :as rs]
+            [clojure.tools.logging :as log]))
 
 ;; common
 
@@ -163,15 +165,24 @@ table.body .article {
                           (p "bar")])))
 ;;
 
-(defn- send-email [settings user title content]
+(def mailjet-types #{"signup" "invitation"})
+
+(defn- send-email [settings type user subject content]
   (let [mail-server (:mail-server settings)
-        {:keys [email]} user]
-    (postal/send-message mail-server
-      {:from    (:user mail-server)
-       :to      email
-       :subject title
-       :body    [{:type    "text/html"
-                  :content (html/html content)}]})))
+        {:keys [id email]} user
+        html-content (html/html content)]
+    (or
+      (when (mailjet-types type)
+        (log/info "Sending email using mailjet to user" id "with subject" subject)
+        (mailjet/send-email settings email subject html-content))
+      (do
+        (log/info "Sending email using postal to user" id "with subject" subject)
+        (postal/send-message mail-server
+          {:from    (:user mail-server)
+           :to      email
+           :subject subject
+           :body    [{:type    "text/html"
+                      :content html-content}]})))))
 
 (defn- invitation-content [db {:keys [app-url] :as settings} mail]
   (let [{:keys [evolution-id invited-by-id]} (:data mail)
@@ -198,7 +209,7 @@ table.body .article {
             user (user/find-user-by-id tx-opts (:recipient_id mail))
             {:keys [should-receive? title content]} (get-email-data db settings user mail)]
         (when should-receive?
-          (send-email settings user title content))
+          (send-email settings (:type mail) user title content))
         (mail/mark-as-sent tx-opts (:id mail))))))
 
 (comment

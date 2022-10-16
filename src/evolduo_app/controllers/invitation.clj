@@ -66,7 +66,7 @@
                                                           :errors    {:emails [["You can invite up to 5 friends at a time"]]}
                                                           :emails    emails-input})
 
-      (> (model/num-of-invitations-in-last-day db user-id) 30)
+      (> (model/num-of-invitations-in-last-day db user-id) 20)
       (r/render-html evolution-views/invitation-form req {:evolution evolution
                                                           :notification {:type "danger"
                                                                          :message "That's too many invitations for today. Come again later"}

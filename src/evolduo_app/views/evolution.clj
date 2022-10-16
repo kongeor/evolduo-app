@@ -296,6 +296,7 @@
        [:label.label {:for "emails"} "Emails"]
        [:div.control
         [:input.input {:type "input" :name "emails" :value emails}]]
+       [:p.help.is-info "Add multiple emails by separating them with space or comma(,). You can invite up to 5 people in one go and up to 20 daily."]
        (when-let [email-errors (:emails errors)]
          [:p.help.is-danger (first-not-null email-errors)])]
       [:div.control

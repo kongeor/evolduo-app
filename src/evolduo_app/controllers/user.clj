@@ -57,7 +57,7 @@
           (->
             (r/redirect "/"
               :flash {:type :info :message [:span
-                                            (str "Welcome to Evolduo! You should receive an email verification in the next few minutes. "
+                                            (str "Welcome to Evolduo! You should receive an email verification shortly. "
                                               "Don't forget to check your spam folder. Still not there? Check ")
                                             [:a {:target "_blank" :href "https://github.com/kongeor/evolduo-app/blob/main/doc/known_issues.md#oh-no-my-email"} "this"]
                                             "."]})

@@ -22,7 +22,7 @@
 (defn mail [db settings]
   (let [now (Instant/now)]
     (c/chime-at
-      (c/periodic-seq (Instant/now) (Duration/ofMinutes 1))
+      (c/periodic-seq (Instant/now) (Duration/ofSeconds 10))
 
       (fn [time]
         (mailer/send-mails db settings))
