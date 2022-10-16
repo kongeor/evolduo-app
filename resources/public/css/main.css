@@ -6,6 +6,10 @@
     margin-bottom: 0.5rem;
 }
 
-#chord-select {
+#playground-form #chord-select {
     max-width: 125px;
+}
+
+#playground-form #progression-select {
+    max-width: 175px;
 }

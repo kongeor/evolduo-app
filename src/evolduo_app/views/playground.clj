@@ -12,7 +12,7 @@
        [:h3.title.is-3 "Playground"]
        [:p.mb-4 "Playground allows you to try different combinations of keys, modes, progressions and chord types
                  without the result being persisted and evolved."]
-       [:form {:action "/playground" :method "GET"}
+       [:form {:id "playground-form" :action "/playground" :method "GET"}
         [:div.field.is-horizontal
          [:div.field-label.is-normal
           [:label.label {:for "key"} "Key"]]

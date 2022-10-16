@@ -41,7 +41,7 @@
                   {:selected true})) m])])
 
 (defn progression-select [progression]
-  [:select {:name "progression"}
+  [:select {:name "progression" :id "progression-select"}
    (for [p music/progressions]
      [:option (merge {:value p}
                 (when (= p progression)
@@ -126,7 +126,7 @@
         [:div.field.has-addons.mb-4
          (for [{:keys [text title value]} rating-values]
            (rating-button id text title value user-id rateable? not-rateable-msg reaction))]])
-     [:button.button.is-light {:class download-midi-id} "Download MIDI"]
+     [:button.button.is-light.mr-4 {:class download-midi-id} "Download MIDI"]
      [:button.button.is-light {:class download-wav-id} "Download WAV"]
      [:hr.mb-4]]))
 
