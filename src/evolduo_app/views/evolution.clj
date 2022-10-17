@@ -210,8 +210,8 @@
       :title "Library")))
 
 (defn evolution-detail [req {:keys [user-id evolution chromosomes reaction-map pagination
-                                    iteration-ratings iteration rateable? not-rateable-msg]}]
-  (let [ratings-satisfied? (>= (count iteration-ratings) (:min_ratings evolution))
+                                    iteration rateable? not-rateable-msg]}]
+  (let [ratings-satisfied? (>= (:ratings iteration) (:min_ratings evolution))
         should-evolve?     (> (System/currentTimeMillis) (-> iteration :evolve_after (.getTime)))
         finished?          (= (:num iteration) (:total_iterations evolution))
         last?              (:last iteration)]
@@ -232,7 +232,7 @@
         [:div.column
          [:h3.is-size-4.mb-4 "Iteration details"]
          [:div
-          [:p (str "Ratings (Provided/Required): " (count iteration-ratings) "/" (:min_ratings evolution))]
+          [:p (str "Ratings (Provided/Required): " (:ratings iteration) "/" (:min_ratings evolution))]
           [:p (str "Iteration: " (:num iteration) "/" (:total_iterations evolution))]
           (if last?
             [:p (str "Status: "

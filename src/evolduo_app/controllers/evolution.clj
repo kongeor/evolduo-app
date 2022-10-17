@@ -99,7 +99,6 @@
             last-iteration-num (model/find-last-iteration-num-for-evolution db evolution-id)
             reactions          (reaction-model/find-iteration-ratings-for-user db evolution-id iteration-num user-id)
             reaction-map       (update-vals (group-by :chromosome_id reactions) first)
-            iteration-ratings  (reaction-model/find-iteration-ratings db evolution-id iteration-num)
             rateable?          (and (= last-iteration-num (:num iteration))
                                     (not= (:total_iterations evolution) (:num iteration)))
             not-rateable-msg   (when (not rateable?)
@@ -110,7 +109,6 @@
                                                                :chromosomes       chromosomes'
                                                                :user-id           user-id
                                                                :reaction-map      reaction-map
-                                                               :iteration-ratings iteration-ratings
                                                                :iteration         iteration
                                                                :rateable?         rateable?
                                                                :not-rateable-msg  not-rateable-msg
