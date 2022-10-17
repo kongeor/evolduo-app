@@ -74,7 +74,7 @@
       [:footer.footer
        [:div.content.has-text-centered
         [:p
-         [:a {:href "https://github.com/kongeor/evolduo-app"} "Source"]
+         [:a {:href "https://github.com/kongeor/evolduo-app"} "Source Code"]
          [:span " | "]
          [:a {:href "/privacy-policy"} "Privacy Policy"]
          [:span " | "]
@@ -84,6 +84,7 @@
          [:span " | "]
          [:a {:href "/contact"} "Contact"]
          ]
+        [:p "Built with ❤️ using " [:a {:href "https://clojure.org/"} "Clojure"]]
         [:p (str (-> req :settings :version))]]]
       (when custom-script
         [:script {:type "text/javascript"}
