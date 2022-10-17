@@ -4,7 +4,8 @@
             [evolduo-app.model.rating :as model]
             [evolduo-app.schemas :as schemas]
             [next.jdbc :as jdbc]
-            [evolduo-app.response :as res]))
+            [evolduo-app.response :as res]
+            [evolduo-app.model.user :as user-model]))
 
 (defn save
   [req]
@@ -24,6 +25,10 @@
       (:error sanitized-data)
       (res/redirect redirect-url
         :flash {:type :danger :message "Ooops, this shouldn't have happened."})
+
+      (not (:verified (user-model/find-user-by-id db user-id)))
+      (res/redirect redirect-url
+        :flash {:type :danger :message "You need to verify your email"})
 
       :else
       (let [reaction (merge (:data sanitized-data)

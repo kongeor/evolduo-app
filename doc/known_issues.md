@@ -2,19 +2,40 @@
 
 ## Oh no, my email?!
 
-Evolduo is using a self-hosted mail server to send emails. This helps reducing operational costs.
+Evolduo is using Mailjet as its primary email sending provider. It's on a free tier, so the number of emails that can
+go out are limited.
+
+As a fallback it is using a self-hosted mail server. This helps reducing operational costs.
 
 The problem is that many email providers will just throw those email to spam (e.g. gmail) or
 will straight out reject them (e.g. office365, see [this](https://answers.microsoft.com/en-us/outlook_com/forum/all/hotmailoutlook-block-list-s3140-blocks-all-new/699f3a56-406e-4804-97e2-cbe23b9bb01c?page=1)
 for more details).
 
 If you don't get any emails, which you need at least in order to verify your account,
-please [contact me](), so I can do it manually.
+please [contact me](https://evolduo.cons.gr/contact), so I can do it manually.
 
 If your account is verified you will be permitted to create Evolutions, invite friends
 and rate tracks.
 
-I would still recommend using an email that you can get emails at least in the spam folder.
+## Missing account actions
+
+The following account actions are missing:
+
+- Resend verification email
+- Change password
+- Change email
+- Forgot my password
+
+For now if you have trouble with any of those issues please [contact me](https://evolduo.cons.gr/contact).
+
+
+## Mobile devices
+
+This application is not optimised for small screen and there is no plan in doing in.
+
+## Library Search
+
+... functionality is non-existing.
 
 ## Limited key selection
 

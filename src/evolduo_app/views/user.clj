@@ -96,8 +96,15 @@
        [:div.field
         [:h3.title.is-5.mb-4 "Personal details"]
         [:label.label "Email"]
-        [:div.control
-         [:input.input {:name "email" :type "email" :disabled true :autocomplete "off" :value (:email user)}]]]
+        [:div.control.mb-4
+         [:input.input {:name "email" :type "email" :disabled true :autocomplete "off" :value (:email user)}]]
+        [:div.field
+         [:div.control
+          [:label.checkbox
+           [:input (merge {:type "checkbox" :name "verified" :value "true" :disabled true}
+                     (when (:verified user)
+                       {:checked "checked"}))]
+           " Email verified"]]]]
        ;; TODO show verified flag
        [:div.mb-5
         [:h3.title.is-5.mb-4 "Subscription"]

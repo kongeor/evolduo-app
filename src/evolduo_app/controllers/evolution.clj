@@ -9,19 +9,30 @@
             [evolduo-app.views.evolution :as evolution-views]
             [ring.util.response :as resp]
             [evolduo-app.urls :as u]
-            [ring.util.codec :as codec]))
+            [ring.util.codec :as codec]
+            [evolduo-app.model.user :as user-model]))
 
 (defn edit
   "Display the add/edit form."
   ([req]
-   (if (req/user-id req)
-     (let [evolution (merge
-                       model/default-evolution-params
-                       (:params req))
-           {:keys [data error]} (schemas/decode-and-validate schemas/Evolution evolution)]
-       (res/render-html evolution-views/evolution-form req {:evolution data
-                                                            :errors    error}))
-     (res/redirect "/user/login" :flash {:type :danger :message "You need to be logged to create an evolution"}))))
+   (let [db      (:db req)
+         user-id (req/user-id req)]
+     (cond
+       (not user-id)
+       (res/redirect "/user/login"
+         :flash {:type :danger :message "You need to be logged to create an evolution"})
+
+       (not (:verified (user-model/find-user-by-id db user-id)))
+       (res/redirect "/user/login"
+         :flash {:type :danger :message "You need to verify your email"})
+
+       :else
+       (let [evolution (merge
+                         model/default-evolution-params
+                         (:params req))
+             {:keys [data error]} (schemas/decode-and-validate schemas/Evolution evolution)]
+         (res/render-html evolution-views/evolution-form req {:evolution data
+                                                              :errors    error}))))))
 
 (defn search
   [req]
@@ -36,7 +47,8 @@
 
 (defn save
   [req]
-  (let [user-id        (-> req :session :user/id)
+  (let [db             (:db req)
+        user-id        (-> req :session :user/id)
         data           (-> req :params (select-keys [:public
                                                      :min_ratings
                                                      :evolve_after
@@ -59,18 +71,25 @@
       (res/redirect (u/url-for :evolution-form)
         :flash {:type :danger :message "You need to be logged in"})
 
+      (not (:verified (user-model/find-user-by-id db user-id)))
+      (res/redirect (u/url-for :evolution-form)
+        :flash {:type :danger :message "You need to verify your email"})
+
       (:error sanitized-data)
       (res/render-html evolution-views/evolution-form req {:evolution data'
                                                            :errors    (:error sanitized-data)})
 
-      ;; TODO limits/verified
+      (> (model/num-of-evolutions-in-last-day db user-id) 30)
+      (res/redirect (u/url-for :evolution-form)
+        :flash {:type :danger :message "That's too many evolutions for today. Come again later"})
+
 
       :else
       (let [evolution (merge (:data sanitized-data)
                         {:user_id user-id
                          :rules   {:foo true
                                    :bar true}})]
-        (let [{:keys [id]} (model/save-evolution (:db req) (:settings req) evolution)]
+        (let [{:keys [id]} (model/save-evolution db (:settings req) evolution)]
           (assoc
             (resp/redirect (u/url-for :evolution-detail {:evolution-id id}))
             :flash {:type :info :message "Great success!"}))))))
@@ -100,21 +119,21 @@
             reactions          (reaction-model/find-iteration-ratings-for-user db evolution-id iteration-num user-id)
             reaction-map       (update-vals (group-by :chromosome_id reactions) first)
             rateable?          (and (= last-iteration-num (:num iteration))
-                                    (not= (:total_iterations evolution) (:num iteration)))
+                                 (not= (:total_iterations evolution) (:num iteration)))
             not-rateable-msg   (when (not rateable?)
                                  (if (not= last-iteration-num (:num iteration))
                                    "Only tracks from the most recent iteration can be rated"
                                    "This evolution has been finished"))]
-        (res/render-html evolution-views/evolution-detail req {:evolution         evolution
-                                                               :chromosomes       chromosomes'
-                                                               :user-id           user-id
-                                                               :reaction-map      reaction-map
-                                                               :iteration         iteration
-                                                               :rateable?         rateable?
-                                                               :not-rateable-msg  not-rateable-msg
-                                                               :pagination        {:current (:num iteration)
-                                                                                   :max     last-iteration-num
-                                                                                   :link-fn #(str "/evolution/" evolution-id "/iteration/" %)}}))
+        (res/render-html evolution-views/evolution-detail req {:evolution        evolution
+                                                               :chromosomes      chromosomes'
+                                                               :user-id          user-id
+                                                               :reaction-map     reaction-map
+                                                               :iteration        iteration
+                                                               :rateable?        rateable?
+                                                               :not-rateable-msg not-rateable-msg
+                                                               :pagination       {:current (:num iteration)
+                                                                                  :max     last-iteration-num
+                                                                                  :link-fn #(str "/evolution/" evolution-id "/iteration/" %)}}))
       (res/render-404))))
 
 (defn get-presets [req]

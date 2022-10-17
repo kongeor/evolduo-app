@@ -49,6 +49,18 @@ select e.*
 (comment
   (calc-evolve-after (Instant/now) "8-hour"))
 
+(defn num-of-evolutions-in-last-day [db user-id]
+  (let [q-sqlmap {:select [[[:raw "count(*)"] :count]]
+                  :from   [[:evolutions :e]]
+                  :where
+                  [:and
+                   [:> :e.created_at [:raw ["now() - interval '1 day'"]]]
+                   [:= :e.user_id user-id]]}]
+    (:count (first (sql/query db (h/format q-sqlmap))))))
+
+(comment
+  (num-of-evolutions-in-last-day (:database.sql/connection integrant.repl.state/system) 1))
+
 (defn save-evolution
   [db {:keys [version]} evolution]
   (jdbc/with-transaction [tx db]
