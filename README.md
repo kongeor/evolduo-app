@@ -63,7 +63,7 @@ If you like this project and want to support its development, you can do the fol
 - Just use the app. At this stage this is the most useful thing as I need user usage statistics to include in my work.
 - Spread the word, or, something even more radical, grab a [sample](https://evolduo.cons.gr/samples) and use it as a ringtone on your
 mobile phone. There's no way people will not ask you what in the world is that music and thus will learn about this project.
-- Gimme your moniez!
+- [Gimme your moniez!](https://github.com/sponsors/kongeor)
 
 
 ## License
