@@ -9,7 +9,6 @@
             [next.jdbc.sql :as sql]
             [next.jdbc.result-set :as rs]
             [chickn.core :as chickn]
-            [chickn.math :as cmath]
             [chickn.util :as util]
             [chickn.operators :as chops]
             [chickn.math :as cmath]
@@ -135,6 +134,34 @@
   (music/random-track {:key "C" :measures 4 :mode "major" :repetitions 1})
   #_(mapv (fn [g] {:genes g :fitness -42 :age 0}) (repeat 10 music/c1)))
 
+(defn compute-iteration-stats [chromos]
+  (let [xs (map :fitness chromos)
+        min (apply min xs)
+        max (apply max xs)
+        mean (cmath/mean xs)
+        std-dev (cmath/std-dev xs)]
+    {:min min
+     :max max
+     :mean mean
+     :std-dev std-dev}))
+
+(defn calc-adjusted-fitness [ratings stats chromosome]
+  (let [chromosome-rating (get ratings (:id chromosome) 0)]
+    (+ (:fitness chromosome)
+      (if stats                                             ;; backwards compatibility
+        (let [{:keys [min max]} stats]
+          (*
+            chromosome-rating
+            (/ (- max min) 4)))
+        (* 0.2
+          chromosome-rating
+          (abs (:fitness chromosome)))))))
+
+(defn adjust-iteration-chromosome-fitness [ratings stats chromos]
+  (let [calc-fn (partial calc-adjusted-fitness ratings stats)]
+    (mapv #(assoc % :raw_fitness (:fitness %)
+                    :fitness (calc-fn %)) chromos)))
+
 ;; TODO duplicated, improve
 (defn evolve-iteration [db settings id]
   (jdbc/with-transaction [tx db]
@@ -147,22 +174,21 @@
             ;; there is no way to know upfront the adjusted fitness, users need to submit their ratings first
             ;; this is why this update happens at this stage. This is far from ideal, but should be all right
             ;; for now. There will be no easy way to debug user ratings unless this information is present in the db
-            iter-chromos' (mapv #(assoc % :raw_fitness (:fitness %)
-                                          :fitness (+ (:fitness %) (* 0.2
-                                                                      (get ratings (:id %) 0)
-                                                                      (abs (:fitness %))))) iter-chromos)
+            iter-chromos' (adjust-iteration-chromosome-fitness ratings nil iter-chromos)
             _             (doseq [c iter-chromos']
                             (update-fitness db (:id c) (:fitness c)))
             now           (Instant/now)
             evolve-after  (em/calc-evolve-after now (:evolve_after evolution))
             new-chromos   (chickn-evolve evolution iter-chromos')
+            stats         (compute-iteration-stats new-chromos)
             maybe-fix-fn  (partial fitness/maybe-fix evolution)
             new-chromos'  (mapv #(update % :genes maybe-fix-fn) new-chromos)
             iter-insert   (sql/insert! tx-opts :iterations {:evolve_after evolve-after
                                                             :num          (inc (:num old-iteration))
                                                             :last         true
                                                             :version      version
-                                                            :evolution_id (:id evolution)})]
+                                                            :evolution_id (:id evolution)
+                                                            :stats        stats})]
         ;; TODO meh
         (sql/update! tx-opts :iterations (assoc old-iteration :last false) {:id (:id old-iteration)})
         (doall

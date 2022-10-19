@@ -8,7 +8,7 @@
 (defn evolution [db settings]
   (let [now (Instant/now)]
     (c/chime-at
-      (c/periodic-seq (Instant/now) (Duration/ofMinutes 1))
+      (c/periodic-seq (Instant/now) (Duration/ofSeconds 20))
 
       (fn [time]
         (model/evolve-all-iterations db settings))

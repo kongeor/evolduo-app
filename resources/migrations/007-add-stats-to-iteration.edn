@@ -1,0 +1,3 @@
+;; resources/migrations/004-add-all-the-indexes.edn
+{:up   ["ALTER TABLE iterations ADD COLUMN stats JSONB;"]
+ :down ["ALTER TABLE iterations DROP COLUMN stats;"]}
