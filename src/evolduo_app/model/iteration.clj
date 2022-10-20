@@ -1,19 +1,20 @@
 (ns evolduo-app.model.iteration
-  (:require [evolduo-app.model.evolution :as em]
+  (:require [chickn.core :as chickn]
+            [chickn.math :as cmath]
+            [chickn.operators :as chops]
+            [chickn.util :as util]
+            [clojure.math :as math]
+            [clojure.tools.logging :as log]
+            [evolduo-app.model.evolution :as em]
             [evolduo-app.model.rating :as rating-model]
+            [evolduo-app.music :as music]
+            [evolduo-app.music.stats :as stats]
+            [evolduo-app.music.fitness :as fitness]
+            [evolduo-app.music.operators :as mops]
             [honey.sql :as h]
             [next.jdbc :as jdbc]
-            [evolduo-app.music :as music]
-            [evolduo-app.music.fitness :as fitness]
-            [clojure.tools.logging :as log]
-            [next.jdbc.sql :as sql]
             [next.jdbc.result-set :as rs]
-            [chickn.core :as chickn]
-            [chickn.util :as util]
-            [chickn.operators :as chops]
-            [chickn.math :as cmath]
-            [evolduo-app.music.operators :as mops]
-            [evolduo-app.music :as muse])
+            [next.jdbc.sql :as sql])
   (:import (java.time Instant)))
 
 (defn find-by-id
@@ -134,28 +135,21 @@
   (music/random-track {:key "C" :measures 4 :mode "major" :repetitions 1})
   #_(mapv (fn [g] {:genes g :fitness -42 :age 0}) (repeat 10 music/c1)))
 
-(defn compute-iteration-stats [chromos]
-  (let [xs (map :fitness chromos)
-        min (apply min xs)
-        max (apply max xs)
-        mean (cmath/mean xs)
-        std-dev (cmath/std-dev xs)]
-    {:min min
-     :max max
-     :mean mean
-     :std-dev std-dev}))
-
 (defn calc-adjusted-fitness [ratings stats chromosome]
   (let [chromosome-rating (get ratings (:id chromosome) 0)]
-    (+ (:fitness chromosome)
-      (if stats                                             ;; backwards compatibility
-        (let [{:keys [min max]} stats]
-          (*
-            chromosome-rating
-            (/ (- max min) 4)))
-        (* 0.2
-          chromosome-rating
-          (abs (:fitness chromosome)))))))
+    (math/round
+      (+ (:fitness chromosome)
+         (if stats                                          ;; backwards compatibility
+           (let [{:keys [min max]} stats
+                 *diff (/ (- max min) 4)]
+             (*
+               chromosome-rating
+               (if (< *diff 5)
+                 10
+                 *diff)))
+           (* 0.2
+              chromosome-rating
+              (abs (:fitness chromosome))))))))
 
 (defn adjust-iteration-chromosome-fitness [ratings stats chromos]
   (let [calc-fn (partial calc-adjusted-fitness ratings stats)]
@@ -174,13 +168,13 @@
             ;; there is no way to know upfront the adjusted fitness, users need to submit their ratings first
             ;; this is why this update happens at this stage. This is far from ideal, but should be all right
             ;; for now. There will be no easy way to debug user ratings unless this information is present in the db
-            iter-chromos' (adjust-iteration-chromosome-fitness ratings nil iter-chromos)
+            iter-chromos' (adjust-iteration-chromosome-fitness ratings (:stats old-iteration) iter-chromos)
             _             (doseq [c iter-chromos']
                             (update-fitness db (:id c) (:fitness c)))
             now           (Instant/now)
             evolve-after  (em/calc-evolve-after now (:evolve_after evolution))
             new-chromos   (chickn-evolve evolution iter-chromos')
-            stats         (compute-iteration-stats new-chromos)
+            stats         (stats/compute-iteration-stats new-chromos)
             maybe-fix-fn  (partial fitness/maybe-fix evolution)
             new-chromos'  (mapv #(update % :genes maybe-fix-fn) new-chromos)
             iter-insert   (sql/insert! tx-opts :iterations {:evolve_after evolve-after

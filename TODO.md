@@ -79,6 +79,7 @@ clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' -M -
 - [ ] Enable download buttons after listening the track
 - [ ] Clear logs after 30 days
 - [ ] Invitation after finished?
+- [ ] Deterministic shuffle
 
 ## Interesting features
 

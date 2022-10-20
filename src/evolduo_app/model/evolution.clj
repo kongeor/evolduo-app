@@ -2,11 +2,13 @@
   (:require [clojure.string]
             [clojure.string :as str]
             [evolduo-app.music :as music]
+            [evolduo-app.music.stats :as stats]
             [honey.sql :as h]
             [next.jdbc :as jdbc]
             [next.jdbc.sql :as sql]
             [next.jdbc.result-set :as rs]
-            [evolduo-app.music.fitness :as fitness])
+            [evolduo-app.music.fitness :as fitness]
+            [clojure.math :as math])
   (:import (java.time Instant)
            (java.util.concurrent TimeUnit)))
 
@@ -61,6 +63,20 @@ select e.*
 (comment
   (num-of-evolutions-in-last-day (:database.sql/connection integrant.repl.state/system) 1))
 
+(defn- generate-initial-chromosomes [{:keys [key mode progression chord tempo
+                                             population_size repetitions] :as evolution}]
+  (repeatedly population_size
+              #(let [genes      (music/random-track evolution)
+                     chromosome {:genes genes}
+                     abc        (music/->abc-track {:key   key :mode mode :progression progression
+                                                    :chord chord :tempo tempo :repetitions repetitions} ;; TODO just pass evolution
+                                                   chromosome)
+                     fitness    (fitness/fitness evolution genes)]
+                 {:genes       (vec genes)                  ;; TODO check
+                  :fitness     fitness
+                  :raw_fitness fitness
+                  :abc         abc})))
+
 (defn save-evolution
   [db {:keys [version]} evolution]
   (jdbc/with-transaction [tx db]
@@ -68,25 +84,18 @@ select e.*
       (let [evol-insert  (sql/insert! tx-opts :evolutions evolution)
             now          (Instant/now)
             evolve-after (calc-evolve-after now (:evolve_after evolution))
+            chromos      (generate-initial-chromosomes evolution)
+            stats        (stats/compute-iteration-stats chromos)
             iter-insert  (sql/insert! tx-opts :iterations {:evolve_after evolve-after
-                                                      :num          0
-                                                      :last         true
-                                                      :version      version
-                                                      :evolution_id (:id evol-insert)})]
+                                                           :num          0
+                                                           :last         true
+                                                           :version      version
+                                                           :stats        stats
+                                                           :evolution_id (:id evol-insert)})
+            ]
         (doall
           (map #(sql/insert! tx-opts :chromosomes
-                  (let [{:keys [key mode progression chord tempo]} evolution
-                        genes (music/random-track evolution)
-                        chromosome {:genes genes}
-                        abc   (music/->abc-track {:key   key :mode mode :progression progression
-                                                  :chord chord :tempo tempo :repetitions (:repetitions evolution)}
-                                chromosome)
-                        fitness (fitness/fitness evolution genes)]
-                    (assoc % :iteration_id (:id iter-insert)
-                             :genes (vec genes)             ;; TODO check
-                             :fitness fitness
-                             :raw_fitness fitness
-                             :abc abc))) (repeat (:population_size evolution) sample-chromo)))
+                             (assoc % :iteration_id (:id iter-insert))) chromos))
         evol-insert))))
 
 (defn find-last-iteration-num-for-evolution [db evolution-id]
