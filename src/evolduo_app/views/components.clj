@@ -149,7 +149,8 @@
          (merge
            {:href         (link-fn i)
             :aria-label   (str "Page " i)
-            :aria-current "page"}
+            :aria-current "page"
+            :rel          "nofollow"}
            (when (= i current)
              {:class "is-current"})) (str i)]])]]])
 
