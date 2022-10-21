@@ -11,7 +11,7 @@
      [:p.mb-4 "Evolduo is platform for collaborative musical synthesis using evolutionary algorithms.
                It is open source and free to use. You can read more about it " [:a {:href "https://github.com/kongeor/evolduo-app"} "here"] "."]
      [:p.mb-4 "Not sure where to start?
-               Check the " [:a {:href "https://youtu.be/G9Iwgwp_GD4"} "quick start video tutorial"] "."]
+               Check the " [:a {:target "_blank" :href "https://youtu.be/G9Iwgwp_GD4"} "quick start video tutorial"] "."]
      (when (seq user-evolutions)
        [:div.mb-4
         [:h2.is-size-4.mb-4 "My evolutions"]

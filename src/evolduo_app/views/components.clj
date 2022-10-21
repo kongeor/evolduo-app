@@ -68,6 +68,8 @@
       {:title title :onclick (str "document.getElementById('rating-value-" id "').value = " value " ; document.getElementById('rating-form-" id "').submit()")}
       (when (or reaction (not user-id) (not rateable?))
         {:disabled true})
+      (when (= value (:value reaction))
+        {:class "is-info"})
       (cond
         (not user-id)
         {:title "You need to be logged in to rate this track"}

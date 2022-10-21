@@ -8,7 +8,8 @@
 
 (defn find-iteration-ratings-for-user [db evolution-id iteration-num user-id]
   (let [q-sqlmap {:select [[:i/id :iteration_id]
-                           [:r/chromosome_id :chromosome_id]]
+                           [:r/chromosome_id :chromosome_id]
+                           [:r/value :value]]
                   :from   [[:ratings :r]]
                   :join   [[:iterations :i] [:= :r/iteration_id :i/id]]
                   :where  [:and
@@ -19,7 +20,9 @@
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
-    (find-iteration-ratings-for-user db 1 1 1)
+    (let [ratings
+          (find-iteration-ratings-for-user db 137 5 1)]
+      (update-vals (group-by :chromosome_id ratings) first))
     #_(group-by :chromosome_id (find-iteration-ratings-for-user db 1 5 1))))
 
 ;; TODO check fields order
@@ -47,3 +50,16 @@
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (find-iteration-ratings db 67 2)))
+
+(defn num-of-ratings-in-last-day [db user-id]
+  (let [q-sqlmap {:select [[[:raw "count(*)"] :count]]
+                  :from   [[:ratings :r]]
+                  :where
+                  [:and
+                   [:> :r.created_at [:raw ["now() - interval '1 day'"]]]
+                   [:= :r.user_id user-id]]}]
+    (:count (first (sql/query db (h/format q-sqlmap))))))
+
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    (num-of-ratings-in-last-day db 1)))

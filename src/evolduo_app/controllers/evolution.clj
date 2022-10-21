@@ -102,6 +102,26 @@
     ;; TODO create util for url concat
     (resp/redirect (str "/evolution/" evolution-id "/iteration/" last-iteration-num))))
 
+(defn- combined-seed [x y z]
+  (unchecked-long
+    (+
+      x
+      (bit-shift-left y 16)
+      (bit-shift-left z 32))))
+
+(comment
+  (combined-seed 1 100 2000))
+
+(defn- deterministic-shuffle
+  [^java.util.Collection coll seed]
+  (let [al (java.util.ArrayList. coll)
+        rng (java.util.Random. seed)]
+    (java.util.Collections/shuffle al rng)
+    (clojure.lang.RT/vector (.toArray al))))
+
+(comment
+  (deterministic-shuffle (range 10) 1))
+
 ;; TODO move to iteration
 (defn iteration-detail
   [req]
@@ -111,10 +131,13 @@
         db            (:db req)]
     (if-let [evolution (model/find-evolution-by-id db evolution-id)]
       (let [chromosomes        (model/find-iteration-chromosomes db evolution-id iteration-num)
+            iteration          (iteration-model/find-by-num db evolution-id iteration-num)
             chromosomes'       (if (:is-admin? req)
                                  chromosomes
-                                 (shuffle chromosomes))
-            iteration          (iteration-model/find-by-num db evolution-id iteration-num)
+                                 (deterministic-shuffle chromosomes
+                                                        (combined-seed (or user-id 0)
+                                                                       (:id evolution)
+                                                                       (:id iteration))))
             last-iteration-num (model/find-last-iteration-num-for-evolution db evolution-id)
             reactions          (reaction-model/find-iteration-ratings-for-user db evolution-id iteration-num user-id)
             reaction-map       (update-vals (group-by :chromosome_id reactions) first)

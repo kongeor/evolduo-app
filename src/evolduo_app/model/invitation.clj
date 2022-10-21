@@ -6,10 +6,16 @@
             [next.jdbc.result-set :as rs]))
 
 
+;; TODO naming
 (defn find-by-evolution-and-user
   [db evolution-id user-id]
   (sql/find-by-keys db :invitations {:evolution_id  evolution-id
                                      :invited_by_id user-id}))
+
+(defn find-by-evolution-and-invitee-id
+  [db evolution-id invitee-id]
+  (sql/find-by-keys db :invitations {:evolution_id  evolution-id
+                                     :invitee_id invitee-id}))
 
 (defn num-of-invitations-in-last-day [db user-id]
   (let [q-sqlmap {:select [[[:raw "count(*)"] :count]]
