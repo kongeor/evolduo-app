@@ -145,10 +145,10 @@
 (defn delete-user
   [db user-id]
   (when-let [res (sql/update! db :users {:deleted true
-                                        :email  (str (.toEpochMilli (Instant/now)) "-deleted@example.com")
-                                        :verification_token nil
-                                        :password nil
-                                        :salt nil
-                                        :subscription "{}"}
+                                         :email  (str (.toEpochMilli (Instant/now)) "-deleted@example.com")
+                                         :verification_token nil
+                                         :unsubscribe_token nil
+                                         :password nil
+                                         :subscription {}}
                    {:id user-id})]
     res))

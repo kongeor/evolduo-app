@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.101] - 2022-10-22
+
+- Fix user deletion
+
 ## [0.1.100] - 2022-10-22
 
 - Fix user upsert
