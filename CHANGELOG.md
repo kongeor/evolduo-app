@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.100] - 2022-10-22
+
+- Fix user upsert
+
 ## [0.1.99] - 2022-10-21
 
 - Shuffle deterministically tracks for non admin users on evolution detail view

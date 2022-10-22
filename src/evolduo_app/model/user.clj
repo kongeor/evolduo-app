@@ -70,13 +70,13 @@
   [db email pass]
   (jdbc/with-transaction [tx db]
     (let [tx-opts (jdbc/with-options tx {:builder-fn rs/as-unqualified-lower-maps})]
-      (let [user (if-let [user (find-user-by-email tx email)]
+      (let [user (if-let [user (find-user-by-email tx-opts email)]
                    (let [encrypted          (password/encrypt pass)
                          verification_token (rnd/hex 100)
                          unsubscribe_token (rnd/hex 100)]
                      (sql/update!
                        tx-opts
-                       :user
+                       :users
                        {:role               "user"               ;; TODO updated?
                         :password           encrypted
                         :verified           false
