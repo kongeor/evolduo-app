@@ -123,7 +123,8 @@
         [:input {:type "hidden" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
         [:input {:type "hidden" :name "chromosome_id" :value id}]
         [:input {:type "hidden" :name "redirect_url" :value (urls/url-for :iteration-detail {:evolution-id  evolution-id
-                                                                                             :iteration-num iteration-num})}]
+                                                                                             :iteration-num iteration-num
+                                                                                             :chromosome-id id})}]
         [:input {:type "hidden" :id (str "rating-value-" id) :name "value" :value "-10"}]
         [:div.field.has-addons.mb-4
          (for [{:keys [text title value]} rating-values]
