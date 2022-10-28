@@ -110,7 +110,7 @@
      [:script {:type "text/javascript"}
       (str "var " abc-id " = \"" abc "\";")]
      [:div.abc-track {:style "display: none"} id]
-     [:h3.title.is-size-4 (str "#" id)]
+     [:h3.title.is-size-4 {:id (str "track-" id)} (str "#" id)]
      (when (and fitness is-admin?)
        [:div
         [:p (str "Fitness: " fitness)]
