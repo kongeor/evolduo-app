@@ -8,7 +8,8 @@
             [evolduo-app.model.user :as user-model]
             [evolduo-app.model.iteration :as iteration-model]
             [evolduo-app.model.invitation :as invitation-model]
-            [evolduo-app.urls :as u]))
+            [evolduo-app.urls :as u]
+            [evolduo-app.urls :as urls]))
 
 (defn save
   [req]
@@ -39,13 +40,17 @@
         :flash {:type :danger :message "That's enough ratings for today. Please try again later."})
 
       :else
-      (let [{:keys [iteration_id]} (evolution-model/find-chromosome-by-id db (:chromosome_id (:data sanitized-data)))
+      (let [chromosome-id (:chromosome_id (:data sanitized-data))
+            {:keys [iteration_id]} (evolution-model/find-chromosome-by-id db chromosome-id)
             {:keys [num last evolution_id]} (iteration-model/find-by-id db iteration_id)
             evolution (evolution-model/find-evolution-by-id db evolution_id)
             finished?          (= num (:total_iterations evolution))
             reaction (merge (:data sanitized-data)
                        {:iteration_id iteration_id
-                        :user_id      user-id})]
+                        :user_id      user-id})
+            chromosome-hash-link (urls/url-for :iteration-detail-with-hash {:evolution-id  evolution_id
+                                                                            :iteration-num num
+                                                                            :chromosome-id chromosome-id})]
 
         (cond
           finished?
@@ -74,4 +79,8 @@
               (model/insert-rating tx reaction))
             (res/redirect
               redirect-url
-              :flash {:type :info :message "Thanks! Your rating has been recorded"})))))))
+              :flash {:type :info :message [:span
+                                            (str "Thanks! Your rating has been recorded. Click ")
+                                            [:a {:href chromosome-hash-link} "here"]
+                                            " to scroll to the track you rated."]
+                      })))))))

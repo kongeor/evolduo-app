@@ -123,8 +123,7 @@
         [:input {:type "hidden" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
         [:input {:type "hidden" :name "chromosome_id" :value id}]
         [:input {:type "hidden" :name "redirect_url" :value (urls/url-for :iteration-detail {:evolution-id  evolution-id
-                                                                                             :iteration-num iteration-num
-                                                                                             :chromosome-id id})}]
+                                                                                             :iteration-num iteration-num})}]
         [:input {:type "hidden" :id (str "rating-value-" id) :name "value" :value "-10"}]
         [:div.field.has-addons.mb-4
          (for [{:keys [text title value]} rating-values]
@@ -133,29 +132,32 @@
      [:button.button.is-light {:class download-wav-id} "Download WAV"]
      [:hr.mb-4]]))
 
-(defn pagination [{:keys [current max link-fn]}]
+(defn pagination [{:keys [current max total link-fn]}]
   [:div
    [:h3.is-size-4.mb-4 "Jump to iteration"]
    [:nav.pagination {:role "navigation" :aria-label "pagination"}
-    [:a.pagination-previous
+    #_[:a.pagination-previous
      (if (zero? current)
        {:disabled true}
        {:href (link-fn (dec current))}) "Previous"]
-    [:a.pagination-next
+    #_[:a.pagination-next
      (if (= current max)
        {:disabled true}
        {:href (link-fn (inc current))}) "Next"]
     [:ul.pagination-list
-     (for [i (range 0 (inc max))]
+     (for [i (range 0 (inc total))]
        [:li
         [:a.pagination-link
          (merge
-           {:href         (link-fn i)
+           {:href         (if (> i max) "javascript: void(0)" (link-fn i))
             :aria-label   (str "Page " i)
             :aria-current "page"
-            :rel          "nofollow"}
+            :rel          "nofollow"
+            :disabled     (> i max)
+            :title        (if (> i max) "We are not there yet" "Just to this iteration")}
+           (when (> i max))
            (when (= i current)
-             {:class "is-current"})) (str i)]])]]])
+             {:class "is-current" :title "You are here"})) (str i)]])]]])
 
 (defn evolution-table [evolutions]
   [:table.table.is-fullwidth

@@ -267,6 +267,9 @@
           [:div.mb-4
            [:a.button.is-primary {:href (u/url-for :invitation-form {:evolution-id (:id evolution)})} "Invite"]]
           [:hr]])
+       [:div
+        (comps/pagination pagination)
+        [:hr]]
        [:h3.is-size-4.mb-4 "Tracks"]
        [:div
         (for [c chromosomes]

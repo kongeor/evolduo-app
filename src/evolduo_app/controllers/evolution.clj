@@ -114,7 +114,7 @@
 
 (defn- deterministic-shuffle
   [^java.util.Collection coll seed]
-  (let [al (java.util.ArrayList. coll)
+  (let [al  (java.util.ArrayList. coll)
         rng (java.util.Random. seed)]
     (java.util.Collections/shuffle al rng)
     (clojure.lang.RT/vector (.toArray al))))
@@ -128,16 +128,17 @@
   (let [evolution-id  (parse-long (-> req :params :evolution-id))
         iteration-num (parse-long (-> req :params :iteration-num))
         user-id       (req/user-id req)
-        db            (:db req)]
-    (if-let [evolution (model/find-evolution-by-id db evolution-id)]
+        db            (:db req)
+        evolution     (model/find-evolution-by-id db evolution-id)
+        iteration     (iteration-model/find-by-num db evolution-id iteration-num)]
+    (if (and evolution iteration)
       (let [chromosomes        (model/find-iteration-chromosomes db evolution-id iteration-num)
-            iteration          (iteration-model/find-by-num db evolution-id iteration-num)
             chromosomes'       (if (:is-admin? req)
                                  chromosomes
                                  (deterministic-shuffle chromosomes
-                                                        (combined-seed (or user-id 0)
-                                                                       (:id evolution)
-                                                                       (:id iteration))))
+                                   (combined-seed (or user-id 0)
+                                     (:id evolution)
+                                     (:id iteration))))
             last-iteration-num (model/find-last-iteration-num-for-evolution db evolution-id)
             reactions          (reaction-model/find-iteration-ratings-for-user db evolution-id iteration-num user-id)
             reaction-map       (update-vals (group-by :chromosome_id reactions) first)
@@ -156,6 +157,7 @@
                                                                :not-rateable-msg not-rateable-msg
                                                                :pagination       {:current (:num iteration)
                                                                                   :max     last-iteration-num
+                                                                                  :total   (:total_iterations evolution)
                                                                                   :link-fn #(str "/evolution/" evolution-id "/iteration/" %)}}))
       (res/render-404))))
 
