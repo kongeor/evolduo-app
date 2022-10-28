@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.1.107] - 2022-10-28
+
+- Add stats page
+- Improve "jump to iteration" component, add all iterations and also show it at the top of
+the page
+- Add a scroll to rated track link in flash message when the user submits a rating
+
 ## [0.1.101] - 2022-10-22
 
 - Fix user deletion
