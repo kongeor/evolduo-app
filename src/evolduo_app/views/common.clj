@@ -83,6 +83,8 @@
          [:a {:href "https://github.com/kongeor/evolduo-app#support"} "Support"]
          [:span " | "]
          [:a {:href "/contact"} "Contact"]
+         [:span " | "]
+         [:a {:href "/stats"} "Stats"]
          ]
         [:p "Built with ❤️ using " [:a {:href "https://clojure.org/"} "Clojure"]]
         [:p (str (-> req :settings :version))]]]
@@ -96,6 +98,8 @@
          [:script {:type "text/javascript"                  ; :integrity "sha384-ZubHoDI+2TI8GWxDEkrJloJO6hoQ92yiicxDG77yDOSmdfvo94KRxDZSSAgT73rD"
                    :src  (u/asset "/js/abc-player.js" version)}]])
       [:div
+       [:script {:type  "text/javascript" :src (u/asset "/js/chart.min.js" version)}]
+       [:script {:type  "text/javascript" :src (u/asset "/js/stats.js" version)}]
        [:script {:defer true                                ; :integrity "sha384-wbyps8iLG8QzJE02viYc/27BtT5HSa11+b5V7QPR1/huVuA8f4LRTNGc82qAIeIZ"
                  :type  "text/javascript" :src (u/asset "/js/bulma-slider.min.js" version)}]
        [:script {:defer true                                ; :integrity "sha384-HEqbPPRxpxIlmcPmqYEe0nwd6BSKQcQOaqYvoLO3lXeA88+6x62211CMsvpRJY0I"

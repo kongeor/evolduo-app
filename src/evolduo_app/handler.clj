@@ -9,6 +9,7 @@
             [evolduo-app.controllers.reaction :as reaction-ctl]
             [evolduo-app.controllers.user :as user-ctl]
             [evolduo-app.controllers.static :as static-ctl]
+            [evolduo-app.controllers.stats :as stats-ctl]
             [evolduo-app.request :as req]
             [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
             [taoensso.carmine.ring :refer [carmine-store]]
@@ -64,6 +65,7 @@
   (POST "/evolution/:id{[0-9]+}/invitation/save" [] invitation-ctl/invitation-save)
   (GET "/evolution/:evolution-id{[0-9]+}/iteration/:iteration-num{[0-9]+}" [] evolution-ctl/iteration-detail)
   (GET "/playground" [] playground-ctl/playground)
+  (GET "/stats" [] stats-ctl/stats)
   (POST "/reaction" [] reaction-ctl/save)
   (GET "/samples" [] static-ctl/samples)
   (GET "/contact" [] static-ctl/contact)
