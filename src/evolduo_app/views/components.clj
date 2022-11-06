@@ -1,5 +1,7 @@
 (ns evolduo-app.views.components
   (:require [evolduo-app.music :as music]
+            [evolduo-app.music.accompaniment :as accompaniment]
+            [evolduo-app.music.midi :as midi]
             [evolduo-app.schemas :as s]
             [ring.middleware.anti-forgery :as anti-forgery]
             [clojure.contrib.humanize :as h]
@@ -54,6 +56,20 @@
                 (when (= c chord)
                   {:selected true})) c])])
 
+(defn instrument-select [instrument]
+  [:select {:name "instrument" :id "instrument-select"}
+   (for [[id name] midi/instruments]
+     [:option (merge {:value id}
+                (when (= (str id) instrument)
+                  {:selected true})) name])])
+
+(defn accompaniment-pattern-select [acc]
+  [:select {:name "accompaniment" :id "accompaniment-select"}
+   (for [[id name] accompaniment/patterns]
+     [:option (merge {:value id}
+                (when (= (str id) acc)
+                  {:selected true})) name])])
+
 (defn note-type-select [note-type]
   [:select {:name "notes"}
    (for [t ["rests" "random" "asc" "desc"]]
@@ -93,11 +109,14 @@
    ])
 
 ;;
-(defn abc-track [{:keys [chromosome_id fitness raw_fitness abc]} & {:keys [evolution-id user-id reaction hide-reaction?
-                                                                           is-admin? rateable? not-rateable-msg
-                                                                           iteration-num]}]
+(defn abc-track [{:keys [chromosome_id fitness raw_fitness abc instrument accompaniment]}
+                 & {:keys [evolution-id user-id reaction hide-reaction?
+                           is-admin? rateable? not-rateable-msg
+                           iteration-num]}]
   (let [id chromosome_id
         abc-id (str "abc_" id)
+        instrument-id (str "instrument_" id)
+        accompaniment-id (str "accompaniment_" id)
         abc-activate (str "activate-audio-" id)
         abc-stop (str "stop-audio-" id)
         abc-start-measure-id (str "start-measure-" id)
@@ -108,7 +127,12 @@
         ]
     [:div
      [:script {:type "text/javascript"}
-      (str "var " abc-id " = \"" abc "\";")]
+      (str
+        "var " abc-id " = \"" abc "\";"
+        "var " instrument-id " = \"" instrument "\";"
+        "var " accompaniment-id " = \"" accompaniment "\";"
+        )
+      ]
      [:div.abc-track {:style "display: none"} id]
      [:h3.title.is-size-4 {:id (str "track-" id)} (str "#" id)]
      (when (and fitness is-admin?)

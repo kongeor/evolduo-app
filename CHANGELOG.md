@@ -1,5 +1,13 @@
 # Changelog
 
+## [Scheduled]
+
+- Filter out duplicates from selector
+- Add chord accompaniment option
+- Add instrument option
+- Fix stats caching
+- Fix stats js error when evolduo is not defined
+
 ## [Unreleased]
 
 ## [0.1.107] - 2022-10-28

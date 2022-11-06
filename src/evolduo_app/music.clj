@@ -524,13 +524,20 @@
   (chord->str [66 70 73 77] "C" "locrian")
   )
 
-(defn gen-chord [{:keys [key mode duration degree chord]}]
+(defn gen-chord [{:keys [key mode duration degree chord octave-offset annotate-with-chord-name]
+                  :or {octave-offset 0}}]
   (let [root-note (key->int-note key)
+        root-note (+ root-note (* 12 octave-offset))
         scale-notes (intervals* (mode->scale mode))
         chord-notes (map #(+ root-note (nth scale-notes (+ degree %))) (get chord-intervals-map chord [0 2 4]))
         chord-str (chord->str chord-notes key mode)]
-    (str "\\\"" chord-str "\\\" [ "  (str/join (map str (map abc-note-map chord-notes) (repeat duration))) "]")
+    (str (when annotate-with-chord-name (str "\\\"" chord-str "\\\" "))
+      "[ "  (str/join (map str (map abc-note-map chord-notes) (repeat duration))) "]")
     ))
+
+(comment
+  (gen-chord {:key "C" :mode "major"
+              :duration 8 :degree 0 :chord "R + 3 + 3"}))
 
 (defn gen-chord-notes [{:keys [key mode duration degree chord]}]
   (let [root-note (key->int-note key)
@@ -583,11 +590,12 @@
 (comment
   (progression->degrees "I-IV-V-I"))
 
-(defn gen-chord-progression [{:keys [key mode duration progression chord]}]
+(defn gen-chord-progression [{:keys [key mode duration progression chord octave-offset repetitions] :or {octave-offset 0}}]
   (let [dgs (progression->degrees progression)
-        chords (map #(gen-chord {:key key :mode mode :duration duration
-                                 :chord chord :degree %}) dgs)]
-    (str/join " | " chords)))
+        chords (map #(gen-chord {:key key :mode mode :duration duration :octave-offset octave-offset
+                                 :chord chord :degree %}) dgs)
+        chords' (apply concat (repeat repetitions chords))]
+    (str/join " | " chords')))
 
 (defn gen-chord-progression-notes [{:keys [key mode duration progression chord repetitions]}]
   (let [dgs (progression->degrees progression)
@@ -596,6 +604,7 @@
     (apply concat (repeat repetitions chords))))
 
 (comment
+  (gen-chord-progression {:key "G" :mode "major" :duration 8 :progression "I-IV-V-I" :repetitions 2})
   (gen-chord-progression-notes {:key "G" :mode "major" :duration 8 :progression "I-IV-V-I" :repetitions 1}))
 
 (defn gen-chord-names [{:keys [mode progression repetitions] :as settings}]
@@ -648,19 +657,23 @@
   )
 
 (defn ->abc-track
-  [{:keys [key mode progression chord tempo] :as settings} {:keys [genes]}]
+  [{:keys [key mode progression chord tempo repetitions accompaniment] :as settings} {:keys [genes]}]
   (let [chord-names (gen-chord-names settings)]
     (str
       "X:1\\n"
       "K:" (->abc-key key mode) "\\n"
       "Q:" tempo "\\n"
       "V:V1 clef=treble \\n"
-      ; "V:V2 clef=bass \\n"
+      (when (not= accompaniment "picking")
+        "V:V2 clef=bass \\n")
       (str "[V:V1] | " (chromo->abc genes chord-names key mode) " | \\n")
-      #_(str "[V:V2] | " (gen-chord-progression {:key key :mode mode
-                                                 :chord chord
-                                                 :duration 8 :progression progression})
-          "|"))))
+      (when (not= accompaniment "picking")
+        (str "[V:V2] | " (gen-chord-progression {:key           key :mode mode
+                                                 :chord         chord
+                                                 :duration      8 :progression progression
+                                                 :repetitions   repetitions
+                                                 :octave-offset -1})
+          "|")))))
 
 (comment
   (->abc-track {:key "C" :mode "major" :duration 8 :progression "I-IV-V-I" :chord "R + 3 + 3 + 3"} {:genes c}))

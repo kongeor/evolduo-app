@@ -11,6 +11,8 @@ function load_abc(id) {
     var synthControl;
     var cursorControl = window["cursorControl-" + id];
 
+    var instrument = window["instrument_" + id];
+    var accompaniment = window["accompaniment_" + id];
 
     // First draw the music - this supplies an object that has a lot of information about how to create the synth.
     // NOTE: If you want just the sound without showing the music, use "*" instead of "paper" in the renderAbc call.
@@ -35,7 +37,7 @@ function load_abc(id) {
     if (ABCJS.synth.supportsAudio()) {
         synthControl = new ABCJS.synth.SynthController();
         synthControl.load("#audio-" + id, cursorControl, {displayLoop: true, displayRestart: true, displayPlay: true, displayProgress: true, displayWarp: true});
-        synthControl.setTune(visualObj, true, {program: 4, chordsOff: false});
+        synthControl.setTune(visualObj, true, {program: instrument, chordsOff: accompaniment !== "picking"});
     } else {
         document.querySelector("#audio" + id).innerHTML = "<div class='audio-error'>Audio is not supported in this browser.</div>";
     }

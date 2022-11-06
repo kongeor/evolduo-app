@@ -107,7 +107,8 @@
                                   :selector    #:chickn.selectors{:type        :chickn.selectors/tournament
                                                                   :rate        0.3
                                                                   :random-func rand
-                                                                  :tour-size   5}
+                                                                  :tour-size   5
+                                                                  :duplicates? false}
                                   :crossover   #:chickn.operators{:type         :chickn.operators/cut-crossover
                                                                   :rate         (float (/ (:crossover_rate evolution) 100.))
                                                                   :pointcuts    1

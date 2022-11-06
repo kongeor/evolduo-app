@@ -20,7 +20,7 @@
   jarohen/chime                      {:mvn/version "0.3.3"}
   org.slf4j/slf4j-simple             {:mvn/version "2.0.3"}
   org.clojure/data.json              {:mvn/version "2.4.0"}
-  com.github.kongeor/chickn          {:git/sha "11894a28104b5be6f3b6989717d1a894976c8c3f"}
+  com.github.kongeor/chickn          {:git/sha "f315c20f01faff866cb9ccbb843ca3400f8566d7"}
   com.github.trhura/clojure-humanize {:git/sha "2809b17e5fe8da282337734341462ff25bfe06eb"}
   net.logicsquad/nanocaptcha         {:mvn/version "1.3"}
   com.taoensso/carmine               {:mvn/version "3.1.0"}

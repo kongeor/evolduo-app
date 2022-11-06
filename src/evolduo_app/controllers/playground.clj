@@ -6,14 +6,15 @@
 (defn playground
   [req]
   ;; TODO validate
-  (let [{:keys [key mode progression chord tempo notes]} (-> req :params)
+  (let [{:keys [key mode progression chord tempo notes accompaniment]} (-> req :params)
         abc (when (and key progression)
               (let [settings    {:key         key
                                  :mode        mode
                                  :progression progression
                                  :chord       chord
                                  :tempo       tempo
-                                 :repetitions 1}
+                                 :repetitions 1
+                                 :accompaniment accompaniment}
                     chord-names (music/gen-chord-names settings)]
                 (music/->abc-track settings
                   {:genes

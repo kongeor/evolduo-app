@@ -1,5 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+  if (typeof myVar === 'undefined') {
+    return
+  }
+
   // data
 
   const userData = {
