@@ -64,7 +64,8 @@
                 :verified
                 :verification_token
                 :subscription
-                :unsubscribe_token])
+                :unsubscribe_token
+                :password_reset_token])
 
 (defn upsert!
   [db email pass]
@@ -96,6 +97,7 @@
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (get-registered-user db "bar@example.com")))
 
+;; TODO verify usages (create verified?(user-id) function), remove unused calls
 (defn find-user-by-id
   [db id]
   (-> (sql/get-by-id db :users id)
@@ -152,3 +154,26 @@
                                          :subscription {}}
                    {:id user-id})]
     res))
+
+(defn update-password-reset-token
+  "Updates the token and sends an email to the user"
+  [db user-id]
+  (when user-id
+    (let [token (rnd/hex 100)]
+      (jdbc/with-transaction [tx db]
+        (let [tx-opts (jdbc/with-options tx {:builder-fn rs/as-unqualified-lower-maps})]
+          (sql/update! tx-opts :users {:password_reset_token   token
+                                       :password_reset_sent_at (Instant/now)}
+                       {:id user-id})
+          (mail-model/insert tx-opts {:recipient_id user-id
+                                      :type         "password-reset"
+                                      :data         {}}))))))
+
+(defn find-user-by-password-reset-token [db token]
+  (first (sql/find-by-keys db :users {:password_reset_token token})))
+
+(defn update-user-password! [db user-id password]
+  (let [encrypted (password/encrypt password)]
+    (sql/update! db :users {:password encrypted
+                            :password_reset_token nil
+                            :password_reset_sent_at nil} {:id user-id})))

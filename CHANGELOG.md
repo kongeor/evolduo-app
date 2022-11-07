@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.1.108] - 2022-11-07
+
+- Add password reset functionality
+
 ## [0.1.107] - 2022-10-28
 
 - Add stats page

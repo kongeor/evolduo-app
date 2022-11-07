@@ -128,3 +128,19 @@
   (decode-and-validate Rating {:chromosome_id "42"
                                :value         1})
   )
+
+(def PasswordReset
+  [:map {:closed true}
+    [:email [:re {:error/message "invalid email"} email-regex]]
+    [:captcha [:string {:min 1}]]])
+
+(def PasswordSet
+  [:and
+   [:map {:closed true}
+    [:token [:string {:min 1}]]
+    [:password [:re {:error/message "Invalid password"} password-regex]]
+    [:password_confirmation [:string]]]
+   [:fn {:error/message "passwords must match"
+         :error/path [:password_confirmation]}
+    (fn [{:keys [password password_confirmation]}]
+          (= password password_confirmation))]])

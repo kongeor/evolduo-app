@@ -19,6 +19,8 @@
        [:label.label "Password"]
        [:div.control
         [:input.input {:name "password" :type "password" :placeholder "Text input"}]]]
+      [:div.field
+       [:a {:href "/user/password-reset-form"} "Forgot your password?"]]
       [:div.field.is-grouped
        [:div.control
         [:button.button.is-link {:type "submit"} "Login"]]]]]
@@ -141,3 +143,74 @@
           [:div.control
            [:button.button.is-danger {:type "submit"} "Delete my account"]]]]] ])))
 
+(defn password-reset-form [req & {:keys [reset captcha errors]}]
+  (base-view
+    req
+    [:div
+     [:h2.is-size-3.mb-4 "Password Reset"]
+     [:form {:action "/user/password-reset" :method "post"}
+      [:input {:type "hidden" :id "__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
+      [:div.field
+       [:label.label {:for "email"} "Email"]
+       [:div.control
+        [:input.input (merge
+                        {:id           "email" :name "email" :type "email" :required "required"
+                         :autocomplete "off" :placeholder "user@example.com" :value (:email reset)}
+                        (when (:email errors)
+                          {:class "is-danger"}))]]
+       (when-let [e (:email errors)]
+         [:p.help.is-danger (first e)])]
+      [:div.field
+       [:label.label {:for "captcha"} "Captcha"]
+       [:img {:src (str "data:image/png;base64, " (image/captcha-text->base64 captcha))}]
+       [:div.control
+        [:input.input (merge
+                        {:id           "captcha" :name "captcha" :type "input" :required "required"
+                         :autocomplete "off" :placeholder "" :value (:captcha reset)}
+                        (when (:captcha errors)
+                          {:class "is-danger"}))]]
+       (when-let [e (:captcha errors)]
+         [:p.help.is-danger (first e)])
+       [:p.help.is-info.mb-2 "You are not a robot, are you? Please enter the number you see above. Use the audio player below to hear the captcha value"]
+       [:audio {:controls "true" :src (str "data:audio/wav;base64, " (captcha/captcha-audio->base64 captcha))} "Your browser does not support the"
+        [:code "audio"] "element."]]
+
+      [:div.field.is-grouped
+       [:div.control
+        [:button.button.is-link {:type "submit"} "Reset"]]]]]
+    :title "Password Reset"))
+
+(defn set-password-form [req & {:keys [password-form errors]}]
+  (base-view
+    req
+    [:div
+     [:h2.is-size-3.mb-4 "Set new password"]
+     [:form {:action "/user/set-password" :method "post"}
+      [:input {:type "hidden" :id "__anti-forgery-token" :name "__anti-forgery-token" :value anti-forgery/*anti-forgery-token*}]
+      [:input {:type "hidden" :name "token" :value (-> req :params :token)}]
+      [:div.field
+       [:label.label {:for "password"} "Password"]
+       [:div.control
+        [:input.input (merge
+                        {:id           "password" :name "password" :type "password" :required "required"
+                         :autocomplete "off" :placeholder ""}
+                        (when (:password errors)
+                          {:class "is-danger"}))]]
+       (when-let [e (:password errors)]
+         [:p.help.is-danger (first e)])
+       [:p.help.is-info "Password should have at minimum eight characters, at least one uppercase letter, one lowercase letter and one number"]]
+      [:div.field
+       [:label.label {:for "password-confirmation"} "Password Confirmation"]
+       [:div.control
+        [:input.input (merge
+                        {:id           "password-confirmation" :name "password_confirmation" :type "password" :required "required"
+                         :autocomplete "off" :placeholder ""}
+                        (when (:password_confirmation errors)
+                          {:class "is-danger"}))]]
+       (when-let [e (:password_confirmation errors)]
+         [:p.help.is-danger (first e)])]
+
+      [:div.field.is-grouped
+       [:div.control
+        [:button.button.is-link {:type "submit"} "Reset"]]]]]
+    :title "Password Reset"))

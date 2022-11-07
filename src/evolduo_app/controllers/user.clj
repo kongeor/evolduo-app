@@ -159,3 +159,72 @@
         (r/logout {:message "Your account has been deleted"})
         ))
     ))
+
+(defn set-password-form [{:keys [db] :as req}]
+  (let [real-ip (req/get-x-forwarded-for-header req)]
+    (if (user/find-user-by-password-reset-token db (-> req :params :token))
+      (r/render-html user-views/set-password-form req)
+      (do
+        (log/warn "Invalid reset password token provided from" real-ip)
+        (r/redirect "/"
+          :flash {:type :danger :message [:span "Password reset token is invalid or expired"]})))))
+
+(defn set-password [{:keys [db] :as req}]
+  (let [params         (-> req :params (select-keys [:token :password :password_confirmation]))
+        sanitized-data (s/decode-and-validate s/PasswordSet params)
+        {:keys [token password]} (-> sanitized-data :data)]
+    (cond
+      (:error sanitized-data)
+      (r/render-html user-views/set-password-form req {:errors (:error sanitized-data)})
+
+      :else
+      (if-let [user (user/find-user-by-password-reset-token db token)]
+        (do
+          (user/update-user-password! db (:id user) password)
+          (r/redirect "/"
+                      :flash {:type :info :message [:span "Your password has been updated successfully"]}))
+        (r/redirect "/"
+                    :flash {:type :danger :message [:span "Password reset is token invalid or expired"]})))
+      ))
+
+(defn password-reset-save [{:keys [db] :as req}]
+  (let [captcha-code   (or (-> req :session :captcha) "")
+        real-ip        (req/get-x-forwarded-for-header req)
+        params         (-> req :params (select-keys [:email :captcha]))
+        sanitized-data (s/decode-and-validate s/PasswordReset params)]
+    (cond
+      (:error sanitized-data)
+      (r/render-html user-views/password-reset-form req {:captcha captcha-code
+                                                         :reset params
+                                                         :errors (:error sanitized-data)})
+
+      (not= captcha-code (-> sanitized-data :data :captcha))
+      (do
+        (log/warn "Invalid password request attempt from" real-ip)
+        (r/render-html user-views/password-reset-form req {:captcha captcha-code
+                                                           :reset params
+                                                           :errors {:captcha ["not valid"]}}))
+
+      ;; TODO check too many requests and update fail2ban
+
+      :else
+      (do
+        (let [user (user/find-user-by-email
+                     db
+                     (-> sanitized-data :data :email))]
+          (when user
+            (log/info "Password reset request from user" (:id user))
+            (user/update-password-reset-token db (:id user)))
+          (r/redirect "/"
+                      :flash {:type :info :message [:span
+                                                    (str "A password reset email has been sent to "
+                                                         (-> sanitized-data :data :email) ". "
+                                                         "Don't forget to check your spam folder.")]})))
+      ))
+  )
+
+(defn password-reset-form [{:keys [session] :as req}]
+  (let [captcha (er/random-num 6)]
+    (->
+      (r/render-html user-views/password-reset-form req {:captcha captcha})
+      (assoc :session (assoc session :captcha captcha)))))
