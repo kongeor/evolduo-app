@@ -3,10 +3,13 @@
             [evolduo-app.mailjet :as mailjet]
             [evolduo-app.model.user :as user]
             [evolduo-app.model.mail :as mail]
+            [evolduo-app.model.news :as news]
             [hiccup.core :as html]
             [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log]
+            [markdown.core :as md]
+            [hickory.core :as hi]))
 
 ;; common
 
@@ -192,6 +195,17 @@ table.body .article {
     [(p (str "User " invited-by-email " invited you to collaborate on the following track"))
      (a {:href (evolution-url app-url evolution-id) :text "View"})]))
 
+(defn- announcement-content [content]
+  (let [wrapper (partial conj [])]                          ;; needed for the list application above
+    (-> content
+        md/md-to-html-string
+        hi/parse
+        hi/as-hiccup
+        first
+        (nth 3)
+        (assoc 0 :div)
+        wrapper)))
+
 (defn- get-email-data [db {:keys [app-url] :as settings} {:keys [verification_token subscription password_reset_token] :as user} mail]
   (condp = (:type mail)
     "signup" {:should-receive? true :title "Welcome to Evolduo"
@@ -204,6 +218,15 @@ table.body .article {
                                                                       :content [(p "Hi,")
                                                                                 (p "If you requested a password reset please click the link below to reset your password.")
                                                                                 (a {:href (password-reset-url app-url password_reset_token) :text "Reset Password"})]})}
+    "announcement"
+    (when (:notifications subscription)
+      (let [{:keys [post-id]} (:data mail)
+            {:keys [title content_md]} (news/find-by-id db post-id)]
+        {:should-receive? true
+         :title           title
+         :content         (email-template settings user {:title   title
+                                                         :content (announcement-content content_md)})}))
+
     "invitation" {:should-receive? (:notifications subscription)
                   :title "Invitation to collaborate" ;; TODO should receive, duplication
                   :content         (email-template settings user {:title "Invitation to collaborate"

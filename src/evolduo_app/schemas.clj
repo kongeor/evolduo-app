@@ -144,3 +144,16 @@
          :error/path [:password_confirmation]}
     (fn [{:keys [password password_confirmation]}]
           (= password password_confirmation))]])
+
+(def post-actions
+  [["save-draft" "Save Draft"]
+   ["save-and-send-test" "Save Draft and Send Test Email"]
+   ["publish" "Publish"]
+   ["publish-and-send-emails" "Publish and Send Announcement"]])
+
+(def NewsPost
+  [:and
+   [:map {:closed true}
+    [:title [:string {:min 1}]]
+    [:content [:string {:min 1}]]
+    [:action (vec (cons :enum (mapv first post-actions)))]]])
