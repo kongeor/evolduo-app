@@ -9,7 +9,8 @@
             [next.jdbc.result-set :as rs]
             [clojure.tools.logging :as log]
             [markdown.core :as md]
-            [hickory.core :as hi]))
+            [hickory.core :as hi]
+            [clojure.string :as str]))
 
 ;; common
 
@@ -170,24 +171,33 @@ table.body .article {
                           (p "bar")])))
 ;;
 
-(def mailjet-types #{"signup" "invitation"})
+(def ^:private postal-providers #{"cons.gr"})
 
-(defn- send-email [settings type user subject content]
+(defn- send-with-postal? [email]
+  (let [[_ provider] (str/split email #"@")]
+    (postal-providers provider)))
+
+(comment
+  (send-with-postal? "foo@cons.gr"))
+
+(defn- send-email [{:keys [mailjet] :as settings} type user subject content]
   (let [mail-server (:mail-server settings)
         {:keys [id email]} user
         html-content (html/html content)]
     (or
-      (when (mailjet-types type)
+      ;; handle everything using mailjet by default as there is a low volume of emails
+      (when (and mailjet (not (send-with-postal? email)))
         (log/info "Sending email using mailjet to user" id "with subject" subject)
         (mailjet/send-email settings email subject html-content))
       (do
         (log/info "Sending email using postal to user" id "with subject" subject)
-        (postal/send-message mail-server
-          {:from    (:user mail-server)
-           :to      email
-           :subject subject
-           :body    [{:type    "text/html"
-                      :content html-content}]})))))
+        (let [response (postal/send-message mail-server
+                                   {:from    (:user mail-server)
+                                    :to      email
+                                    :subject subject
+                                    :body    [{:type    "text/html"
+                                               :content html-content}]})]
+          (log/info "Postal response" response))))))
 
 (defn- invitation-content [db {:keys [app-url] :as settings} mail]
   (let [{:keys [evolution-id invited-by-id]} (:data mail)

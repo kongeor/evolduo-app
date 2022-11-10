@@ -1,9 +1,13 @@
 (ns evolduo-app.model.news
-  (:require [clojure.string :as str]
-            [next.jdbc.sql :as sql]
+  (:require [next.jdbc.sql :as sql]
             [clojure.set :as set]
             [markdown.core :as md]
-            [hickory.core :as hi]))
+            [hickory.core :as hi]
+            [evolduo-app.model.mail :as mail-model]
+            [evolduo-app.model.user :as user-model]
+            [next.jdbc :as jdbc]
+            [next.jdbc.result-set :as rs])
+  (:import (java.time Instant)))
 
 (defn find-by-id [db id]
   (first (sql/find-by-keys db :news {:id id})))
@@ -12,25 +16,48 @@
 (defn- -insert-post! [db post]
   (sql/insert! db :news post))
 
+(def ^:private publishing-actions #{"publish" "publish-and-send-emails"})
+
 (defn- prepare-post [user-id post]
   (-> post
       (set/rename-keys {:content :content_md})
       (dissoc :action)
-      (assoc :content_html (:content post)
+      (assoc :content_html (md/md-to-html-string (:content post))
              :user_id user-id
-             :status "draft")))
+             :status (if (publishing-actions (:action post)) "published" "draft"))))
 
-(defn insert-news! [db user-id post]
-  (let [post' (prepare-post user-id post)]
-    (-insert-post! db post')))
+(defn- send-post-mails [db action post-id user-id]
+  (case action
+    "save-and-send-test"
+    (mail-model/insert db {:recipient_id user-id
+                           :type         "announcement"
+                           :data         {:post-id post-id}})
+    "publish-and-send-emails"
+    (doseq [{:keys [id]} (user-model/find-users-with-enabled-notifications db)]
+      (mail-model/insert db {:recipient_id id
+                             :type         "announcement"
+                             :data         {:post-id post-id}}))
+    (do :nothing)))
 
-(defn update-news! [db user-id post-id post]
-  (let [post' (prepare-post user-id post)]
-    (sql/update! db :news post' {:id post-id})
-    (find-by-id db post-id)))
+(defn insert-news! [db user-id {:keys [action] :as post}]
+  (jdbc/with-transaction [tx db]
+    (let [tx-opts (jdbc/with-options tx {:builder-fn rs/as-unqualified-lower-maps})]
+      (let [post' (prepare-post user-id post)
+            new-post (-insert-post! tx-opts post')]
+        (send-post-mails tx-opts action (:id new-post) user-id)
+        new-post))))
 
-(defn fetch-news [db]
-  (sql/find-by-keys db :news :all))
+(defn update-news! [db user-id post-id {:keys [action] :as post}]
+  (jdbc/with-transaction [tx db]
+    (let [tx-opts (jdbc/with-options tx {:builder-fn rs/as-unqualified-lower-maps})]
+      (let [post' (assoc (prepare-post user-id post)
+                    :updated_at (Instant/now))]
+        (sql/update! tx-opts :news post' {:id post-id})
+        (send-post-mails tx-opts action post-id user-id)
+        (find-by-id tx-opts post-id)))))
+
+(defn fetch-news [db filter]
+  (sql/find-by-keys db :news filter {:order-by [[:id :desc]]})) ;; TODO ok for now
 
 (defn find-edit-post [db id]
   (let [post (find-by-id db id)]
@@ -40,7 +67,8 @@
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
-    (find-by-id db 3)
+    #_(find-by-id db 3)
+    (sql/find-by-keys db :news :all {:order-by [[:id :asc]]})
     #_(fetch-news db)))
 
 (comment

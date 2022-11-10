@@ -2,21 +2,38 @@
   (:require [evolduo-app.views.common :refer [base-view]]
             [evolduo-app.schemas :as schema]
             [evolduo-app.model.news :as model]
-            [clojure.data.json :as json]
-            [clojure.core.memoize :as memo]
-            [ring.middleware.anti-forgery :as anti-forgery]))
+            [ring.middleware.anti-forgery :as anti-forgery])
+  (:import (java.text SimpleDateFormat)))
 
-(defn news-list [{:keys [settings db] :as req}]
+(def ^:private date-formatter (SimpleDateFormat. "dd/MM/yyyy HH:mm"))
+
+(defn- format-date [d]
+  (.format date-formatter d))
+
+(comment
+  (format-date (java.util.Date.)))
+
+;; TODO why is- ?
+(defn news-list [{:keys [settings db is-admin?] :as req}]
   (base-view
     req
     [:div
      [:h2.is-size-3.mb-4 "News"]
-     [:div
-      (for [post (model/fetch-news db)]
-        [:div
-         [:h1 (:title post)]
-         [:div (:content_md post)]
-         [:a {:href (str "/news/" (:id post) "/form")} "edit"]])]]
+     (when is-admin?
+       [:a.button.is-primary.mb-4 {:href "/news/form"} "New Post"])
+     [:div.content
+      (for [post (model/fetch-news db (if is-admin? :all {:status "published"}))]
+        [:div.mb-4
+         [:h3 (:title post)]
+         [:p (str (if (:updated_at post) "Updated on: " "Published on: ")
+                  (format-date (or (:updated_at post) (:created_at post))))]
+         (when is-admin?
+           [:div.mb-4
+            [:span.tag.is-info (:status post)]])
+         [:div (:content_html post)]
+         (when is-admin?
+           [:a {:href (str "/news/" (:id post) "/form")} "edit"])
+         [:hr.mb-4]])]]
     :title "News"
     ))
 

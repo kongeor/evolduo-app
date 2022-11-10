@@ -177,3 +177,11 @@
     (sql/update! db :users {:password encrypted
                             :password_reset_token nil
                             :password_reset_sent_at nil} {:id user-id})))
+
+(defn find-users-with-enabled-notifications [db]
+  (map #(select-keys % user-keys)
+       (sql/query db ["select * from users where (cast (subscription ->> 'notifications' as boolean) is true)"])))
+
+(comment
+  (let [db (:database.sql/connection integrant.repl.state/system)]
+    (find-users-with-enabled-notifications db)))

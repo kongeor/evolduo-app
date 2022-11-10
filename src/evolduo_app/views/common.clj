@@ -22,6 +22,7 @@
         [:a.navbar-item {:href "/evolution/presets"} "Presets"]]
        [:a.navbar-item {:href "/evolution/library?type=public"} "Library"]
        [:a.navbar-item {:href "/playground"} "Playground"]
+       [:a.navbar-item {:href "/news"} "News"]
        [:a.navbar-item {:href "/samples"} "Samples"]
        [:a.navbar-item {:href "/contact"} "Contact"]]
       [:div.navbar-end

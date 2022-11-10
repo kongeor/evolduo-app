@@ -1,5 +1,9 @@
 # Changelog
 
+## [Scheduled]
+
+- Lower case emails
+
 ## [Unreleased]
 
 ## [0.1.108] - 2022-11-07
