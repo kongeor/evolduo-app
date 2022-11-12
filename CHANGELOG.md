@@ -9,7 +9,7 @@
 
 ## [Unreleased]
 
-## [0.1.117] - 2022-11-12
+## [0.1.118] - 2022-11-12
 
 - Lower case emails
 - Fix library search error

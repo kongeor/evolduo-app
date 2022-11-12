@@ -22,17 +22,20 @@
      (when is-admin?
        [:a.button.is-primary.mb-4 {:href "/news/form"} "New Post"])
      [:div.content
-      (for [post (model/fetch-news db (if is-admin? :all {:status "published"}))]
-        [:div.mb-4
-         [:h3 (:title post)]
-         [:p.has-text-weight-semibold (format-date (or (:updated_at post) (:created_at post)))]
-         (when is-admin?
-           [:div.mb-4
-            [:span.tag.is-info (:status post)]])
-         [:div (:content_html post)]
-         (when is-admin?
-           [:a {:href (str "/news/" (:id post) "/form")} "edit"])
-         [:hr.mb-4]])]]
+      (let [posts (model/fetch-news db (if is-admin? :all {:status "published"}))]
+        (if (seq posts)
+          (for [post posts]
+            [:div.mb-4
+             [:h3 (:title post)]
+             [:p.has-text-weight-semibold (format-date (or (:updated_at post) (:created_at post)))]
+             (when is-admin?
+               [:div.mb-4
+                [:span.tag.is-info (:status post)]])
+             [:div (:content_html post)]
+             (when is-admin?
+               [:a {:href (str "/news/" (:id post) "/form")} "edit"])
+             [:hr.mb-4]])
+          [:p "Nothing here yet"]))]]
     :title "News"
     ))
 
