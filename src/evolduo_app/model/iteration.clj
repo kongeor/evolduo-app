@@ -188,10 +188,7 @@
         (sql/update! tx-opts :iterations (assoc old-iteration :last false) {:id (:id old-iteration)})
         (doall
           (map #(sql/insert! tx-opts :chromosomes
-                  (let [{:keys [key mode progression chord tempo]} evolution
-                        abc   (music/->abc-track {:key   key :mode mode :progression progression
-                                                  :chord chord :tempo tempo :repetitions (:repetitions evolution)}
-                                %)]
+                  (let [abc   (music/->abc-track evolution %)]
                     (assoc (select-keys % [:genes :fitness])
                       :iteration_id (:id iter-insert)
                       :raw_fitness (:fitness %)

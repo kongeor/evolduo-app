@@ -7,6 +7,10 @@
 - Add instrument option
 - Fix stats caching
 - Fix stats js error when evolduo is not defined
+- Staff play indication
+- Add playground notes
+- Preset instruments randomization
+- Try midi instruments 89-96
 
 ## [Unreleased]
 

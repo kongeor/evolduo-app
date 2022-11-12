@@ -143,6 +143,16 @@
                                                         :step  "10"
                                                         :min   "40" :max "220"}]
         [:output {:for "tempo-with-value"} (:tempo evolution)]]]
+      [:div.field
+       [:label.label {:for "instrument"} "Instrument"]
+       [:div.control
+        [:div.select
+         (comps/instrument-select (:instrument evolution))]]]
+      [:div.field
+       [:label.label {:for "accompaniment"} "Accompaniment"]
+       [:div.control
+        [:div.select
+         (comps/accompaniment-pattern-select (:accompaniment evolution))]]]
       [:div.control
        [:input.button.is-link {:type "submit" :value "Create"}]]]]))
 
@@ -274,7 +284,8 @@
        [:div
         (for [c chromosomes]
           (let [reaction (-> c :chromosome_id reaction-map)]
-            (comps/abc-track c :evolution-id (:id evolution)
+            (comps/abc-track c :evolution-id (:id evolution) :instrument (:instrument evolution)
+                             :accompaniment (:accompaniment evolution) ;; TODO improve
               :reaction reaction :user-id user-id :is-admin? (:is-admin? req)
               :rateable? rateable? :not-rateable-msg not-rateable-msg
               :iteration-num (:num iteration))))]

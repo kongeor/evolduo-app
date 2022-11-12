@@ -109,10 +109,10 @@
    ])
 
 ;;
-(defn abc-track [{:keys [chromosome_id fitness raw_fitness abc instrument accompaniment]}
+(defn abc-track [{:keys [chromosome_id fitness raw_fitness abc]}
                  & {:keys [evolution-id user-id reaction hide-reaction?
                            is-admin? rateable? not-rateable-msg
-                           iteration-num]}]
+                           iteration-num instrument accompaniment]}]
   (let [id chromosome_id
         abc-id (str "abc_" id)
         instrument-id (str "instrument_" id)

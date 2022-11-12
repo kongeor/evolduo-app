@@ -2,7 +2,9 @@
   (:require [malli.core :as m]
             [malli.transform :as mt]
             [malli.error :as me]
-            [evolduo-app.music :as music]))
+            [evolduo-app.music :as music]
+            [evolduo-app.music.accompaniment :as acco]
+            [evolduo-app.music.midi :as midi]))
 
 ;; TODO labels
 ;; only admin immediately
@@ -25,7 +27,9 @@
     [:progression (vec (cons :enum music/progressions))]
     [:repetitions [:int {:min 1 :max 4}]]
     [:chord (vec (cons :enum music/chord-intervals-keys))]
-    [:tempo [:int {:min 40 :max 220}]]]
+    [:tempo [:int {:min 40 :max 220}]]
+    [:accompaniment (vec (cons :enum acco/pattern-keys))]
+    [:instrument [:and :int (vec (cons :enum midi/instrument-keys))]]]
    [:fn {:error/message "invalid total number of iterations"
          :error/path [:total_iterations]}
     (fn [{:keys [total_iterations]}]
@@ -40,7 +44,7 @@
                         :evolve_after       "5-min"
                         :initial_iterations 10
                         :total_iterations   "20"
-                        :population_size    "11"
+                        :population_size    "10"
                         :crossover_rate     30
                         :mutation_rate      5
                         :mode               "major"
@@ -48,13 +52,17 @@
                         :chord              "R + 3 + 3"
                         :progression        "I-IV-V-I"
                         :repetitions        "1"
-                        :tempo              60})
+                        :tempo              60
+                        :accompaniment      "fixed"
+                        :instrument         "4"})
 
 (comment
   (me/humanize
     (m/explain Evolution
       (m/decode Evolution example-evolution mt/string-transformer))))
 
+(comment
+  (decode-and-validate Evolution example-evolution))
 ;; TODO split schemas
 
 (def Rating

@@ -62,7 +62,9 @@
                                                      :progression
                                                      :repetitions
                                                      :chord
-                                                     :tempo]))
+                                                     :tempo
+                                                     :accompaniment
+                                                     :instrument]))
         data'          (assoc data :initial_iterations 0)   ;; temp patch
         sanitized-data (schemas/decode-and-validate schemas/Evolution data')]
     (log/info "sanitized" sanitized-data)

@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-  if (typeof myVar === 'undefined') {
+  if (typeof evolduo === 'undefined') {
     return
   }
 

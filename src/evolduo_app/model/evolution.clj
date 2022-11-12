@@ -68,9 +68,7 @@ select e.*
   (repeatedly population_size
               #(let [genes      (music/random-track evolution)
                      chromosome {:genes genes}
-                     abc        (music/->abc-track {:key   key :mode mode :progression progression
-                                                    :chord chord :tempo tempo :repetitions repetitions} ;; TODO just pass evolution
-                                                   chromosome)
+                     abc        (music/->abc-track evolution chromosome)
                      fitness    (fitness/fitness evolution genes)]
                  {:genes       (vec genes)                  ;; TODO check
                   :fitness     fitness
@@ -324,7 +322,9 @@ select e.*
                                :progression        "I-IV-V-I"
                                :repetitions        2
                                :chord              "R + 3 + 3"
-                               :tempo              130})
+                               :tempo              130
+                               :accompaniment      "fixed"
+                               :instrument         4})
 
 (defn preset->params [is-admin? preset]
   (let [p
@@ -359,6 +359,8 @@ select e.*
             default-evolution-params
             (rnd-standard-progression)
             {:mode (rand-nth ["major" "mixolydian" "minor"])}))]
-    (cond-> p
+    (cond-> (merge
+              default-evolution-params
+              p)
             is-admin?
             (assoc :min_ratings 0 :evolve_after "1-min" :total_iterations 40))))
