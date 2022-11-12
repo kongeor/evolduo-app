@@ -5,8 +5,11 @@
 - Fix stats caching
 - Staff play indication
 - Add playground notes
+- Add instrument indication to lists and evolution detail
 
 ## [Unreleased]
+
+## [0.1.117] - 2022-11-12
 
 - Lower case emails
 - Fix library search error
