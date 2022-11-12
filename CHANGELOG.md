@@ -2,6 +2,9 @@
 
 ## [Scheduled]
 
+- Lower case emails
+- Fix library search error
+- Fix page titles
 - Filter out duplicates from selector
 - Add chord accompaniment option
 - Add instrument option
@@ -13,6 +16,10 @@
 - Try midi instruments 89-96
 
 ## [Unreleased]
+
+## [0.1.108] - 2022-11-07
+
+- Add password reset functionality
 
 ## [0.1.107] - 2022-10-28
 

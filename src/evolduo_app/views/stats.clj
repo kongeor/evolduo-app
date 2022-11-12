@@ -24,6 +24,7 @@
         [:canvas.mb-4 {:id "rating-stats" :style "max-height: 200px"}]
         [:canvas.mb-4 {:id "evolution-stats" :style "max-height: 200px"}]
         [:canvas.mb-4 {:id "chromosome-stats" :style "max-height: 200px"}]]]
+      :title "Stats"
       :custom-script
       (str
         "evolduo = {};

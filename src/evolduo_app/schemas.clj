@@ -4,7 +4,8 @@
             [malli.error :as me]
             [evolduo-app.music :as music]
             [evolduo-app.music.accompaniment :as acco]
-            [evolduo-app.music.midi :as midi]))
+            [evolduo-app.music.midi :as midi]
+            [clojure.string :as str]))
 
 ;; TODO labels
 ;; only admin immediately
@@ -92,17 +93,28 @@
 ;; https://stackoverflow.com/questions/19605150/regex-for-password-must-contain-at-least-eight-characters-at-least-one-number-a
 (def password-regex #"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$")
 
+(defn safe-lower-case [s]
+  (when s
+    (str/lower-case s)))
+
 (def Signup
   [:and
    [:map {:closed true}
-    [:email [:re {:error/message "invalid email"} email-regex]]
+    [:email {:decode/string {:enter safe-lower-case}} [:re {:error/message "invalid email"} email-regex]]
     [:password [:re {:error/message "Invalid password"} password-regex]]
     [:password_confirmation [:string]]
-    [:captcha [:string {:min 1}]]]
+    [:captcha [:string {:min 1}]]
+    [:newsletters {:optional true} [:string]]]
    [:fn {:error/message "passwords must match"
          :error/path [:password_confirmation]}
     (fn [{:keys [password password_confirmation]}]
           (= password password_confirmation))]])
+
+(def Login
+  [:and
+   [:map {:closed true}
+    [:email {:decode/string {:enter safe-lower-case}} [:re {:error/message "invalid email"} email-regex]]
+    [:password [:re {:error/message "Invalid password"} password-regex]]]])
 
 (comment
   (me/humanize (m/explain Signup {:email                 "foo@examplecom"
@@ -116,9 +128,10 @@
       {:data decoded})))
 
 (comment
-  (decode-and-validate Signup {:email "foo@example.com"
+  (decode-and-validate Signup {:email "FOO@example.com"
                                :password              "Pa$$word1"
                                :password_confirmation              "Pa$$word1"
+                               :captcha "foo"
                                }))
 
 
@@ -136,3 +149,32 @@
   (decode-and-validate Rating {:chromosome_id "42"
                                :value         1})
   )
+
+(def PasswordReset
+  [:map {:closed true}
+    [:email [:re {:error/message "invalid email"} email-regex]]
+    [:captcha [:string {:min 1}]]])
+
+(def PasswordSet
+  [:and
+   [:map {:closed true}
+    [:token [:string {:min 1}]]
+    [:password [:re {:error/message "Invalid password"} password-regex]]
+    [:password_confirmation [:string]]]
+   [:fn {:error/message "passwords must match"
+         :error/path [:password_confirmation]}
+    (fn [{:keys [password password_confirmation]}]
+          (= password password_confirmation))]])
+
+(def post-actions
+  [["save-draft" "Save Draft"]
+   ["save-and-send-test" "Save Draft and Send Test Email"]
+   ["publish" "Publish"]
+   ["publish-and-send-emails" "Publish and Send Announcement"]])
+
+(def NewsPost
+  [:and
+   [:map {:closed true}
+    [:title [:string {:min 1}]]
+    [:content [:string {:min 1}]]
+    [:action (vec (cons :enum (mapv first post-actions)))]]])

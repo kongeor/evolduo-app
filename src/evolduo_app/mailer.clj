@@ -3,10 +3,14 @@
             [evolduo-app.mailjet :as mailjet]
             [evolduo-app.model.user :as user]
             [evolduo-app.model.mail :as mail]
+            [evolduo-app.model.news :as news]
             [hiccup.core :as html]
             [next.jdbc :as jdbc]
             [next.jdbc.result-set :as rs]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log]
+            [markdown.core :as md]
+            [hickory.core :as hi]
+            [clojure.string :as str]))
 
 ;; common
 
@@ -33,6 +37,8 @@
 (defn evolution-url [app-url evolution-id]
   (str app-url "/evolution/" evolution-id))
 
+(defn- password-reset-url [app-url token]
+  (str app-url "/user/set-password-form?token=" token))
 
 (defn email-template [{:keys [app-url company-address] :as settings} {:keys [unsubscribe_token] :as user} {:keys [title content]}]
   [:html
@@ -165,24 +171,33 @@ table.body .article {
                           (p "bar")])))
 ;;
 
-(def mailjet-types #{"signup" "invitation"})
+(def ^:private postal-providers #{"cons.gr"})
 
-(defn- send-email [settings type user subject content]
+(defn- send-with-postal? [email]
+  (let [[_ provider] (str/split email #"@")]
+    (postal-providers provider)))
+
+(comment
+  (send-with-postal? "foo@cons.gr"))
+
+(defn- send-email [{:keys [mailjet] :as settings} type user subject content]
   (let [mail-server (:mail-server settings)
         {:keys [id email]} user
         html-content (html/html content)]
     (or
-      (when (mailjet-types type)
+      ;; handle everything using mailjet by default as there is a low volume of emails
+      (when (and mailjet (not (send-with-postal? email)))
         (log/info "Sending email using mailjet to user" id "with subject" subject)
         (mailjet/send-email settings email subject html-content))
       (do
         (log/info "Sending email using postal to user" id "with subject" subject)
-        (postal/send-message mail-server
-          {:from    (:user mail-server)
-           :to      email
-           :subject subject
-           :body    [{:type    "text/html"
-                      :content html-content}]})))))
+        (let [response (postal/send-message mail-server
+                                   {:from    (:user mail-server)
+                                    :to      email
+                                    :subject subject
+                                    :body    [{:type    "text/html"
+                                               :content html-content}]})]
+          (log/info "Postal response" response))))))
 
 (defn- invitation-content [db {:keys [app-url] :as settings} mail]
   (let [{:keys [evolution-id invited-by-id]} (:data mail)
@@ -190,13 +205,38 @@ table.body .article {
     [(p (str "User " invited-by-email " invited you to collaborate on the following track"))
      (a {:href (evolution-url app-url evolution-id) :text "View"})]))
 
-(defn- get-email-data [db {:keys [app-url] :as settings} {:keys [verification_token subscription] :as user} mail]
+(defn- announcement-content [content]
+  (let [wrapper (partial conj [])]                          ;; needed for the list application above
+    (-> content
+        md/md-to-html-string
+        hi/parse
+        hi/as-hiccup
+        first
+        (nth 3)
+        (assoc 0 :div)
+        wrapper)))
+
+(defn- get-email-data [db {:keys [app-url] :as settings} {:keys [verification_token subscription password_reset_token] :as user} mail]
   (condp = (:type mail)
     "signup" {:should-receive? true :title "Welcome to Evolduo"
               :content         (email-template settings user {:title "Welcome to Evolduo"
                                                               :content [(p "Welcome to Evolduo")
-                                                                      (p "Please click the following link to verify your account")
-                                                                      (a {:href (verification-url app-url verification_token) :text "Verify"})]})}
+                                                                        (p "Please click the following link to verify your account")
+                                                                        (a {:href (verification-url app-url verification_token) :text "Verify"})]})}
+    "password-reset" {:should-receive? true :title "Reset your Evolduo password"
+                      :content         (email-template settings user {:title "Reset your Evolduo password"
+                                                                      :content [(p "Hi,")
+                                                                                (p "If you requested a password reset please click the link below to reset your password.")
+                                                                                (a {:href (password-reset-url app-url password_reset_token) :text "Reset Password"})]})}
+    "announcement"
+    (when (:notifications subscription)
+      (let [{:keys [post-id]} (:data mail)
+            {:keys [title content_md]} (news/find-by-id db post-id)]
+        {:should-receive? true
+         :title           title
+         :content         (email-template settings user {:title   title
+                                                         :content (announcement-content content_md)})}))
+
     "invitation" {:should-receive? (:notifications subscription)
                   :title "Invitation to collaborate" ;; TODO should receive, duplication
                   :content         (email-template settings user {:title "Invitation to collaborate"

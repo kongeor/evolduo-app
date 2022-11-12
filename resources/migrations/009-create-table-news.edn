@@ -1,0 +1,12 @@
+;; resources/migrations/009-create-table-news.edn
+{:up   ["CREATE TABLE news (id SERIAL PRIMARY KEY,
+                            user_id INTEGER REFERENCES users(id) NOT NULL,
+                            created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+                            updated_at TIMESTAMP,
+                            status VARCHAR(25) NOT NULL,
+                            title TEXT,
+                            content_md TEXT,
+                            content_html TEXT
+                                );"]
+ :down ["DROP TABLE news;"
+        ]}

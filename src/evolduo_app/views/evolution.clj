@@ -154,7 +154,8 @@
         [:div.select
          (comps/accompaniment-pattern-select (:accompaniment evolution))]]]
       [:div.control
-       [:input.button.is-link {:type "submit" :value "Create"}]]]]))
+       [:input.button.is-link {:type "submit" :value "Create"}]]]]
+    :title "New Evolution"))
 
 (defn evolution-list [req evolutions]
   (let [{:keys [type]} (-> req :params)
@@ -366,4 +367,5 @@
          "Experimental"
          "Less common chord progressions, quadrant chords, uncommon musical modes, with very aggressive genetic parameters."
          "experimental")]
-      ]]))
+      ]]
+    :title "Presets"))

@@ -10,6 +10,7 @@
             [evolduo-app.controllers.user :as user-ctl]
             [evolduo-app.controllers.static :as static-ctl]
             [evolduo-app.controllers.stats :as stats-ctl]
+            [evolduo-app.controllers.news :as news-ctl]
             [evolduo-app.request :as req]
             [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
             [taoensso.carmine.ring :refer [carmine-store]]
@@ -55,6 +56,10 @@
   (GET "/user/unsubscribe" [] user-ctl/unsubscribe)
   (POST "/user/subscription" [] user-ctl/update-subscription)
   (POST "/user/delete" [] user-ctl/delete)
+  (GET "/user/set-password-form" [] user-ctl/set-password-form)
+  (POST "/user/set-password" [] user-ctl/set-password)
+  (POST "/user/password-reset" [] user-ctl/password-reset-save)
+  (GET "/user/password-reset-form" [] user-ctl/password-reset-form)
   (GET "/evolution/form" [] evolution-ctl/edit)
   (POST "/evolution/save" [] evolution-ctl/save)
   (GET "/evolution/presets" [] evolution-ctl/get-presets)
@@ -64,6 +69,11 @@
   (GET "/evolution/:id{[0-9]+}/invitation/form" [] invitation-ctl/invitation-form)
   (POST "/evolution/:id{[0-9]+}/invitation/save" [] invitation-ctl/invitation-save)
   (GET "/evolution/:evolution-id{[0-9]+}/iteration/:iteration-num{[0-9]+}" [] evolution-ctl/iteration-detail)
+  (GET "/news/form" [] news-ctl/news-form)
+  (POST "/news/save" [] news-ctl/news-save)
+  (GET "/news/:id{[0-9]+}/form" [] news-ctl/news-form)
+  (POST "/news/:id{[0-9]+}/save" [] news-ctl/news-save)
+  (GET "/news" [] news-ctl/news-list)
   (GET "/playground" [] playground-ctl/playground)
   (GET "/stats" [] stats-ctl/stats)
   (POST "/reaction" [] reaction-ctl/save)
