@@ -9,7 +9,7 @@
     req
     [:div
      [:p.mb-4 "Evolduo is platform for collaborative musical synthesis using evolutionary algorithms.
-               It is open source and free to use. You can read more about it " [:a {:href "https://github.com/kongeor/evolduo-app"} "here"] "."]
+               It is open source and free to use."]
      [:p.mb-4 "Not sure where to start?
                Check the " [:a {:target "_blank" :href "https://youtu.be/G9Iwgwp_GD4"} "quick start video tutorial"] "."]
      (when (seq user-evolutions)
@@ -35,4 +35,5 @@
         (comps/evolution-table public-evolutions)
         [:a {:href (u/url-for :evolution-search {:query {:type "public"}})} "more"]
         [:hr]])
-     ]))
+     ]
+    :title "Home"))

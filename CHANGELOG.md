@@ -3,6 +3,8 @@
 ## [Scheduled]
 
 - Lower case emails
+- Fix library search error
+- Fix page titles
 
 ## [Unreleased]
 

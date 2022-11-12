@@ -42,8 +42,11 @@
         evolutions (condp = type
                      "public" (model/find-active-public-evolutions db nil :limit 100) ;; TODO meh
                      "friends" (model/find-invited-to-evolutions db user-id :limit 100)
-                     "my" (model/find-user-active-evolutions db user-id :limit 100))] ;; TODO pagination
-    (res/render-html evolution-views/evolution-list req evolutions)))
+                     "my" (model/find-user-active-evolutions db user-id :limit 100)
+                     [])] ;; TODO pagination
+    (if (#{"public" "friends" "my"} type)                   ;; TODO validate properly
+      (res/render-html evolution-views/evolution-list req evolutions)
+      (res/redirect "/evolution/library?type=public"))))
 
 (defn save
   [req]
