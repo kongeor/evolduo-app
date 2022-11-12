@@ -3,8 +3,17 @@
             [evolduo-app.views.components :as comps]
             [clojure.string :as str]))
 
+(defn- safe-parse-int [s]
+  (when s
+    (try (Integer/parseInt (str/trim s))
+         (catch NumberFormatException e))))
+
+(comment
+  (safe-parse-int "a 2"))
+
 (defn playground [req & {:keys [abc title] :as track}]
   (let [{:keys [key mode progression chord tempo notes instrument accompaniment]} (-> req :params)
+        instrument (safe-parse-int instrument)
         tempo (if (str/blank? tempo) "110" tempo)]          ;; TODO sanitized params
     (base-view
       req

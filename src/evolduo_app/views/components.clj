@@ -60,7 +60,7 @@
   [:select {:name "instrument" :id "instrument-select"}
    (for [[id name] midi/instruments]
      [:option (merge {:value id}
-                (when (= (str id) instrument)
+                (when (= id instrument)
                   {:selected true})) name])])
 
 (defn accompaniment-pattern-select [acc]

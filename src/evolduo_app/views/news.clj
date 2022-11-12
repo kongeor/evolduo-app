@@ -5,7 +5,7 @@
             [ring.middleware.anti-forgery :as anti-forgery])
   (:import (java.text SimpleDateFormat)))
 
-(def ^:private date-formatter (SimpleDateFormat. "dd/MM/yyyy HH:mm"))
+(def ^:private date-formatter (SimpleDateFormat. "dd MMM yyyy "))
 
 (defn- format-date [d]
   (.format date-formatter d))
@@ -25,8 +25,7 @@
       (for [post (model/fetch-news db (if is-admin? :all {:status "published"}))]
         [:div.mb-4
          [:h3 (:title post)]
-         [:p (str (if (:updated_at post) "Updated on: " "Published on: ")
-                  (format-date (or (:updated_at post) (:created_at post))))]
+         [:p.has-text-weight-semibold (format-date (or (:updated_at post) (:created_at post)))]
          (when is-admin?
            [:div.mb-4
             [:span.tag.is-info (:status post)]])

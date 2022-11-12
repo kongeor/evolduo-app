@@ -8,7 +8,7 @@
             [next.jdbc.sql :as sql]
             [next.jdbc.result-set :as rs]
             [evolduo-app.music.fitness :as fitness]
-            [clojure.math :as math])
+            [evolduo-app.music.midi :as midi])
   (:import (java.time Instant)
            (java.util.concurrent TimeUnit)))
 
@@ -361,6 +361,10 @@ select e.*
             {:mode (rand-nth ["major" "mixolydian" "minor"])}))]
     (cond-> (merge
               default-evolution-params
-              p)
+              p
+              {:instrument (rand-nth midi/rnd-instrument-keys)})
             is-admin?
             (assoc :min_ratings 0 :evolve_after "1-min" :total_iterations 40))))
+
+(comment
+  (preset->params false "default"))

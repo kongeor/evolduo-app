@@ -2,20 +2,22 @@
 
 ## [Scheduled]
 
-- Lower case emails
-- Fix library search error
-- Fix page titles
-- Filter out duplicates from selector
-- Add chord accompaniment option
-- Add instrument option
 - Fix stats caching
-- Fix stats js error when evolduo is not defined
 - Staff play indication
 - Add playground notes
-- Preset instruments randomization
-- Try midi instruments 89-96
 
 ## [Unreleased]
+
+- Lower case emails
+- Fix library search error
+- Add missing page titles
+- Set no duplicates in tournament selector
+- Add chord accompaniment option
+- Add instrument option
+- Fix stats js error when evolduo is not defined
+- Upgrade deps
+- News and newsletters
+- W3C page validation fixes
 
 ## [0.1.108] - 2022-11-07
 

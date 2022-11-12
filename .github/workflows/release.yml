@@ -17,9 +17,9 @@ jobs:
           fetch-depth: 0
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@9.5
+        uses: DeLaGuardo/setup-clojure@10
         with:
-          cli: 1.11.1.1165
+          cli: 1.11.1.1189
 
       - name: Run tests
         run: clojure -X:test
