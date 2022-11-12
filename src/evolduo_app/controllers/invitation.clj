@@ -28,14 +28,15 @@
       :else
       (r/render-html evolution-views/invitation-form req {:evolution evolution}))))
 
-#_(str/split "f@ac.c    as@asdf.co,,,,,zxcv@asdf.co" #"[\s,]+")
+#_(str/split "f@ac.c    as@asdf.co,      ,,,,zxcv@asdf.co" #"[\s,]+")
 
 (defn invitation-save [req]
   (let [db (:db req)
-        settings (:settings req)
         user-id (request/user-id req)
         emails-input (-> req :params :emails)
-        emails (str/split emails-input #"[\s,]+")
+        emails (->> (str/split emails-input #"[\s,]+")
+                    (map str/trim)
+                    (map str/lower-case))
         sanitized-data (schemas/decode-and-validate-invitation {:emails emails})
         evolution-id (parse-long (-> req :params :evolution_id))
         evolution (evolution-model/find-evolution-by-id db evolution-id)]

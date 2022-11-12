@@ -2,7 +2,8 @@
   (:require [malli.core :as m]
             [malli.transform :as mt]
             [malli.error :as me]
-            [evolduo-app.music :as music]))
+            [evolduo-app.music :as music]
+            [clojure.string :as str]))
 
 ;; TODO labels
 ;; only admin immediately
@@ -84,17 +85,28 @@
 ;; https://stackoverflow.com/questions/19605150/regex-for-password-must-contain-at-least-eight-characters-at-least-one-number-a
 (def password-regex #"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$")
 
+(defn safe-lower-case [s]
+  (when s
+    (str/lower-case s)))
+
 (def Signup
   [:and
    [:map {:closed true}
-    [:email [:re {:error/message "invalid email"} email-regex]]
+    [:email {:decode/string {:enter safe-lower-case}} [:re {:error/message "invalid email"} email-regex]]
     [:password [:re {:error/message "Invalid password"} password-regex]]
     [:password_confirmation [:string]]
-    [:captcha [:string {:min 1}]]]
+    [:captcha [:string {:min 1}]]
+    [:newsletters {:optional true} [:string]]]
    [:fn {:error/message "passwords must match"
          :error/path [:password_confirmation]}
     (fn [{:keys [password password_confirmation]}]
           (= password password_confirmation))]])
+
+(def Login
+  [:and
+   [:map {:closed true}
+    [:email {:decode/string {:enter safe-lower-case}} [:re {:error/message "invalid email"} email-regex]]
+    [:password [:re {:error/message "Invalid password"} password-regex]]]])
 
 (comment
   (me/humanize (m/explain Signup {:email                 "foo@examplecom"
@@ -108,9 +120,10 @@
       {:data decoded})))
 
 (comment
-  (decode-and-validate Signup {:email "foo@example.com"
+  (decode-and-validate Signup {:email "FOO@example.com"
                                :password              "Pa$$word1"
                                :password_confirmation              "Pa$$word1"
+                               :captcha "foo"
                                }))
 
 

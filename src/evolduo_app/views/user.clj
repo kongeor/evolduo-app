@@ -78,6 +78,12 @@
        [:p.help.is-info.mb-2 "You are not a robot, are you? Please enter the number you see above. Use the audio player below to hear the captcha value"]
        [:audio {:controls "true" :src  (str "data:audio/wav;base64, " (captcha/captcha-audio->base64 captcha))} "Your browser does not support the"
         [:code "audio"] "element."]]
+      [:div.field
+       [:div.control
+        [:label.checkbox
+         [:input {:name "newsletters" :type "checkbox"
+                  :checked (some? (:newsletters signup))}]
+         " Would you like to receive project updates and announcements via email? (Don't worry, it will be at most once per month)"]]]
       [:p.mb-4
        "By signing up you agree to our "
        [:a {:href "/privacy-policy"} "Privacy Policy"]

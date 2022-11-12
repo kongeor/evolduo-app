@@ -16,7 +16,7 @@
 ;; Not using pepper per https://stackoverflow.com/questions/16891729/best-practices-salting-peppering-passwords
 (defn create
   "Returns only the user id"
-  [db email pass]
+  [db email pass newsletters]
   (let [encrypted (password/encrypt pass)
         verification_token (rnd/hex 100)
         unsubscribe_token (rnd/hex 100)]
@@ -27,7 +27,7 @@
                      :verified           false
                      :verification_token verification_token
                      :subscription       {:notifications true
-                                          :announcements true}
+                                          :announcements (some? newsletters)}
                      :unsubscribe_token  unsubscribe_token})))
 
 (defn create-stub
@@ -68,7 +68,7 @@
                 :password_reset_token])
 
 (defn upsert!
-  [db email pass]
+  [db email pass newsletters]
   (jdbc/with-transaction [tx db]
     (let [tx-opts (jdbc/with-options tx {:builder-fn rs/as-unqualified-lower-maps})]
       (let [user (if-let [user (find-user-by-email tx-opts email)]
@@ -83,11 +83,11 @@
                         :verified           false
                         :verification_token verification_token   ;; TODO duplicated
                         :subscription       {:notifications true ;; TODO hm
-                                             :announcements true}
+                                             :announcements (some? newsletters)}
                         :unsubscribe_token unsubscribe_token}
                        {:email email})
                      user)
-                   (create tx-opts email pass))]
+                   (create tx-opts email pass newsletters))]
         (mail-model/insert tx-opts {:recipient_id (:id user)
                                     :type         "signup"
                                     :data         {}})

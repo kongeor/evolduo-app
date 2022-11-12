@@ -13,14 +13,14 @@
   [{:keys [session] :as req}]
   (let [captcha (er/random-num 6)]
     (->
-      (r/render-html user-views/signup-form req {:captcha captcha})
+      (r/render-html user-views/signup-form req {:captcha captcha :signup {:newsletters "on"}})
       (assoc :session (assoc session :captcha captcha)))))
 
 (defn signup [req]
   (let [db (:db req)
         captcha-code (or (-> req :session :captcha) "")
         real-ip (req/get-x-forwarded-for-header req)
-        params (-> req :params (select-keys [:email :password :password_confirmation :captcha]))
+        params (-> req :params (select-keys [:email :password :password_confirmation :captcha :newsletters]))
         sanitized-data (s/decode-and-validate s/Signup params)]
     (cond
       (:error sanitized-data)
@@ -53,7 +53,8 @@
         (if-let [user (user/upsert!
                         db
                         (-> sanitized-data :data :email)
-                        (-> sanitized-data :data :password))]
+                        (-> sanitized-data :data :password)
+                        (-> sanitized-data :data :newsletters))]
           (->
             (r/redirect "/"
               :flash {:type :info :message [:span
@@ -70,21 +71,27 @@
   [req]
   (r/render-html user-views/login-form req))
 
-(defn login [req]
-  (let [db (:db req)
-        email (-> req :params :email)
+(defn login [{:keys [db session] :as req}]
+  (let [email (-> req :params :email)
         password (-> req :params :password)
-        real-ip (req/get-x-forwarded-for-header req)
-        session (:session req)]
-    (if-let [user (user/login-user db email password)]
-      (let [session' (assoc session :user/id (:id user))]
-        (-> (response/redirect "/")
-          (assoc :session session')))
+        sanitized-data (s/decode-and-validate s/Login {:email email :password password})
+        real-ip (req/get-x-forwarded-for-header req)]
+    (cond
+      (:error sanitized-data)
       (do
         (log/warn "Invalid login attempt from" real-ip)
         (r/render-html user-views/login-form req {:login        {:email email}
                                                   :notification {:type    "danger"
-                                                                 :message "Invalid email or password"}})))))
+                                                                 :message "Invalid email or password"}}))
+
+      :else
+      (if-let [user (user/login-user db
+                                     (-> sanitized-data :data :email)
+                                     (-> sanitized-data :data :password))]
+        (let [session' (assoc session :user/id (:id user))]
+          (-> (response/redirect "/")
+              (assoc :session session')))
+        ))))
 
 (defn logout-user [req]
   (r/logout {:message "You have successfully been logged out"}))
