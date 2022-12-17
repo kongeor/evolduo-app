@@ -63,7 +63,7 @@ select e.*
 (comment
   (num-of-evolutions-in-last-day (:database.sql/connection integrant.repl.state/system) 1))
 
-(defn- generate-initial-chromosomes [{:keys [key mode progression chord tempo
+(defn generate-initial-chromosomes [{:keys [key mode progression chord tempo
                                              population_size repetitions] :as evolution}]
   (repeatedly population_size
               #(let [genes      (music/random-track evolution)

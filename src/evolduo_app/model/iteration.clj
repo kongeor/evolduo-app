@@ -94,10 +94,10 @@
                           2 (assoc c :genes (mops/split-random-note genes))))
                       c)) c (range (* 4 measures))))) pop))) ;; why 4? increase the mutation chance to get more diverse results
 
-(defn- chickn-evolve [evolution chromosomes]
+(defn chickn-evolve [evolution chromosomes]
   (let [fitness-fn  (fn [chromo]
                       (fitness/fitness evolution (fitness/maybe-fix evolution chromo)))
-        cfg         #:chickn.core{:chromo-gen  #(music/random-track evolution)
+        cfg         #:chickn.core{:chromo-gen  #(music/random-track evolution) ;; TODO ?
                                   :pop-size    (:population_size evolution)
                                   :terminated? util/noop
                                   :monitor     util/noop
