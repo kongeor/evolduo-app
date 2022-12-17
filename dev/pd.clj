@@ -56,13 +56,13 @@
   (Thread/sleep duration))
 
 (comment
-  (duration->ms 120 4))
+  (duration->ms 120 16))
 
 (comment
   (comment
     (/ 4000 16)))
 
-(defn play-note [out bpm {:keys [note duration] :as note}]
+(defn play-note [out bpm {:keys [note duration]}]
   (let [duration-ms (duration->ms bpm duration)
         cmd (note->cmd note duration-ms)]
     (println "playing note" note duration)
@@ -80,7 +80,6 @@
 
 (defn play-chord [out bmp chord]
   (let [duration-ms (duration->ms bmp mu/measure-sixteens)]
-    (println "playing chord" chord "for" duration-ms)
     (.writeBytes out (chord-cmd duration-ms chord))))
 
 (comment
@@ -141,24 +140,32 @@
   (future
     (loop []
       (when (= :running (:status @state))
-        (if-let [genes-to-play (->> @state :buffer first
-                                    (sort-by :fitness)
-                                    first
-                                    :genes)
-                 ]
-          (let [tempo (-> @state :config :tempo)
-                progression (mu/gen-chord-progression-notes (-> @state :config))
-                ]
-            (println "tempo" tempo "genes" genes-to-play)
-            (future (play-progression (:out2 @state) tempo progression))
-            (play-track (:out @state) tempo genes-to-play)
-            (swap! state update :buffer rest-vec)
-            (println "looping")
-            )
-          (do
-            (println "nothing to play :(")
-            (sleep 1000))))
-      (recur))))
+        (let [s @state
+              genes-to-play (->> s :buffer first
+                              (sort-by :fitness)
+                              first
+                              :genes)
+              _ (swap! state update :buffer rest-vec)
+              genes-by-index (group-by :index (mu/calc-note-times genes-to-play))
+              tempo (-> s :config :tempo)
+              out (:out s)
+              out2 (:out2 s)
+              progression (mu/gen-chord-progression-notes (-> s :config))
+              progression-indexed (apply hash-map (interleave (iterate (partial + mu/measure-sixteens) 0) progression))]
+          (doseq [tick (range (count genes-to-play))]
+            #_(println "looping tick" tick)
+            (when-let [note (-> genes-by-index (get tick) first)]
+              (println "playing note" note)
+              (play-note out tempo note))
+            (when-let [chord (-> progression-indexed (get tick))]
+              (println "playing chord" chord)
+              (play-chord out2 tempo chord))
+            (sleep (duration->ms tempo 1))
+            #_(println "tempo" tempo "genes" genes-to-play)
+            #_(future (play-progression (:out2 @state) tempo progression))
+            #_(play-track (:out @state) tempo genes-to-play)
+            #_(println "looping")))
+      (recur)))))
 
 
 (comment
@@ -184,7 +191,7 @@
               (println new-track)
               (swap! state update :buffer conj new-track)))
           (do
-            (println "waiting...")
+            #_(println "waiting...")
             (sleep 1000)))
         (recur)))))
 

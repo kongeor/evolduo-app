@@ -1,4 +1,4 @@
-#N canvas 5 43 1615 1187 12;
+#N canvas 199 52 1615 1187 12;
 #X obj 98 547 makenote;
 #X obj 93 618 noteout;
 #X msg 263 486 60;
