@@ -31,17 +31,18 @@
   (str (str/join " " (map int (str "list " pitch " 100 " duration))) ";"))
 
 (defn chord-cmd [duration pitches]
-  (str
-    (->> (map #(str % " 100 " %2) pitches (repeat duration))
-      (str/join " ")
-      (map int)
-      (str/join " "))
-    ";")
+  (let [pitches' (concat pitches (repeat (- 4 (count pitches)) 0))]
+    (str
+      (->> (map #(str % " 100 " %2) pitches' (repeat duration))
+        (str/join " ")
+        (map int)
+        (str/join " "))
+      ";"))
   #_(str (str/join " "  ";"))
   #_(str (str/join " " (map int (str "list " pitch " 100 " duration))) ";"))
 
 (comment
-  (chord-cmd 1000 [60 64]))
+  (chord-cmd 1000 [60 64 67 69]))
 
 #_(.writeBytes out (note->cmd 60))
 
@@ -83,7 +84,7 @@
     (.writeBytes out (chord-cmd duration-ms chord))))
 
 (comment
-  (play-chord out2 60 [60 64 67]))
+  (play-chord (make-data-out-stream port2) 60 [60 67 72]))
 
 (defn play-progression [out bpm progression]
   (doseq [chord progression]
@@ -127,14 +128,17 @@
                            :progression     "I-IV-II-V"
                            :crossover_rate  30
                            :mutation_rate   30
-                           :tempo           90
+                           :tempo           60
                            :repetitions     1
+                           :chord           "R + 3 + 3 + 3"
                            :population_size 40}}))
 
 (comment
   (swap! state update :config assoc :mutation_rate 80)
   (swap! state update :config assoc :tempo 100))
 
+(comment
+  (mu/gen-chord-progression-notes (-> @state :config)))
 
 (defn loop-play-track []
   (future
