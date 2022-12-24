@@ -9,6 +9,10 @@
 
 ## [Unreleased]
 
+## [0.1.123] - 2022-12-24
+
+- Evolduo Live!
+
 ## [0.1.118] - 2022-11-12
 
 - Lower case emails

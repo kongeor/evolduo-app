@@ -1,4 +1,4 @@
-(ns pd
+(ns evolduo-app.live
   (:require [clojure.string :as str]
             [evolduo-app.music :as mu]
             [evolduo-app.model.evolution :as evolution]
@@ -119,8 +119,8 @@
 (def rest-vec (comp vec rest))
 
 (def state (atom {:status :running
-                  :out (make-data-out-stream port)
-                  :out2 (make-data-out-stream port2)
+                  ; :out (make-data-out-stream port)
+                  ; :out2 (make-data-out-stream port2)
                   :buffer []
                   :config {:key             "C"
                            :mode            "major"
@@ -132,6 +132,11 @@
                            :repetitions     1
                            :chord           "R + 3 + 3 + 3"
                            :population_size 40}}))
+
+(defn connect! []
+  (swap! state assoc :out (make-data-out-stream port))
+  (swap! state assoc :out2 (make-data-out-stream port2))
+  )
 
 (comment
   (swap! state update :config assoc :mutation_rate 80)
@@ -316,8 +321,12 @@
 #_(.removeActionListener progression-dropdown progression-listener)
 
 ;; define main frame and add main panel
-(def frame (JFrame. "Evolduo Live!"))
-(.add frame panel)
-(.setSize frame 1000 200)
+(defn show-controls! []
+  (let [frame (JFrame. "Evolduo Live!")]
+    (.add frame panel)
+    (.setSize frame 1000 200)
+    (.setVisible frame true)))
 
-(.setVisible frame true)
+(defn connect-and-show-controls! []
+  (connect!)
+  (show-controls!))

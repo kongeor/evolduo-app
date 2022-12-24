@@ -27,6 +27,12 @@ jobs:
       - name: Build uberjar
         run: clojure -T:build uber
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: evolduo-standalone
+          path: target/*.jar
+
       - name: Publish to Registry
         uses: elgohr/Publish-Docker-Github-Action@v4
         with:

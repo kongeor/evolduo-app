@@ -3,6 +3,7 @@
             [evolduo-app.handler :as handler]
             [evolduo-app.pg]                                ;; json data types
             [evolduo-app.timer :as timer]
+            [evolduo-app.live :as live]
             [integrant.core :as ig]
             [next.jdbc :as jdbc]
             [next.jdbc.connection :as connection]
@@ -18,7 +19,7 @@
   (:gen-class))
 
 (def config
-  {:adapter/jetty           {:handler (ig/ref :handler/run-app)
+  {:adapter/jetty           {:handler  (ig/ref :handler/run-app)
                              :settings (ig/ref :config/settings)}
    :handler/run-app         {:db       (ig/ref :database.sql/connection)
                              :settings (ig/ref :config/settings)}
@@ -77,5 +78,7 @@
 (defmethod ig/halt-key! :mail/timer [_ timer]
   (.close timer))
 
-(defn -main []
-  (ig/init config))
+(defn -main [& args]
+  (if (= "live" (first args))
+    (live/connect-and-show-controls!)
+    (ig/init config)))
