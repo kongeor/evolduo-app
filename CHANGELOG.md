@@ -9,6 +9,10 @@
 
 ## [Unreleased]
 
+## [0.1.125] - 2022-12-24
+
+- Expose more Live! controls
+
 ## [0.1.124] - 2022-12-24
 
 - Evolduo Live!

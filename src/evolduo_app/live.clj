@@ -30,10 +30,10 @@
 (defn note->cmd [pitch duration]
   (str (str/join " " (map int (str "list " pitch " 100 " duration))) ";"))
 
-(defn chord-cmd [duration pitches]
+(defn chord-cmd [duration velocity pitches]
   (let [pitches' (concat pitches (repeat (- 4 (count pitches)) 0))]
     (str
-      (->> (map #(str % " 100 " %2) pitches' (repeat duration))
+      (->> (map #(str % " " velocity " " %2) pitches' (repeat duration))
         (str/join " ")
         (map int)
         (str/join " "))
@@ -42,7 +42,7 @@
   #_(str (str/join " " (map int (str "list " pitch " 100 " duration))) ";"))
 
 (comment
-  (chord-cmd 1000 [60 64 67 69]))
+  (chord-cmd 1000 100 [60 64 67 69]))
 
 #_(.writeBytes out (note->cmd 60))
 
@@ -79,16 +79,16 @@
 (comment
   (play-track nil bpm mu/c))
 
-(defn play-chord [out bmp chord]
+(defn play-chord [out bmp attack chord]
   (let [duration-ms (duration->ms bmp mu/measure-sixteens)]
-    (.writeBytes out (chord-cmd duration-ms chord))))
+    (.writeBytes out (chord-cmd duration-ms attack chord))))
 
 (comment
   (play-chord (make-data-out-stream port2) 60 [60 67 72]))
 
 (defn play-progression [out bpm progression]
   (doseq [chord progression]
-    (play-chord out bpm chord)
+    (play-chord out bpm 100 chord)
     (sleep (duration->ms bpm mu/measure-sixteens))))
 
 (comment
@@ -128,9 +128,10 @@
                            :progression     "I-IV-II-V"
                            :crossover_rate  30
                            :mutation_rate   30
-                           :tempo           60
+                           :tempo           100
                            :repetitions     1
                            :chord           "R + 3 + 3 + 3"
+                           :chord-velocity  100
                            :population_size 40}}))
 
 (defn connect! []
@@ -157,6 +158,7 @@
               _ (swap! state update :buffer rest-vec)
               genes-by-index (group-by :index (mu/calc-note-times genes-to-play))
               tempo (-> s :config :tempo)
+              chord-velocity (-> s :config :chord-velocity)
               out (:out s)
               out2 (:out2 s)
               progression (mu/gen-chord-progression-notes (-> s :config))
@@ -168,7 +170,7 @@
               (play-note out tempo note))
             (when-let [chord (-> progression-indexed (get tick))]
               (println "playing chord" chord)
-              (play-chord out2 tempo chord))
+              (play-chord out2 tempo chord-velocity chord))
             (sleep (duration->ms tempo 1))
             #_(println "tempo" tempo "genes" genes-to-play)
             #_(future (play-progression (:out2 @state) tempo progression))
@@ -189,20 +191,24 @@
 
 (defn loop-evolve-new-tracks []
   (future
-    (loop []
-      (when (= :running (:status @state))
-        (if (> 2 (-> @state :buffer count))
-          (do
-            (println "evolving...")
-            (let [new-track (iteration/chickn-evolve (:config @state) (->> @state
-                                                                           :buffer
-                                                                           last))]
-              (println new-track)
-              (swap! state update :buffer conj new-track)))
-          (do
-            #_(println "waiting...")
-            (sleep 1000)))
-        (recur)))))
+    (try
+      (loop []
+        (when (= :running (:status @state))
+          (if (> 2 (-> @state :buffer count))
+            (do
+              (println "evolving...")
+              (let [new-track (iteration/chickn-evolve (:config @state) (->> @state
+                                                                          :buffer
+                                                                          last))]
+                (println "new fitness: " (:fitness (first new-track)))
+                (swap! state update :buffer conj new-track)))
+            (do
+              #_(println "waiting...")
+              (sleep 1000)))
+          (recur)))
+      (catch Exception e
+        (println "oh no...." e)))
+    ))
 
 (defn cancel-futures []
   (when-let [new-tracks-loop (:new-tracks-loop @state)]
@@ -239,45 +245,62 @@
 
 ;; swing stuff
 
+(defn set-default-slider-options [slider]
+  (.setPaintLabels slider true)
+  (.setPaintTicks slider true)
+  (.setMinorTickSpacing slider 10)
+  (.setMajorTickSpacing slider 10)
+  (.setSnapToTicks slider true))
+
 ;; define audio control buttons
 (def start-button (JButton. "Start"))
 (def stop-button (JButton. "Stop"))
 (def rewind-button (JButton. "Rewind"))
 
 ;; define settings components
-(def volume-label (JLabel. "Volume:"))
-(def volume-slider (JSlider. 0 100 50))
-(def balance-label (JLabel. "Balance:"))
-(def balance-slider (JSlider. -100 100 0))
+(def crossover-label (JLabel. "Crossover:"))
+(def crossover-slider (JSlider. 0 100 30))
+(set-default-slider-options crossover-slider)
+(def mutation-label (JLabel. "Mutation:"))
+(def mutation-slider (JSlider. 0 100 30))
+(set-default-slider-options mutation-slider)
 (def tempo-label (JLabel. "Tempo:"))
-
-(def tempo-slider (JSlider. 60 220 90))
-(.setPaintLabels tempo-slider true)
-(.setPaintTicks tempo-slider true)
-(.setMinorTickSpacing tempo-slider 10)
-(.setMajorTickSpacing tempo-slider 10)
-(.setSnapToTicks tempo-slider true)
+(def tempo-slider (JSlider. 60 220 100))
+(set-default-slider-options tempo-slider)
+(def chord-velocity-label (JLabel. "Chord velocity:"))
+(def chord-velocity-slider (JSlider. 0 100 100))
+(set-default-slider-options chord-velocity-slider)
 
 (def mode-label (JLabel. "Mode:"))
 (def mode-dropdown (JComboBox. (into-array String mu/mode-names)))
 (def progression-label (JLabel. "Progression:"))
 (def progression-dropdown (JComboBox. (into-array String mu/progressions)))
+(.setSelectedItem progression-dropdown (-> @state :config :progression))
+
+(def chord-label (JLabel. "Chord:"))
+(def chord-dropdown (JComboBox. (into-array String mu/chord-intervals-keys)))
+(.setSelectedItem chord-dropdown (-> @state :config :chord))
+
 
 ;; define main panel and add audio control buttons and settings components
-(def panel (JPanel. (GridLayout. 2 4)))
+(def panel (JPanel. (GridLayout. 8 2)))
 (.add panel start-button)
 (.add panel stop-button)
 #_(.add panel rewind-button)
-(.add panel volume-label)
-(.add panel volume-slider)
-(.add panel balance-label)
-(.add panel balance-slider)
+(.add panel crossover-label)
+(.add panel crossover-slider)
+(.add panel mutation-label)
+(.add panel mutation-slider)
+(.add panel chord-velocity-label)
+(.add panel chord-velocity-slider)
 (.add panel tempo-label)
 (.add panel tempo-slider)
 (.add panel mode-label)
 (.add panel mode-dropdown)
 (.add panel progression-label)
 (.add panel progression-dropdown)
+(.add panel chord-label)
+(.add panel chord-dropdown)
 
 (def start-listener (reify ActionListener
                      (actionPerformed [this e]
@@ -292,6 +315,30 @@
                         (cancel-futures))))
 
 (.addActionListener stop-button stop-listener)
+
+(def crossover-listener (reify ChangeListener
+                          (stateChanged [this e]
+                            (let [crossover (.getValue crossover-slider)]
+                              (println "changing crossover to" crossover)
+                              (swap! state update :config assoc :crossover crossover)))))
+
+(.addChangeListener crossover-slider crossover-listener)
+
+(def mutation-listener (reify ChangeListener
+                          (stateChanged [this e]
+                            (let [mutation (.getValue mutation-slider)]
+                              (println "changing mutation to" mutation)
+                              (swap! state update :config assoc :mutation mutation)))))
+
+(.addChangeListener mutation-slider mutation-listener)
+
+(def chord-velocity-listener (reify ChangeListener
+                             (stateChanged [this e]
+                               (let [chord-velocity (.getValue chord-velocity-slider)]
+                                 (println "changing chord velocity to" chord-velocity)
+                                 (swap! state update :config assoc :chord-velocity chord-velocity)))))
+
+(.addChangeListener chord-velocity-slider chord-velocity-listener)
 
 (def tempo-listener (reify ChangeListener
                      (stateChanged [this e]
@@ -320,13 +367,30 @@
 (.addActionListener progression-dropdown progression-listener)
 #_(.removeActionListener progression-dropdown progression-listener)
 
+(def chord-listener (reify ActionListener
+                            (actionPerformed [this e]
+                              (let [chord (.getSelectedItem chord-dropdown)]
+                                (println "setting chord to" chord)
+                                (swap! state update :config assoc :chord chord)))))
+
+(.addActionListener chord-dropdown chord-listener)
+
 ;; define main frame and add main panel
 (defn show-controls! []
   (let [frame (JFrame. "Evolduo Live!")]
     (.add frame panel)
-    (.setSize frame 1000 200)
+    (.setSize frame 800 700)
     (.setVisible frame true)))
+
+(comment
+  (show-controls!))
+
+(comment
+  (connect!))
 
 (defn connect-and-show-controls! []
   (connect!)
   (show-controls!))
+
+(comment
+  (connect-and-show-controls!))
