@@ -271,6 +271,8 @@
 (def chord-velocity-slider (JSlider. 0 100 100))
 (set-default-slider-options chord-velocity-slider)
 
+(def key-label (JLabel. "Mode:"))
+(def key-dropdown (JComboBox. (into-array String mu/music-keys)))
 (def mode-label (JLabel. "Mode:"))
 (def mode-dropdown (JComboBox. (into-array String mu/mode-names)))
 (def progression-label (JLabel. "Progression:"))
@@ -283,7 +285,7 @@
 
 
 ;; define main panel and add audio control buttons and settings components
-(def panel (JPanel. (GridLayout. 8 2)))
+(def panel (JPanel. (GridLayout. 9 2)))
 (.add panel start-button)
 (.add panel stop-button)
 #_(.add panel rewind-button)
@@ -295,6 +297,8 @@
 (.add panel chord-velocity-slider)
 (.add panel tempo-label)
 (.add panel tempo-slider)
+(.add panel key-label)
+(.add panel key-dropdown)
 (.add panel mode-label)
 (.add panel mode-dropdown)
 (.add panel progression-label)
@@ -302,9 +306,15 @@
 (.add panel chord-label)
 (.add panel chord-dropdown)
 
+(defn set-enabled-controls [b]
+  (.setEnabled key-dropdown b)
+  (.setEnabled mode-dropdown b)
+  (.setEnabled progression-dropdown b))
+
 (def start-listener (reify ActionListener
                      (actionPerformed [this e]
                        (println "Restarting...")
+                       (set-enabled-controls false)
                        (restart))))
 
 (.addActionListener start-button start-listener)
@@ -312,6 +322,7 @@
 (def stop-listener (reify ActionListener
                       (actionPerformed [this e]
                         (println "The future cancels ... now!")
+                        (set-enabled-controls true)
                         (cancel-futures))))
 
 (.addActionListener stop-button stop-listener)
@@ -349,6 +360,14 @@
 #_(.removeChangeListener tempo-slider tempo-listener)
 (.addChangeListener tempo-slider tempo-listener)
 
+(def key-listener (reify ActionListener
+                     (actionPerformed [this e]
+                       (let [key (.getSelectedItem key-dropdown)]
+                         (println "setting key to" key)
+                         (swap! state update :config assoc :key key)))))
+
+(.addActionListener key-dropdown key-listener)
+
 (def mode-listener (reify ActionListener
                      (actionPerformed [this e]
                        (let [mode (.getSelectedItem mode-dropdown)]
@@ -379,7 +398,7 @@
 (defn show-controls! []
   (let [frame (JFrame. "Evolduo Live!")]
     (.add frame panel)
-    (.setSize frame 800 700)
+    (.setSize frame 800 600)
     (.setVisible frame true)))
 
 (comment

@@ -9,6 +9,12 @@
 
 ## [Unreleased]
 
+## [0.1.126] - 2022-12-27
+
+- Expose key control
+- Lock controls that affect the current progress
+- Add [live doc](https://github.com/kongeor/evolduo-app/blob/main/doc/live.md)
+
 ## [0.1.125] - 2022-12-24
 
 - Expose more Live! controls
