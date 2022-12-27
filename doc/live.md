@@ -30,7 +30,7 @@ For windows, install [loopMidi](http://www.tobias-erichsen.de/loopMIDI.html) and
 two virtual midi ports. This was tested on Windows 11 and it was working fine.
 
 
-## Configuration
+## Wiring
 
 Launch `PureData`, download the [evolduo.pd](https://raw.githubusercontent.com/kongeor/evolduo-app/main/resources/pd/evolduo.pd) and open.
 
@@ -82,7 +82,7 @@ If you know Clojure you can alter the code as the program is running.
 If you know PureData you know what to do. If not, you can check [this amazing free book](http://pd-tutorial.com/).
 
 
-## Know issues
+## Known issues
 
 You can experience crashes, errors or other inconsistencies. This is a proof
 of concept software so all of that is expected. 
