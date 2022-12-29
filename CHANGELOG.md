@@ -9,6 +9,10 @@
 
 ## [Unreleased]
 
+## [0.1.129] - 2022-12-29
+
+- Set tour size to be 75%
+
 ## [0.1.126] - 2022-12-27
 
 - Expose key control
