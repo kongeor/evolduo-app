@@ -9,6 +9,10 @@
 
 ## [Unreleased]
 
+## [0.1.130] - 2023-01-02
+
+- Copy/paste key error
+
 ## [0.1.129] - 2022-12-29
 
 - Set tour size to be 75%

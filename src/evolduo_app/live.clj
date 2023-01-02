@@ -271,7 +271,7 @@
 (def chord-velocity-slider (JSlider. 0 100 100))
 (set-default-slider-options chord-velocity-slider)
 
-(def key-label (JLabel. "Mode:"))
+(def key-label (JLabel. "Key:"))
 (def key-dropdown (JComboBox. (into-array String mu/music-keys)))
 (def mode-label (JLabel. "Mode:"))
 (def mode-dropdown (JComboBox. (into-array String mu/mode-names)))
