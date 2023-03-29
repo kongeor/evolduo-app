@@ -33,7 +33,7 @@ jobs:
           files: target/*.jar
 
       - name: Publish to Registry
-        uses: elgohr/Publish-Docker-Github-Action@v4
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           name: kongeor/evolduo-app
           username: ${{ secrets.DOCKER_USERNAME }}
