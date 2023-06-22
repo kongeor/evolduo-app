@@ -9,6 +9,11 @@
 
 ## [Unreleased]
 
+## [0.1.136] - 2023-06-22
+
+- Fix chord-note calculation
+- Switch to eclipse temurin jdk
+
 ## [0.1.130] - 2023-01-02
 
 - Copy/paste key error
