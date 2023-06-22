@@ -1,4 +1,4 @@
-FROM openjdk:18
+FROM eclipse-temurin:20-alpine
 
 COPY target/evolduo* /evolduo/app.jar
 
