@@ -30,18 +30,19 @@
 ;; there are no rests right now,
 ;; when added, the :measure-last-note? will need to be computed differently
 
-(defn calc-last-note-score [{:keys [duration oct-note oct-chord type]}]
-  (if (and (= type :note)
-           (oct-chord oct-note))
-    (* duration 5 (condp = oct-note
-                    0 1                                     ;; root
-                    3 0.7                                   ;; minor 3rd
-                    4 0.7                                   ;; major 3rd
-                    7 0.5                                   ;; 5th
-                    10 -1                                   ;; minor 7th
-                    11 -1                                   ;; major 7th
-                    0
-                    ))
+(defn calc-last-note-score [{:keys [duration chord note type]}]
+  (if (= type :note)
+    (let [root (apply min chord)
+          chord-note (abs (- root note))]
+      (* duration 5 (condp = chord-note
+                      0 1                                   ;; root
+                      3 0.7                                 ;; minor 3rd
+                      4 0.7                                 ;; major 3rd
+                      7 0.5                                 ;; 5th
+                      10 -1                                 ;; minor 7th
+                      11 -1                                 ;; major 7th
+                      0
+                      )))
     0))
 
 (comment

@@ -13,8 +13,10 @@
                     :repetitions 1})
 
 (deftest last-note-scores-test
-  (is (= [80 0 40.0 80]
-        (mapv calc-last-note-score (analyze test-settings test-chromo)))))
+  (is (= [80 80 80 80]
+        (mapv calc-last-note-score (analyze test-settings test-chromo))))
+  (is (= [0 0 40.0 80]
+         (mapv calc-last-note-score (analyze (assoc test-settings :progression "II-V-I-I") test-chromo)))))
 
 (deftest fitness-test
   (with-redefs [calc-last-notes-score (constantly 0)
