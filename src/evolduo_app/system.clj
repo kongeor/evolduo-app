@@ -32,7 +32,8 @@
                              :settings (ig/ref :config/settings)}})
 
 (defmethod ig/init-key :adapter/jetty [_ {:keys [handler settings] :as opts}]
-  (run-jetty handler (-> {:port (:port settings)} (assoc :join? false))))
+  (run-jetty handler (-> {:port (:port settings)
+                          :host (or (:host settings) "0.0.0.0")} (assoc :join? false))))
 
 (defmethod ig/init-key :handler/run-app [_ {:keys [db settings]}]
   (handler/app db settings))
