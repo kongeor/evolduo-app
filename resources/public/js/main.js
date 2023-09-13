@@ -43,4 +43,16 @@ document.addEventListener('DOMContentLoaded', () => {
 //        $target.classList.toggle('is-active');
 //      });
 //  })
+
+    const cookieConsent = new CookieConsent({
+        contentUrl: "/js/cookie-consent-content", // location of the language files
+        privacyPolicyUrl: "/privacy-policy",
+        postSelectionCallback: () => {
+            if (cookieConsent.trackingAllowed()) {
+                // I'll not bother injecting html for now
+                location.reload();
+            }
+        }
+    })
+
 });

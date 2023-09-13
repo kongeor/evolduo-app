@@ -6,8 +6,17 @@
 - Staff play indication
 - Add playground notes
 - Add instrument indication to lists and evolution detail
+- Add tracking notes
 
 ## [Unreleased]
+
+## [0.1.142] - 2023-09-13
+
+- Add tracking and change cookie settings
+
+## [0.1.141] - 2023-08-26
+
+- Add Docker arm64 support
 
 ## [0.1.136] - 2023-06-22
 

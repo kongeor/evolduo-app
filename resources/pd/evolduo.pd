@@ -26,10 +26,12 @@
 #X obj 715 317 route 0;
 #X obj 435 329 route 0;
 #X obj 581 340 route 0;
-#X floatatom 262 376 5 0 0 0 - - - 0;
+#X floatatom 280 502 5 0 0 0 - - - 0;
 #X obj 948 503 loadbang;
-#X msg 871 508 17;
 #X floatatom 781 543 5 0 0 0 - - - 0;
+#X msg 871 508 12;
+#X msg 342 438 12, f 4;
+#X obj 437 459 loadbang;
 #X connect 0 0 1 0;
 #X connect 1 0 3 0;
 #X connect 2 0 3 0;
@@ -74,6 +76,8 @@
 #X connect 25 1 13 0;
 #X connect 26 1 17 0;
 #X connect 27 0 7 2;
-#X connect 28 0 29 0;
-#X connect 29 0 30 0;
-#X connect 30 0 14 2;
+#X connect 28 0 30 0;
+#X connect 29 0 14 2;
+#X connect 30 0 29 0;
+#X connect 31 0 27 0;
+#X connect 32 0 31 0;

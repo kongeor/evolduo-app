@@ -43,9 +43,19 @@
     [:div {:class (str "notification " (str "is-" (name (:type data))))}
      (:message data)]))
 
+(defn- silent-parse-boolean
+  "Don't throw"
+  [v]
+  (try
+    (parse-boolean v)
+    (catch Exception _)))
+
+(silent-parse-boolean 1)
+
 (defn base-view
   [req content & {:keys [enable-abc? custom-script body-load-hook notification title]}]
-  (let [version (-> req :settings :version)]
+  (let [version (-> req :settings :version)
+        tracking-allowed? (some-> req :cookies (get "cookie-consent-tracking-allowed") :value silent-parse-boolean)]
     [[:head
       [:meta {:charset "utf-8"}]
       [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
@@ -94,6 +104,11 @@
        [:script {:src (u/asset "/js/stats.js" version)}]
        [:script {:defer true :src (u/asset "/js/bulma-slider.min.js" version)}]
        [:script {:defer true :src (u/asset "/js/cookie-consent.js" version)}]
-       [:script {:defer true :src (u/asset "/js/main.js" version)}]]
+       [:script {:defer true :src (u/asset "/js/main.js" version)}]
+       (when tracking-allowed?
+         (list
+           [:noscript
+            [:img {:src "https://stats.cons.gr/ingress/b6fd35c4-497c-40b3-ae3b-1ec073719285/pixel.gif"}]]
+           [:script {:defer "true" :src "https://stats.cons.gr/ingress/b6fd35c4-497c-40b3-ae3b-1ec073719285/script.js"}]))]
       ]]))
 
