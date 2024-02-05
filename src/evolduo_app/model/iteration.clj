@@ -1,7 +1,7 @@
 (ns evolduo-app.model.iteration
   (:require [chickn.core :as chickn]
             [chickn.math :as cmath]
-            [chickn.operators :as chops]
+            [chickn.mutation :as mutant]
             [chickn.util :as util]
             [clojure.math :as math]
             [clojure.tools.logging :as log]
@@ -80,7 +80,7 @@
 
 ;; TODO put to separate ns
 
-(defmethod chops/->operator ::music-mutation [{:keys [::chops/rate ::chops/random-func] :as cfg}]
+(defmethod mutant/->mutation ::music-mutation [{:keys [::mutant/rate ::mutant/random-func] :as cfg}]
   (fn [_ pop]
     (mapv
       (fn [c]
@@ -98,30 +98,30 @@
   (let [fitness-fn  (fn [chromo]
                       (fitness/fitness evolution (fitness/maybe-fix evolution chromo)))
         cfg         #:chickn.core{:chromo-gen  #(music/random-track evolution) ;; TODO ?
-                                  :pop-size    (:population_size evolution)
-                                  :terminated? util/noop
+                                  :population-size    (:population_size evolution)
+                                  :solved? util/noop
                                   :monitor     util/noop
                                   :reporter    util/noop
                                   :fitness     fitness-fn
                                   :comparator  chickn/higher-is-better
-                                  :selector    #:chickn.selectors{:type        :chickn.selectors/tournament
-                                                                  :rate        0.3
-                                                                  :random-func rand
-                                                                  :tour-size   (int (* 0.75 (:population_size evolution)))
-                                                                  :duplicates? false}
-                                  :crossover   #:chickn.operators{:type         :chickn.operators/cut-crossover
+                                  :selector    #:chickn.selector{:type        :chickn.selector/tournament
+                                                                 :rate        0.3
+                                                                 :random-func rand
+                                                                 :tour-size   (int (* 0.75 (:population_size evolution)))
+                                                                 :duplicates? false}
+                                  :crossover   #:chickn.crossover{:type         :chickn.crossover/cut-crossover
                                                                   :rate         (float (/ (:crossover_rate evolution) 100.))
                                                                   :pointcuts    1
                                                                   :rand-nth     rand-nth
                                                                   :random-point cmath/rnd-index
                                                                   :random-func  rand}
-                                  :mutation    #:chickn.operators{:type        ::music-mutation
-                                                                  :rate        (float (/ (:mutation_rate evolution) 100.))
-                                                                  :random-func rand}
+                                  :mutation    #:chickn.mutation{:type        ::music-mutation
+                                                                 :rate        (float (/ (:mutation_rate evolution) 100.))
+                                                                 :random-func rand}
                                   :reinsertion #:chickn.reinsertion{:type :chickn.reinsertion/elitist
                                                                     :rate 0.1}}
         ]
-    (:pop (:genotype (chickn/evolve cfg {:pop chromosomes :iteration 0} 1)))))
+    (:chromosomes (:population (chickn/evolve cfg {:chromosomes chromosomes :iteration 0} 1)))))
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)

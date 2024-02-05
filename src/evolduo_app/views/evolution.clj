@@ -4,7 +4,7 @@
             [ring.middleware.anti-forgery :as anti-forgery]
             [evolduo-app.urls :as u]
             [evolduo-app.schemas :as s]
-            [clojure.contrib.humanize :as h]))
+            [clj-commons.humanize :as h]))
 
 (defn evolution-form [req {:keys [evolution errors] :as content}]
   (base-view

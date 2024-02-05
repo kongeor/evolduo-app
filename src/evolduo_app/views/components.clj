@@ -4,7 +4,7 @@
             [evolduo-app.music.midi :as midi]
             [evolduo-app.schemas :as s]
             [ring.middleware.anti-forgery :as anti-forgery]
-            [clojure.contrib.humanize :as h]
+            [clj-commons.humanize :as h]
             [evolduo-app.urls :as urls]))
 
 (defn select [name selected options]
