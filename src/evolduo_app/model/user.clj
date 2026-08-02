@@ -43,7 +43,7 @@
 
 (comment
   (let [db (:database.sql/connection integrant.repl.state/system)]
-    (create db "foo@example.com" "12345"))
+    (create db "foo@example.com" "12345" false))
   (let [db (:database.sql/connection integrant.repl.state/system)]
     (sql/update! db :users {:verified 1} {:email "foo@example.com"} ))
   (let [db (:database.sql/connection integrant.repl.state/system)]

@@ -1,4 +1,4 @@
-FROM eclipse-temurin:20-jdk
+FROM eclipse-temurin:26-jdk
 
 COPY target/evolduo* /evolduo/app.jar
 

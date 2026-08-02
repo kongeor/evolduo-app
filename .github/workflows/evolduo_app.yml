@@ -9,12 +9,12 @@ jobs:
 
     steps:
       - name: Checkout git repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7.0.1
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@10.0
+        uses: DeLaGuardo/setup-clojure@13.6.1
         with:
-          cli: 1.11.1.1189
+          cli: 1.12.5.1664
 
       - name: Run tests
         run: clojure -X:test

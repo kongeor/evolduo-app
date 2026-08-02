@@ -12,14 +12,14 @@ jobs:
 
     steps:
       - name: Checkout git repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@10.0
+        uses: DeLaGuardo/setup-clojure@13.6.1
         with:
-          cli: 1.11.1.1189
+          cli: 1.12.5.1664
 
       - name: Run tests
         run: clojure -X:test
@@ -28,12 +28,12 @@ jobs:
         run: clojure -T:build uber
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3.0.2
         with:
           files: target/*.jar
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v4.2.0
 
       - name: Publish to Registry
         uses: elgohr/Publish-Docker-Github-Action@v5

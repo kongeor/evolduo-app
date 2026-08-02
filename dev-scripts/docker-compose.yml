@@ -2,19 +2,16 @@ version: '3'
 
 services:
   database:
-    image: 'postgres:11.16'
+    image: 'postgres:15.18'
     container_name: evolduo_db
 
     ports:
-      - 5432:5432
+      - "5432:5432"
 
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-
-    volumes:
-      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      POSTGRES_USER: evolduo
+      POSTGRES_PASSWORD: evolduo
+      POSTGRES_DB: evolduo
 
   redis:
     image: "redis:5.0.14"
